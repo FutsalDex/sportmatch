@@ -14,7 +14,8 @@ import {
   ChevronDown,
   LogOut,
   ShieldCheck,
-  Settings
+  Settings,
+  CreditCard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -34,7 +35,7 @@ const navItems = [
   { icon: BarChart3, label: 'RANKING', href: '/rankings' },
   { icon: LayoutDashboard, label: 'DASHBOARD', href: '/dashboard' },
   { icon: Briefcase, label: 'SCOUTING', href: '/search' },
-  { icon: ShieldAlert, label: 'ADMIN', href: '/admin' },
+  { icon: CreditCard, label: 'PLANES', href: '/pricing' },
 ];
 
 export function TopNav() {
@@ -102,7 +103,10 @@ export function TopNav() {
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="rounded-2xl bg-[#111827] border-white/10 hover:bg-white/10 hover:text-white text-white h-10 px-6 gap-2 transition-colors">
+              <Button 
+                variant="outline" 
+                className="rounded-2xl bg-[#111827] border-white/10 text-white h-10 px-6 gap-2 transition-colors hover:bg-white/10 hover:text-white active:bg-white/10"
+              >
                 <User className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-widest">CUENTA</span>
               </Button>
