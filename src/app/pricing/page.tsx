@@ -7,7 +7,29 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, X, ShieldCheck, Zap, Star, Users, Award, Trophy, Target } from 'lucide-react';
+import { 
+  Check, 
+  X, 
+  ShieldCheck, 
+  Zap, 
+  Star, 
+  Users, 
+  Award, 
+  Trophy, 
+  Target,
+  Timer,
+  Presentation,
+  FileText,
+  User,
+  Search,
+  Scale,
+  Activity,
+  TrendingUp,
+  MessageCircle,
+  Play,
+  BarChart3,
+  Gavel
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -18,13 +40,13 @@ const PLAYER_PLANS = [
     price: "0 €",
     subtitle: "Siempre gratis",
     features: [
-      { text: "Crea tu perfil completo", included: true },
-      { text: "Explora perfiles con filtros", included: true },
-      { text: "Sigue a otros usuarios", included: true },
-      { text: "Filtro 'Perfiles Verificados'", included: false },
-      { text: "Valoraciones y reseñas", included: false },
-      { text: "Video de presentación", included: false },
-      { text: "Mensajes directos", included: false },
+      { text: "Crea tu perfil completo", included: true, icon: User },
+      { text: "Explora perfiles con filtros", included: true, icon: Search },
+      { text: "Sigue a otros usuarios", included: true, icon: Users },
+      { text: "Filtro 'Perfiles Verificados'", included: false, icon: ShieldCheck },
+      { text: "Valoraciones y reseñas", included: false, icon: Star },
+      { text: "Video de presentación", included: false, icon: Play },
+      { text: "Mensajes directos", included: false, icon: MessageCircle },
     ],
     buttonText: "COMENZAR GRATIS",
     highlight: false
@@ -36,12 +58,12 @@ const PLAYER_PLANS = [
     subtitle: "Jugador Profesional",
     badge: "VERIFICADO ✓",
     features: [
-      { text: "Todo lo del plan gratuito", included: true },
-      { text: "Badge de perfil verificado", included: true },
-      { text: "Aparecer en filtro exclusivo", included: true },
-      { text: "Valoraciones y reseñas", included: true },
-      { text: "Subir vídeo de presentación", included: true },
-      { text: "Mensajes directos ilimitados", included: true },
+      { text: "Todo lo del plan gratuito", included: true, icon: Check },
+      { text: "Badge de perfil verificado", included: true, icon: ShieldCheck },
+      { text: "Aparecer en filtro exclusivo", included: true, icon: Award },
+      { text: "Valoraciones y reseñas", included: true, icon: Star },
+      { text: "Subir vídeo de presentación", included: true, icon: Play },
+      { text: "Mensajes directos ilimitados", included: true, icon: MessageCircle },
     ],
     buttonText: "VERIFICAR POR 1 AÑO",
     highlight: true
@@ -52,12 +74,12 @@ const PLAYER_PLANS = [
     subtitle: "Proyección Profesional",
     badge: "ELITE PRO ✓",
     features: [
-      { text: "Todo lo del plan Verificado", included: true },
-      { text: "Análisis IA riesgo lesiones", included: true },
-      { text: "Comparador head-to-head", included: true },
-      { text: "Informe scouting PDF", included: true },
-      { text: "Posicionamiento prioritario", included: true },
-      { text: "Asesoría marca personal", included: true },
+      { text: "Todo lo del plan Verificado", included: true, icon: Check },
+      { text: "Análisis IA riesgo lesiones", included: true, icon: Activity },
+      { text: "Comparador head-to-head", included: true, icon: BarChart3 },
+      { text: "Informe scouting PDF", included: true, icon: FileText },
+      { text: "Posicionamiento prioritario", included: true, icon: TrendingUp },
+      { text: "Asesoría marca personal", included: true, icon: Award },
     ],
     buttonText: "SUSCRIBIRSE A ELITE",
     highlight: false,
@@ -71,12 +93,12 @@ const COACH_PLANS = [
     price: "0 €",
     subtitle: "Para empezar",
     features: [
-      { text: "Perfil de entrenador", included: true },
-      { text: "Búsqueda de jugadores", included: true },
-      { text: "Gestión de red básica", included: true },
-      { text: "Badge de verificación", included: false },
-      { text: "Publicación de metodología", included: false },
-      { text: "Mensajería directa", included: false },
+      { text: "Perfil de entrenador", included: true, icon: User },
+      { text: "Búsqueda de jugadores", included: true, icon: Target },
+      { text: "Gestión de red básica", included: true, icon: Users },
+      { text: "Badge de verificación", included: false, icon: ShieldCheck },
+      { text: "Publicación metodología", included: false, icon: Presentation },
+      { text: "Mensajería directa", included: false, icon: MessageCircle },
     ],
     buttonText: "COMENZAR GRATIS",
     highlight: false
@@ -87,12 +109,12 @@ const COACH_PLANS = [
     subtitle: "Entrenador Verificado",
     badge: "VERIFICADO ✓",
     features: [
-      { text: "Todo lo del plan gratuito", included: true },
-      { text: "Badge verificado", included: true },
-      { text: "Muestra tu metodología en vídeo", included: true },
-      { text: "Filtro exclusivo para clubes", included: true },
-      { text: "Mensajes ilimitados", included: true },
-      { text: "Gestión de plantilla básica", included: true },
+      { text: "Todo lo del plan gratuito", included: true, icon: Check },
+      { text: "Badge verificado", included: true, icon: ShieldCheck },
+      { text: "Metodología en vídeo", included: true, icon: Presentation },
+      { text: "Filtro exclusivo para clubes", included: true, icon: Award },
+      { text: "Mensajes ilimitados", included: true, icon: MessageCircle },
+      { text: "Gestión de sesiones", included: true, icon: Timer },
     ],
     buttonText: "VERIFICAR AHORA",
     highlight: true
@@ -103,12 +125,12 @@ const COACH_PLANS = [
     subtitle: "Liderazgo Táctico",
     badge: "MASTER ELITE ✓",
     features: [
-      { text: "Todo lo del plan Estrategia", included: true },
-      { text: "Análisis IA táctico avanzado", included: true },
-      { text: "Comparador metodologías", included: true },
-      { text: "Reportes de scouting equipo", included: true },
-      { text: "Acceso a vacantes premium", included: true },
-      { text: "Soporte legal deportivo", included: true },
+      { text: "Todo lo del plan Estrategia", included: true, icon: Check },
+      { text: "Análisis IA táctico", included: true, icon: Zap },
+      { text: "Comparador metodologías", included: true, icon: BarChart3 },
+      { text: "Reportes scouting equipo", included: true, icon: FileText },
+      { text: "Acceso vacantes premium", included: true, icon: Trophy },
+      { text: "Soporte legal deportivo", included: true, icon: Gavel },
     ],
     buttonText: "PLAN MAESTRÍA",
     highlight: false,
@@ -223,19 +245,31 @@ export default function PricingPage() {
 
               <CardContent className="p-10 pt-0 flex-1 flex flex-col relative z-10">
                 <div className="space-y-4 flex-1">
-                  {plan.features.map((feature, idx) => (
-                    <div key={idx} className={cn(
-                      "flex items-start gap-3 text-sm font-medium",
-                      !feature.included && "text-muted-foreground/40"
-                    )}>
-                      {feature.included ? (
-                        <Check className={cn("w-4 h-4 mt-0.5", plan.dark ? "text-white" : "text-primary")} />
-                      ) : (
-                        <X className="w-4 h-4 text-muted-foreground mt-0.5" />
-                      )}
-                      <span>{feature.text}</span>
-                    </div>
-                  ))}
+                  {plan.features.map((feature, idx) => {
+                    const FeatureIcon = feature.icon;
+                    return (
+                      <div key={idx} className={cn(
+                        "flex items-start gap-3 text-sm font-medium",
+                        !feature.included && "text-muted-foreground/40"
+                      )}>
+                        <div className={cn(
+                          "mt-0.5 p-1 rounded-md",
+                          feature.included 
+                            ? (plan.dark ? "bg-white/5" : "bg-primary/5") 
+                            : "opacity-20"
+                        )}>
+                          <FeatureIcon className={cn(
+                            "w-3.5 h-3.5", 
+                            feature.included 
+                              ? (plan.dark ? "text-white" : "text-primary") 
+                              : "text-muted-foreground"
+                          )} />
+                        </div>
+                        <span className="pt-0.5">{feature.text}</span>
+                        {feature.included && <Check className="w-3 h-3 ml-auto opacity-40" />}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <div className="pt-10">
