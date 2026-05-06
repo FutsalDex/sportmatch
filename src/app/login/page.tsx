@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -47,8 +46,8 @@ export default function LoginPage() {
             <ShieldCheck className="w-8 h-8 text-primary" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold font-headline tracking-tighter uppercase">Acceso Terminal</h1>
-            <p className="text-muted-foreground text-sm font-medium tracking-wide">Introduce tus credenciales de scout profesional.</p>
+            <h1 className="text-4xl font-bold font-headline tracking-tighter uppercase">Acceso a SportMatch</h1>
+            <p className="text-muted-foreground text-sm font-medium tracking-wide">Introduce tus credenciales</p>
           </div>
         </div>
         
