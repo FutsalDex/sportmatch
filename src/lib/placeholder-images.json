@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "player-1",
+      "description": "Football player in action",
+      "imageUrl": "https://picsum.photos/seed/sports1/600/400",
+      "imageHint": "football player"
+    },
+    {
+      "id": "coach-1",
+      "description": "Coach with whistle on field",
+      "imageUrl": "https://picsum.photos/seed/sports2/600/400",
+      "imageHint": "sports coach"
+    },
+    {
+      "id": "club-1",
+      "description": "Professional stadium",
+      "imageUrl": "https://picsum.photos/seed/sports3/600/400",
+      "imageHint": "stadium field"
+    },
+    {
+      "id": "futsal-1",
+      "description": "Futsal indoor court",
+      "imageUrl": "https://picsum.photos/seed/sports4/600/400",
+      "imageHint": "futsal court"
+    }
+  ]
 }
