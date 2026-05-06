@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -36,7 +37,6 @@ export default function OnboardingPage() {
     bio: '',
   });
 
-  // Watch for successful registration to move to step 2 and save initial user doc
   useEffect(() => {
     if (user && isRegistering && step === 1) {
       const userRef = doc(db, 'users', user.uid);
@@ -45,9 +45,9 @@ export default function OnboardingPage() {
         email: formData.email,
         name: formData.name,
         role: formData.role,
-        discipline: 'Football', // Default to be updated in step 2
+        discipline: 'Football',
         status: 'available',
-        score: 50,
+        score: 65,
         verificationStatus: 'none',
         province: '',
         level: 'Amateur',
@@ -66,7 +66,6 @@ export default function OnboardingPage() {
 
   const handleFinalize = () => {
     if (user) {
-      // Final Firestore updates
       const userRef = doc(db, 'users', user.uid);
       setDocumentNonBlocking(userRef, {
         discipline: formData.discipline,
@@ -82,14 +81,13 @@ export default function OnboardingPage() {
         videoUrls: [],
       }, { merge: true });
 
-      router.push('/search');
+      router.push('/dashboard');
     }
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-black p-6">
       <div className="max-w-md mx-auto w-full pt-12 space-y-8">
-        {/* Progress Tracker */}
         <div className="space-y-2">
           <div className="flex gap-1">
             {[1, 2, 3].map((s) => (

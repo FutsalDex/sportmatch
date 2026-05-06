@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Trophy, Home, BarChart3, LayoutDashboard, Briefcase, ShieldAlert, User, LogOut, ChevronDown } from 'lucide-react';
+import { Trophy, Home, BarChart3, LayoutDashboard, Briefcase, ShieldAlert, User, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useDiscipline } from '@/context/discipline-context';
@@ -17,8 +17,8 @@ import {
 const navItems = [
   { icon: Home, label: 'INICIO', href: '/' },
   { icon: BarChart3, label: 'RANKING', href: '/rankings' },
-  { icon: LayoutDashboard, label: 'PANEL', href: '/profile/me' },
-  { icon: Briefcase, label: 'OFERTAS', href: '/search' },
+  { icon: LayoutDashboard, label: 'DASHBOARD', href: '/dashboard' },
+  { icon: Briefcase, label: 'SCOUTING', href: '/search' },
   { icon: ShieldAlert, label: 'ADMIN', href: '/admin' },
 ];
 
@@ -32,7 +32,6 @@ export function TopNav() {
   return (
     <nav className="sticky top-0 z-50 w-full bg-[#111827]/80 backdrop-blur-xl border-b border-white/5 px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-16">
-        {/* Logo and Discipline Switcher */}
         <div className="flex items-center space-x-6">
           <Link href="/" className="flex items-center space-x-2 group">
             <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
@@ -58,7 +57,6 @@ export function TopNav() {
           )}
         </div>
 
-        {/* Navigation Links - Desktop */}
         <div className="hidden md:flex items-center space-x-8">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
@@ -78,11 +76,12 @@ export function TopNav() {
           })}
         </div>
 
-        {/* Profile Button */}
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 h-10 px-6 gap-2">
-            <User className="w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-widest">Cuenta</span>
+          <Button asChild variant="outline" className="rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 h-10 px-6 gap-2">
+            <Link href="/profile/me">
+              <User className="w-4 h-4" />
+              <span className="text-xs font-bold uppercase tracking-widest">Cuenta</span>
+            </Link>
           </Button>
         </div>
       </div>
