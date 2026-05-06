@@ -59,7 +59,7 @@ export default function LoginPage() {
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
                 type="email"
-                className="h-14 rounded-2xl bg-[#111827] border-white/5 pl-12 focus:ring-primary/50" 
+                className="h-14 rounded-2xl bg-[#030712] border-white/10 pl-12 focus:ring-primary/50 text-white placeholder:text-muted-foreground/30" 
                 placeholder="tu@email.com" 
                 value={email} 
                 onChange={e => setEmail(e.target.value)} 
@@ -73,7 +73,7 @@ export default function LoginPage() {
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
                 type={showPassword ? "text" : "password"}
-                className="h-14 rounded-2xl bg-[#111827] border-white/5 pl-12 pr-12 focus:ring-primary/50" 
+                className="h-14 rounded-2xl bg-[#030712] border-white/10 pl-12 pr-12 focus:ring-primary/50 text-white placeholder:text-muted-foreground/30" 
                 placeholder="••••••••" 
                 value={password} 
                 onChange={e => setPassword(e.target.value)} 

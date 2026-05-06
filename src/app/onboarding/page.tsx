@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -40,11 +39,9 @@ export default function OnboardingPage() {
     bio: '',
   });
 
-  // Usamos una referencia para evitar el bucle infinito al pulsar "Volver"
   const hasAutoRedirected = useRef(false);
 
   useEffect(() => {
-    // Solo auto-redireccionamos al paso 2 si el usuario entra ya logueado por primera vez
     if (user && step === 1 && !isProcessing && !hasAutoRedirected.current) {
       setStep(2);
       hasAutoRedirected.current = true;
@@ -75,7 +72,7 @@ export default function OnboardingPage() {
         level: 'Amateur',
       }, { merge: true });
       
-      hasAutoRedirected.current = true; // Marcamos como redireccionado para que el useEffect no interfiera al volver
+      hasAutoRedirected.current = true;
       setStep(2);
     } catch (error: any) {
       let message = "Error al crear la cuenta.";
@@ -110,7 +107,7 @@ export default function OnboardingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white p-6">
       <div className="max-w-md mx-auto w-full pt-12 space-y-10">
-        {/* Navigation Control - Estilo idéntico a la imagen */}
+        {/* Volver Navigation */}
         {step > 1 && !isProcessing && (
           <button 
             onClick={() => setStep(step - 1)}
@@ -146,7 +143,7 @@ export default function OnboardingPage() {
                 <div className="relative">
                   <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
-                    className="h-14 rounded-2xl bg-[#111827] border-white/5 pl-12 focus:ring-primary/50" 
+                    className="h-14 rounded-2xl bg-[#030712] border-white/10 pl-12 focus:ring-primary/50 text-white placeholder:text-muted-foreground/30" 
                     placeholder="Ej: Juan Pérez" 
                     value={formData.name} 
                     onChange={e => setFormData({...formData, name: e.target.value})} 
@@ -160,7 +157,7 @@ export default function OnboardingPage() {
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
                     type="email"
-                    className="h-14 rounded-2xl bg-[#111827] border-white/5 pl-12 focus:ring-primary/50" 
+                    className="h-14 rounded-2xl bg-[#030712] border-white/10 pl-12 focus:ring-primary/50 text-white placeholder:text-muted-foreground/30" 
                     placeholder="tu@email.com" 
                     value={formData.email} 
                     onChange={e => setFormData({...formData, email: e.target.value})} 
@@ -174,7 +171,7 @@ export default function OnboardingPage() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
                     type={showPassword ? "text" : "password"}
-                    className="h-14 rounded-2xl bg-[#111827] border-white/5 pl-12 pr-12 focus:ring-primary/50" 
+                    className="h-14 rounded-2xl bg-[#030712] border-white/10 pl-12 pr-12 focus:ring-primary/50 text-white placeholder:text-muted-foreground/30" 
                     placeholder="Mínimo 6 caracteres" 
                     value={formData.password} 
                     onChange={e => setFormData({...formData, password: e.target.value})} 
@@ -182,7 +179,7 @@ export default function OnboardingPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors focus:outline-none"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors focus:outline-none z-10"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -192,7 +189,7 @@ export default function OnboardingPage() {
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground">¿Cuál es tu rol?</Label>
                 <Select onValueChange={v => setFormData({...formData, role: v})}>
-                  <SelectTrigger className="h-14 rounded-2xl bg-[#111827] border-white/5">
+                  <SelectTrigger className="h-14 rounded-2xl bg-[#030712] border-white/10 text-white">
                     <SelectValue placeholder="Selecciona un rol" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#111827] border-white/10 text-white">
@@ -217,7 +214,7 @@ export default function OnboardingPage() {
         {step === 2 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="space-y-2">
-              <h1 className="text-5xl font-bold font-headline tracking-tighter">Tu Especialidad</h1>
+              <h1 className="text-5xl font-bold font-headline tracking-tighter uppercase">Tu Especialidad</h1>
               <p className="text-muted-foreground text-sm font-medium">Define tu disciplina y ubicación principal para el scouting.</p>
             </div>
             
@@ -225,7 +222,7 @@ export default function OnboardingPage() {
               <div className="space-y-3">
                 <Label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground">Disciplina</Label>
                 <Select onValueChange={v => setFormData({...formData, discipline: v})}>
-                  <SelectTrigger className="h-14 rounded-2xl bg-[#111827] border-white/5 text-white">
+                  <SelectTrigger className="h-14 rounded-2xl bg-[#030712] border-white/10 text-white">
                     <SelectValue placeholder="Selecciona disciplina" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#111827] border-white/10 text-white">
@@ -237,7 +234,7 @@ export default function OnboardingPage() {
               <div className="space-y-3">
                 <Label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground">Provincia</Label>
                 <Input 
-                  className="h-14 rounded-2xl bg-[#111827] border-white/5 focus:ring-primary/50 placeholder:text-muted-foreground/30 text-white" 
+                  className="h-14 rounded-2xl bg-[#030712] border-white/10 focus:ring-primary/50 placeholder:text-muted-foreground/30 text-white" 
                   placeholder="Ej: Madrid, Barcelona..." 
                   value={formData.province} 
                   onChange={e => setFormData({...formData, province: e.target.value})} 
@@ -246,7 +243,7 @@ export default function OnboardingPage() {
             </div>
             
             <Button 
-              className="w-full h-16 rounded-[2rem] text-sm font-black uppercase tracking-[0.2em] bg-primary text-background hover:bg-primary/90" 
+              className="w-full h-16 rounded-[2rem] text-sm font-black uppercase tracking-[0.2em] bg-primary text-background hover:bg-primary/90 shadow-[0_0_30px_rgba(234,179,8,0.2)]" 
               onClick={() => setStep(3)} 
               disabled={!formData.discipline || !formData.province}
             >
@@ -258,7 +255,7 @@ export default function OnboardingPage() {
         {step === 3 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold font-headline tracking-tighter">Perfil Detallado</h1>
+              <h1 className="text-4xl font-bold font-headline tracking-tighter uppercase">Perfil Detallado</h1>
               <p className="text-muted-foreground text-sm font-medium">Tu biografía será analizada por nuestra IA para destacar lo mejor de ti.</p>
             </div>
             
@@ -266,7 +263,7 @@ export default function OnboardingPage() {
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground">Biografía / Resumen de Carrera</Label>
                 <Textarea 
-                  className="min-h-[180px] rounded-[2rem] bg-[#111827] border-white/5 p-6 resize-none focus:ring-primary/50 text-lg" 
+                  className="min-h-[180px] rounded-[2rem] bg-[#030712] border-white/10 p-6 resize-none focus:ring-primary/50 text-lg text-white placeholder:text-muted-foreground/30" 
                   placeholder="Describe tus habilidades, trayectoria y lo que buscas..." 
                   value={formData.bio}
                   onChange={e => setFormData({...formData, bio: e.target.value})}
@@ -276,7 +273,7 @@ export default function OnboardingPage() {
             
             <Button 
               onClick={handleFinalize}
-              className="w-full h-16 rounded-[2rem] text-sm font-black uppercase tracking-[0.2em] bg-primary text-background hover:bg-primary/90"
+              className="w-full h-16 rounded-[2rem] text-sm font-black uppercase tracking-[0.2em] bg-primary text-background hover:bg-primary/90 shadow-[0_0_30px_rgba(234,179,8,0.2)]"
             >
               Finalizar Perfil <CheckCircle2 className="ml-2 w-5 h-5" />
             </Button>
