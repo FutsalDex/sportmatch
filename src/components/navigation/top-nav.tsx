@@ -27,10 +27,11 @@ export function TopNav() {
   const router = useRouter();
   const { discipline, setDiscipline } = useDiscipline();
 
-  if (pathname === '/') return null;
+  // Ocultamos el nav solo en el selector de disciplina inicial (sin deporte y en /)
+  if (pathname === '/' && !discipline) return null;
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-[#111827]/80 backdrop-blur-xl border-b border-white/5 px-6">
+    <nav className="sticky top-0 z-50 w-full bg-black/80 backdrop-blur-xl border-b border-white/5 px-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between h-16">
         <div className="flex items-center space-x-6">
           <Link href="/" className="flex items-center space-x-2 group">
