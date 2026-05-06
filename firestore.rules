@@ -1,0 +1,117 @@
+/**
+ * Core Philosophy:
+ * This ruleset implements a robust talent-discovery and professional matching security model. 
+ * It prioritizes discoverability for public profiles while strictly safeguarding sensitive contact 
+ * information through a "mutual match" authorization pattern.
+ *
+ * Data Structure:
+ * - /users/{userId}: Primary, lightweight searchable identity documents.
+ * - /userProfiles/{userId}: Rich biographical and media content.
+ * - /privateProfiles/{userId}: Protected contact data (phone, address).
+ * - /matches/{matchId}: Relational documents connecting two users.
+ *
+ * Key Security Decisions:
+ * - Public Discovery: Basic 'User' and 'UserProfile' data is readable by any authenticated user to facilitate search.
+ * - Restricted Contact: 'PrivateProfile' access is granted only to the document owner or users listed 
+ *   in a denormalized 'allowedReaders' map, updated upon a mutual match.
+ * - Ownership Consistency: For all user-centric collections, the system enforces that the document ID 
+ *   matches the authenticated user's UID for write operations.
+ *
+ * Denormalization for Authorization:
+ * - 'PrivateProfile' documents include an 'allowedReaders' map (UID -> boolean) to allow instant 
+ *   read authorization without cross-collection lookups.
+ * - 'Match' documents include a 'members' map (UID -> boolean) to authorize participants to read 
+ *   and update the status of their connection.
+ *
+ * Structural Segregation:
+ * Sensitive contact details are separated into 'privateProfiles' rather than being stored on the main 
+ * 'User' document. This allows broad search capabilities on the 'User' collection while maintaining 
+ * strict, attribute-level access control for contact info.
+ */
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- HELPER FUNCTIONS ---
+
+    /** @description Checks if the user is authenticated. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** @description Checks if the user's UID matches the provided ID. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** @description Checks if the user is the owner of an existing document. */
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    /** @description Checks if the user's UID is present in a members or allowedReaders map. */
+    function isMemberInMap(map) {
+      return isSignedIn() && map != null && map[request.auth.uid] == true;
+    }
+
+    // --- COLLECTION RULES ---
+
+    /**
+     * @description Publicly searchable user identities.
+     * @path /users/{userId}
+     * @allow Authenticated users to get/list; Owner to create/update/delete.
+     * @deny Unauthenticated read/write; Non-owner updates.
+     * @principle Path-based ownership for writes; public discovery for reads.
+     */
+    match /users/{userId} {
+      allow get, list: if isSignedIn();
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Detailed user biographical data and media.
+     * @path /userProfiles/{userId}
+     * @allow Authenticated users to get/list; Owner to create/update/delete.
+     * @deny Unauthenticated read/write; Non-owner updates.
+     * @principle Path-based ownership for writes; public discovery for reads.
+     */
+    match /userProfiles/{userId} {
+      allow get, list: if isSignedIn();
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Sensitive contact information shared via mutual matches.
+     * @path /privateProfiles/{userId}
+     * @allow Owner to read/write; Matched users to read (get only).
+     * @deny Public listing; Non-owner writes.
+     * @principle Authorization Independence via denormalized 'allowedReaders' map.
+     */
+    match /privateProfiles/{userId} {
+      allow get: if isOwner(userId) || isMemberInMap(resource.data.allowedReaders);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Mutual connection requests between users.
+     * @path /matches/{matchId}
+     * @allow Involved parties to read and update.
+     * @deny Non-participants; Unauthenticated users.
+     * @principle Shared access via denormalized 'members' map.
+     */
+    match /matches/{matchId} {
+      allow get, list: if isSignedIn() && (resource == null || isMemberInMap(resource.data.members));
+      allow create: if isSignedIn() && isMemberInMap(request.resource.data.members);
+      allow update: if isSignedIn() && isMemberInMap(resource.data.members) && isMemberInMap(request.resource.data.members);
+      allow delete: if isSignedIn() && isMemberInMap(resource.data.members);
+    }
+  }
+}

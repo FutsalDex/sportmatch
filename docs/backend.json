@@ -1,0 +1,223 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents basic user information, optimized for search and filtering queries. This entity holds frequently accessed, lightweight data.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's primary email address for identification. This is not used for storing authentication credentials.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The user's primary role within the SportMatch platform (e.g., 'Player', 'Coach', 'Club')."
+        },
+        "discipline": {
+          "type": "string",
+          "description": "The sport discipline the user is involved in (e.g., 'Fútbol', 'Fútbol Sala')."
+        },
+        "status": {
+          "type": "string",
+          "description": "The user's current availability status (e.g., 'available', 'unavailable', 'injured', 'retired')."
+        },
+        "score": {
+          "type": "number",
+          "description": "A calculated relevance score used for global ordering and ranking in search results."
+        },
+        "facetKey": {
+          "type": "string",
+          "description": "A key or tag used for optimized faceted search or filtering categories."
+        },
+        "province": {
+          "type": "string",
+          "description": "The geographic province or state where the user is primarily located."
+        },
+        "level": {
+          "type": "string",
+          "description": "The user's professional or skill level in their discipline (e.g., 'Amateur', 'Semi-Pro', 'Professional')."
+        },
+        "verificationStatus": {
+          "type": "string",
+          "description": "The status of the user's professional certification verification (e.g., 'pending', 'verified', 'rejected')."
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "role",
+        "discipline",
+        "status",
+        "score",
+        "verificationStatus"
+      ]
+    },
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Stores detailed biographical and media content for a user, loaded only when viewing a specific user's full profile. This entity holds richer, less frequently accessed data.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity, which is the same as the associated User's ID."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User entity to which this profile belongs. (Relationship: User 1:1 UserProfile)"
+        },
+        "bio": {
+          "type": "string",
+          "description": "A detailed biographical description or professional summary of the user."
+        },
+        "teamHistory": {
+          "type": "array",
+          "description": "A list of past teams, clubs, or organizations the user has been associated with, including relevant dates or roles.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "videoUrls": {
+          "type": "array",
+          "description": "A list of URLs pointing to video content (e.g., highlight reels, training footage, interviews).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "summary": {
+          "type": "string",
+          "description": "An AI-generated concise summary of the user's profile, intended for quick overview. This field is exempt from indexing."
+        },
+        "analysis": {
+          "type": "string",
+          "description": "An AI-generated detailed analysis of the user's profile, potentially containing structured text (e.g., JSON string) but stored as a single string. This field is exempt from indexing."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "bio"
+      ]
+    },
+    "PrivateProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PrivateProfile",
+      "type": "object",
+      "description": "Contains sensitive contact information for a user, accessible only after a 'match' request has been mutually accepted. This ensures privacy and controlled disclosure.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PrivateProfile entity, which is the same as the associated User's ID."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User entity to which this private profile belongs. (Relationship: User 1:1 PrivateProfile)"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The user's primary contact phone number."
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "description": "The user's WhatsApp contact number."
+        },
+        "emailContact": {
+          "type": "string",
+          "description": "An alternative email address for direct contact, if different from the user's login email.",
+          "format": "email"
+        },
+        "address": {
+          "type": "string",
+          "description": "The user's physical address or general location for contact purposes."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "phoneNumber",
+        "emailContact"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores basic, lightweight, and publicly searchable user information. This is the primary collection for talent search and filtering. Owned by the user, read by all authenticated users. No denormalized authorization fields needed as ownership is path-based and read is public for search.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique Firebase Authentication User ID (UID) of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/userProfiles/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores detailed, rich, but less frequently accessed user profile content (bio, team history, videos, AI summaries/analysis). Owned by the user, read by all authenticated users for viewing specific profiles. No denormalized authorization fields needed as ownership is path-based and read is public for viewing.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique Firebase Authentication User ID (UID) of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/privateProfiles/{userId}",
+        "definition": {
+          "entityName": "PrivateProfile",
+          "schema": {
+            "$ref": "#/backend/entities/PrivateProfile"
+          },
+          "description": "Stores sensitive contact information, accessible only by the owner and users who have mutually 'matched'. Includes a denormalized 'allowedReaders' map (e.g., `allowedReaders: { [otherUserId]: true }`) for authorization independence, allowing security rules to verify read access without `get()` calls. Only the owner can write.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique Firebase Authentication User ID (UID) of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/matches/{matchId}",
+        "definition": {
+          "entityName": "Match",
+          "schema": {
+            "$ref": "#/backend/entities/Match"
+          },
+          "description": "Tracks mutual connection requests between two users. This collection's updates trigger denormalization into `privateProfiles`. The `matchId` is typically a sorted concatenation of the two user IDs involved. Includes a denormalized `members` map (e.g., `members: { 'requesterId': true, 'recipientId': true }`) for authorization independence, allowing security rules to verify write/read access for involved parties without `get()` calls.",
+          "params": [
+            {
+              "name": "matchId",
+              "description": "A unique identifier for the match, ideally a sorted concatenation of the two user IDs involved (e.g., 'userA_userB')."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to rigorously adhere to the core principles of Authorization Independence, Structural Segregation, and Access Modeling, prioritizing security, scalability, and debuggability. \n\n**Authorization Independence (CRITICAL):**\n\n1.  **PrivateProfile Access:** For the highly sensitive `privateProfiles` collection, authorization is denormalized directly into each document. Each `privateProfiles/{userId}` document will contain an `allowedReaders` map (e.g., `allowedReaders: { 'otherUserId1': true, 'otherUserId2': true }`). This map lists the UIDs of users who have successfully 'matched' with the profile owner. Firebase Security Rules can then check `resource.data.allowedReaders[request.auth.uid]` without requiring any `get()` operations on a separate `matches` collection. This ensures atomic updates (e.g., when a match is accepted, both `privateProfiles` documents are updated transactionally) and prevents rule-breaking read dependencies.\n2.  **Match Ownership:** The `matches` collection, which tracks connection requests, will include a `members` map (e.g., `members: { 'requesterId': true, 'recipientId': true }`). This denormalized map allows security rules to instantly verify if `request.auth.uid` is involved in a specific match document without `get()` calls, enabling clear `allow write: if request.auth.uid in resource.data.members` type rules.\n\nThis denormalization strategy completely eliminates the need for `get()` calls within security rules, making them simpler, more robust, and easier to debug, while also facilitating atomic operations for sensitive data linkages.\n\n**QAPs (Rules are not Filters):**\n\n1.  **`/users` Collection:** This collection is explicitly designed for public talent search and filtering. Its security posture allows all authenticated users to read and list documents. The application's search queries (`where(discipline) -> where(role) -> where(status=\"available\") -> where(province?) -> orderBy(score, \"desc\")`) are canonical, and corresponding composite indexes are mandated. The rules for this collection will simply `allow read: if request.auth.uid != null;` (or even `if true;` for public unauthenticated access if desired), ensuring that the `list` operations always return the full, intended set of results as determined by the query, rather than relying on rules to filter the results.\n2.  **`/userProfiles` Collection:** This collection stores rich public profile data. It's intended for direct `get()` operations when a user views a specific profile. The security rule will permit `allow read: if request.auth.uid != null;`, again ensuring that `get()` requests for specific profiles are not filtered by rules. While it's publicly readable, its structure is optimized for direct access, not broad listing.\n3.  **`/privateProfiles` Collection:** This collection is highly restricted and *not* designed for listing. Access is granted via explicit authorization logic (the `allowedReaders` map) during a `get()` operation for individual documents, preventing unauthorized list scans. This aligns with the principle that sensitive data should not be discoverable via broad queries.\n4.  **`/matches` Collection:** This collection can be queried by `request.auth.uid` to list a user's *own* matches (e.g., `where('requesterId', '==', request.auth.uid)` or `where('recipientId', '==', request.auth.uid)`). Rules will ensure that only the involved parties can list their specific match documents, supporting QAPs for personal match listings. Denormalized `members` map helps here too."
+  }
+}
