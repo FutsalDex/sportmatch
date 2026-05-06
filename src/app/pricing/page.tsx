@@ -5,10 +5,10 @@ import { TopNav } from '@/components/navigation/top-nav';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, ShieldCheck, Zap, Star, Users } from 'lucide-react';
+import { Check, X, ShieldCheck, Zap, Star, Users, Award } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const PLANS = [
+const PLAYER_PLANS = [
   {
     name: "GRATUITO",
     price: "0 €",
@@ -43,19 +43,21 @@ const PLANS = [
     highlight: true
   },
   {
-    name: "CLUB",
-    price: "GRATIS",
-    subtitle: "Para organizaciones y clubes",
-    badge: "CLUB ✓",
+    name: "ELITE PRO",
+    price: "49,90 €",
+    subtitle: "Para proyección profesional",
+    badge: "ELITE PRO ✓",
     features: [
       { text: "Todo lo del plan Verificado", included: true },
-      { text: "Perfil de club u organización", included: true },
-      { text: "Mayor visibilidad en búsquedas", included: true },
-      { text: "Soporte prioritario 24/7", included: true },
-      { text: "Panel de gestión de cantera", included: true },
+      { text: "Análisis IA de riesgo de lesiones", included: true },
+      { text: "Comparador head-to-head", included: true },
+      { text: "Informe de scouting PDF", included: true },
+      { text: "Posicionamiento prioritario", included: true },
+      { text: "Asesoría de marca personal", included: true },
     ],
-    buttonText: "SOLICITAR INFORMACIÓN",
-    highlight: false
+    buttonText: "SUSCRIBIRSE A ELITE",
+    highlight: false,
+    dark: true
   }
 ];
 
@@ -67,33 +69,44 @@ export default function PricingPage() {
       <main className="max-w-7xl mx-auto px-6 py-20 space-y-20">
         {/* Header Section */}
         <header className="text-center space-y-6 max-w-3xl mx-auto">
+          <Badge className="bg-primary/10 text-primary border-primary/20 px-6 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+            Planes de Carrera: Jugador
+          </Badge>
           <h1 className="text-6xl md:text-7xl font-bold font-headline tracking-tighter leading-none">
-            Verificación <span className="text-primary italic">Anual</span>
+            Impulsa tu <span className="text-primary italic">Talento</span>
           </h1>
           <p className="text-muted-foreground text-lg font-medium leading-relaxed">
-            Pago único por 1 año de verificación. Sin renovación automática. <br />
-            Empieza gratis y verifica cuando quieras destacar en la red global.
+            Desde perfiles básicos hasta análisis de élite. <br />
+            Elige el nivel que mejor se adapte a tu fase de desarrollo actual.
           </p>
         </header>
 
         {/* Pricing Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {PLANS.map((plan, i) => (
+          {PLAYER_PLANS.map((plan, i) => (
             <Card 
               key={i} 
               className={cn(
                 "card-elite rounded-[3rem] border-white/5 flex flex-col transition-all duration-500 relative overflow-hidden",
-                plan.highlight && "border-primary/40 shadow-[0_0_60px_rgba(234,179,8,0.1)] scale-105 z-10"
+                plan.highlight && "border-primary/40 shadow-[0_0_60px_rgba(234,179,8,0.1)] scale-105 z-10",
+                plan.dark && "bg-[#090e1a] border-primary/20"
               )}
             >
               {plan.highlight && (
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
               )}
+
+              {plan.dark && (
+                <div className="absolute -top-12 -right-12 bg-primary/10 w-40 h-40 blur-[80px] rounded-full" />
+              )}
               
-              <CardHeader className="p-10 pb-6 text-center space-y-4">
+              <CardHeader className="p-10 pb-6 text-center space-y-4 relative z-10">
                 <div className="flex justify-center">
                   {plan.badge ? (
-                    <Badge className="bg-primary/20 text-primary border-none px-4 py-1 text-[10px] font-black tracking-widest uppercase">
+                    <Badge className={cn(
+                      "border-none px-4 py-1 text-[10px] font-black tracking-widest uppercase",
+                      plan.dark ? "bg-white/10 text-white" : "bg-primary/20 text-primary"
+                    )}>
                       {plan.badge}
                     </Badge>
                   ) : (
@@ -116,7 +129,7 @@ export default function PricingPage() {
                 </div>
               </CardHeader>
 
-              <CardContent className="p-10 pt-0 flex-1 flex flex-col">
+              <CardContent className="p-10 pt-0 flex-1 flex flex-col relative z-10">
                 <div className="space-y-4 flex-1">
                   {plan.features.map((feature, idx) => (
                     <div key={idx} className={cn(
@@ -124,7 +137,7 @@ export default function PricingPage() {
                       !feature.included && "text-muted-foreground/40"
                     )}>
                       {feature.included ? (
-                        <Check className="w-4 h-4 text-primary mt-0.5" />
+                        <Check className={cn("w-4 h-4 mt-0.5", plan.dark ? "text-white" : "text-primary")} />
                       ) : (
                         <X className="w-4 h-4 text-muted-foreground mt-0.5" />
                       )}
@@ -139,6 +152,8 @@ export default function PricingPage() {
                       "w-full h-16 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] transition-all",
                       plan.highlight 
                         ? "bg-primary text-background hover:bg-primary/90 shadow-[0_0_30px_rgba(234,179,8,0.2)]" 
+                        : plan.dark
+                        ? "bg-white text-black hover:bg-white/90"
                         : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
                     )}
                   >
@@ -153,14 +168,15 @@ export default function PricingPage() {
         {/* Footer info */}
         <footer className="text-center space-y-4 max-w-2xl mx-auto">
           <p className="text-[10px] text-muted-foreground font-medium leading-relaxed uppercase tracking-widest opacity-60">
-            Pago único · La verificación es válida durante 1 año desde la compra · No se renueva automáticamente. <br />
-            Impuestos incluidos. El precio final puede variar según tu país de residencia.
+            Precios para perfiles de Jugador · Facturación anual · Sin renovación automática. <br />
+            Para clubes o agencias, contactar con nuestro equipo de ventas.
           </p>
           <div className="flex justify-center gap-8 opacity-40">
              <ShieldCheck className="w-5 h-5" />
              <Zap className="w-5 h-5" />
              <Star className="w-5 h-5" />
              <Users className="w-5 h-5" />
+             <Award className="w-5 h-5" />
           </div>
         </footer>
       </main>
