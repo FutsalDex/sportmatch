@@ -3,15 +3,30 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Trophy, Home, BarChart3, LayoutDashboard, Briefcase, ShieldAlert, User, ChevronDown } from 'lucide-react';
+import { 
+  Trophy, 
+  Home, 
+  BarChart3, 
+  LayoutDashboard, 
+  Briefcase, 
+  ShieldAlert, 
+  User, 
+  ChevronDown,
+  LogOut,
+  ShieldCheck,
+  Settings
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useDiscipline } from '@/context/discipline-context';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
@@ -25,7 +40,14 @@ const navItems = [
 export function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const auth = useAuth();
+  const { user } = useUser();
   const { discipline, setDiscipline } = useDiscipline();
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    router.push('/');
+  };
 
   // Ocultamos el nav solo en el selector de disciplina inicial (sin deporte y en /)
   if (pathname === '/' && !discipline) return null;
@@ -50,9 +72,10 @@ export function TopNav() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-[#111827] border-[#1F2937] text-white">
-                <DropdownMenuItem onClick={() => setDiscipline('Football')}>Fútbol</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setDiscipline('Futsal')}>Fútbol Sala</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => { setDiscipline(null); router.push('/'); }} className="text-red-500">Cambiar Disciplina</DropdownMenuItem>
+                <DropdownMenuItem className="focus:bg-primary focus:text-background font-bold cursor-pointer" onClick={() => setDiscipline('Football')}>Fútbol</DropdownMenuItem>
+                <DropdownMenuItem className="focus:bg-primary focus:text-background font-bold cursor-pointer" onClick={() => setDiscipline('Futsal')}>Fútbol Sala</DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-white/5" />
+                <DropdownMenuItem onClick={() => { setDiscipline(null); router.push('/'); }} className="text-red-500 font-bold focus:bg-red-500 focus:text-white cursor-pointer">Cambiar Disciplina</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -78,12 +101,38 @@ export function TopNav() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button asChild variant="outline" className="rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 h-10 px-6 gap-2">
-            <Link href="/profile/me">
-              <User className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-widest">Cuenta</span>
-            </Link>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="rounded-2xl bg-[#111827] border-white/10 hover:bg-white/10 h-10 px-6 gap-2">
+                <User className="w-4 h-4" />
+                <span className="text-xs font-bold uppercase tracking-widest">Cuenta</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-[#1a212e] border-[#2d3748] rounded-2xl p-2 shadow-2xl">
+              <DropdownMenuItem asChild className="focus:bg-white/5 rounded-xl py-3 px-4 cursor-pointer">
+                <Link href="/profile/me" className="flex items-center gap-3">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-bold text-white">Identidad Admin</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="focus:bg-white/5 rounded-xl py-3 px-4 cursor-pointer">
+                <Link href="/dashboard" className="flex items-center gap-3">
+                  <ShieldCheck className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-bold text-white">Panel Control</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/10 my-1 mx-2" />
+              <DropdownMenuItem 
+                onClick={handleSignOut}
+                className="focus:bg-red-500/10 rounded-xl py-3 px-4 cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <LogOut className="w-4 h-4 text-[#e57373] group-hover:text-red-400" />
+                  <span className="text-sm font-bold text-[#e57373] group-hover:text-red-400">Cerrar Sesión</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </nav>
