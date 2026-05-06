@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Search, Filter, SlidersHorizontal, MapPin, ShieldCheck, Star } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, MapPin, ShieldCheck, Star, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { MOCK_USERS, User } from '@/lib/db-mock';
+import { MOCK_USERS } from '@/lib/db-mock';
+import { TopNav } from '@/components/navigation/top-nav';
 import Link from 'next/link';
 
 export default function SearchPage() {
@@ -30,96 +31,111 @@ export default function SearchPage() {
   }).sort((a, b) => b.score - a.score);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Search Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-border px-4 py-4 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input 
-            className="pl-10 h-12 bg-secondary/50 border-none rounded-xl"
-            placeholder="Buscar jugadores, entrenadores..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        
-        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="h-9 w-auto min-w-[100px] rounded-full bg-white border-border">
-              <SelectValue placeholder="Rol" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los Roles</SelectItem>
-              <SelectItem value="Player">Jugadores</SelectItem>
-              <SelectItem value="Coach">Entrenadores</SelectItem>
-              <SelectItem value="Club">Clubes</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={disciplineFilter} onValueChange={setDisciplineFilter}>
-            <SelectTrigger className="h-9 w-auto min-w-[110px] rounded-full bg-white border-border">
-              <SelectValue placeholder="Disciplina" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Disciplinas</SelectItem>
-              <SelectItem value="Football">Fútbol</SelectItem>
-              <SelectItem value="Futsal">Fútbol Sala</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button variant="outline" size="sm" className="h-9 rounded-full shrink-0">
-            <MapPin className="w-4 h-4 mr-1" /> Provincia
-          </Button>
-          <Button variant="outline" size="sm" className="h-9 rounded-full shrink-0">
-            <Filter className="w-4 h-4 mr-1" /> Filtros
-          </Button>
-        </div>
-      </header>
-
-      {/* Results List */}
-      <div className="px-4 py-6 space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            {filteredUsers.length} Talentos encontrados
-          </h2>
-          <div className="flex items-center text-xs text-primary font-medium">
-            <SlidersHorizontal className="w-3 h-3 mr-1" /> Ordenar por Score
+    <div className="flex flex-col min-h-screen bg-[#030712] text-white">
+      <TopNav />
+      
+      {/* Search Header Section */}
+      <div className="w-full bg-[#030712] pt-8 px-6 space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Main Search Bar */}
+          <div className="relative group">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary transition-colors" />
+            <Input 
+              className="w-full h-16 pl-14 bg-[#374151]/50 border-none rounded-full text-lg placeholder:text-muted-foreground/50 focus-visible:ring-1 focus-visible:ring-primary/50"
+              placeholder="Buscar jugadores, entrenadores..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
+          
+          {/* Quick Filters - Pill Style */}
+          <div className="flex flex-wrap gap-3 pb-2">
+            <div className="flex items-center gap-2">
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="h-10 w-32 rounded-full bg-white text-black border-none font-bold">
+                  <SelectValue placeholder="Rol" />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-black border-none">
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="Player">Jugadores</SelectItem>
+                  <SelectItem value="Coach">Entrenadores</SelectItem>
+                  <SelectItem value="Club">Clubes</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={disciplineFilter} onValueChange={setDisciplineFilter}>
+                <SelectTrigger className="h-10 w-32 rounded-full bg-white text-black border-none font-bold">
+                  <SelectValue placeholder="Disciplina" />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-black border-none">
+                  <SelectItem value="all">Disciplinas</SelectItem>
+                  <SelectItem value="Football">Fútbol</SelectItem>
+                  <SelectItem value="Futsal">Futsal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button variant="outline" className="h-10 rounded-full bg-black border-white/20 text-white font-bold px-6 gap-2">
+              <MapPin className="w-4 h-4" /> Provincia
+            </Button>
+            
+            <Button variant="outline" className="h-10 rounded-full bg-black border-white/20 text-white font-bold px-6 gap-2">
+              <Filter className="w-4 h-4" /> Filtros
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Results Section */}
+      <main className="max-w-7xl mx-auto w-full px-6 py-8 space-y-6">
+        <div className="flex justify-between items-center border-b border-white/5 pb-4">
+          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
+            {filteredUsers.length} TALENTOS ENCONTRADOS
+          </h2>
+          <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 text-xs font-black uppercase tracking-widest gap-2">
+            <SlidersHorizontal className="w-4 h-4" /> Ordenar por Score
+          </Button>
         </div>
 
         <div className="grid gap-4">
           {filteredUsers.map((user) => (
             <Link key={user.id} href={`/profile/${user.id}`}>
-              <Card className="overflow-hidden border-border hover:border-primary/50 transition-all active:scale-[0.98]">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
+              <Card className="card-elite rounded-[2.5rem] hover:border-primary/40 transition-all duration-300 group">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-6">
+                    {/* Avatar with Verification */}
                     <div className="relative">
-                      <Avatar className="w-16 h-16 rounded-xl">
-                        <AvatarImage src={user.avatarUrl} />
-                        <AvatarFallback>{user.name.substring(0, 2)}</AvatarFallback>
+                      <Avatar className="w-20 h-20 rounded-2xl border-2 border-white/5 group-hover:border-primary/20 transition-colors">
+                        <AvatarImage src={user.avatarUrl} className="object-cover" />
+                        <AvatarFallback className="bg-[#1F2937] text-xl font-bold">{user.name.substring(0, 2)}</AvatarFallback>
                       </Avatar>
                       {user.verificationStatus === 'verified' && (
-                        <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
-                          <ShieldCheck className="w-5 h-5 text-primary fill-primary/10" />
+                        <div className="absolute -bottom-1 -right-1 bg-[#030712] rounded-full p-1 shadow-xl">
+                          <ShieldCheck className="w-6 h-6 text-primary fill-primary/10" />
                         </div>
                       )}
                     </div>
                     
-                    <div className="flex-1 space-y-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-bold text-lg leading-none">{user.name}</h3>
-                          <p className="text-sm text-muted-foreground mt-1 font-medium">{user.role} • {user.discipline}</p>
-                        </div>
-                        <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10">
-                          <Star className="w-3 h-3 mr-1 fill-primary" /> {user.score}
-                        </Badge>
-                      </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <h3 className="text-xl font-bold font-headline group-hover:text-primary transition-colors">{user.name}</h3>
+                      <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">{user.role} • {user.discipline}</p>
                       
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1">
-                        <span className="flex items-center"><MapPin className="w-3 h-3 mr-1" /> {user.province}</span>
-                        <span className="flex items-center font-semibold text-primary/80">{user.level}</span>
+                      <div className="flex items-center gap-4 text-xs pt-1">
+                        <div className="flex items-center text-muted-foreground">
+                          <MapPin className="w-3.5 h-3.5 mr-1.5" /> {user.province}
+                        </div>
+                        <div className="font-bold text-primary uppercase tracking-tighter">
+                          {user.level}
+                        </div>
                       </div>
+                    </div>
+
+                    {/* Score Badge */}
+                    <div className="flex flex-col items-end">
+                      <Badge className="h-10 px-4 rounded-full bg-primary text-background font-black text-sm flex gap-1.5 border-none shadow-[0_0_20px_rgba(234,179,8,0.2)]">
+                        <Star className="w-4 h-4 fill-current" /> {user.score}
+                      </Badge>
                     </div>
                   </div>
                 </CardContent>
@@ -127,7 +143,7 @@ export default function SearchPage() {
             </Link>
           ))}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
