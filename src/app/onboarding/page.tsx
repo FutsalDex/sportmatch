@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +13,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowRight, CheckCircle2, UserCircle, Lock, Mail, ChevronLeft } from 'lucide-react';
+import { ArrowRight, CheckCircle2, UserCircle, Lock, Mail, ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -28,6 +29,7 @@ export default function OnboardingPage() {
   
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -38,10 +40,14 @@ export default function OnboardingPage() {
     bio: '',
   });
 
+  // Usamos una referencia para evitar el bucle infinito al pulsar "Volver"
+  const hasAutoRedirected = useRef(false);
+
   useEffect(() => {
-    // Si el usuario ya está autenticado, saltamos el paso de registro
-    if (user && step === 1 && !isProcessing) {
+    // Solo auto-redireccionamos al paso 2 si el usuario entra ya logueado por primera vez
+    if (user && step === 1 && !isProcessing && !hasAutoRedirected.current) {
       setStep(2);
+      hasAutoRedirected.current = true;
     }
   }, [user, step, isProcessing]);
 
@@ -69,6 +75,7 @@ export default function OnboardingPage() {
         level: 'Amateur',
       }, { merge: true });
       
+      hasAutoRedirected.current = true; // Marcamos como redireccionado para que el useEffect no interfiera al volver
       setStep(2);
     } catch (error: any) {
       let message = "Error al crear la cuenta.";
@@ -103,13 +110,13 @@ export default function OnboardingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white p-6">
       <div className="max-w-md mx-auto w-full pt-12 space-y-10">
-        {/* Navigation Control */}
+        {/* Navigation Control - Estilo idéntico a la imagen */}
         {step > 1 && !isProcessing && (
           <button 
             onClick={() => setStep(step - 1)}
-            className="flex items-center text-muted-foreground hover:text-primary transition-colors text-xs font-bold uppercase tracking-widest gap-2"
+            className="flex items-center text-primary hover:text-primary/80 transition-colors text-[10px] font-black uppercase tracking-[0.2em] gap-1 group"
           >
-            <ChevronLeft className="w-4 h-4" /> Volver
+            <ChevronLeft className="w-4 h-4" /> VOLVER
           </button>
         )}
 
@@ -119,7 +126,7 @@ export default function OnboardingPage() {
             {[1, 2, 3].map((s) => (
               <div 
                 key={s} 
-                className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= s ? 'bg-primary' : 'bg-white/10'}`} 
+                className={`h-2 flex-1 rounded-full transition-all duration-500 ${step >= s ? 'bg-primary' : 'bg-white/10'}`} 
               />
             ))}
           </div>
@@ -129,7 +136,7 @@ export default function OnboardingPage() {
         {step === 1 && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold font-headline tracking-tighter">Crea tu Identidad</h1>
+              <h1 className="text-4xl font-bold font-headline tracking-tighter uppercase">Crea tu Identidad</h1>
               <p className="text-muted-foreground text-sm font-medium">Regístrate en la terminal de scouting para comenzar.</p>
             </div>
             
@@ -166,12 +173,19 @@ export default function OnboardingPage() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input 
-                    type="password"
-                    className="h-14 rounded-2xl bg-[#111827] border-white/5 pl-12 focus:ring-primary/50" 
+                    type={showPassword ? "text" : "password"}
+                    className="h-14 rounded-2xl bg-[#111827] border-white/5 pl-12 pr-12 focus:ring-primary/50" 
                     placeholder="Mínimo 6 caracteres" 
                     value={formData.password} 
                     onChange={e => setFormData({...formData, password: e.target.value})} 
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
               </div>
 
@@ -211,7 +225,7 @@ export default function OnboardingPage() {
               <div className="space-y-3">
                 <Label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground">Disciplina</Label>
                 <Select onValueChange={v => setFormData({...formData, discipline: v})}>
-                  <SelectTrigger className="h-14 rounded-2xl bg-[#111827] border-white/5 text-muted-foreground">
+                  <SelectTrigger className="h-14 rounded-2xl bg-[#111827] border-white/5 text-white">
                     <SelectValue placeholder="Selecciona disciplina" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#111827] border-white/10 text-white">
@@ -223,7 +237,7 @@ export default function OnboardingPage() {
               <div className="space-y-3">
                 <Label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground">Provincia</Label>
                 <Input 
-                  className="h-14 rounded-2xl bg-[#111827] border-white/5 focus:ring-primary/50 placeholder:text-muted-foreground/30" 
+                  className="h-14 rounded-2xl bg-[#111827] border-white/5 focus:ring-primary/50 placeholder:text-muted-foreground/30 text-white" 
                   placeholder="Ej: Madrid, Barcelona..." 
                   value={formData.province} 
                   onChange={e => setFormData({...formData, province: e.target.value})} 
