@@ -105,14 +105,14 @@ export function TopNav() {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="rounded-2xl bg-[#111827] border-white/10 hover:bg-white/10 h-10 px-6 gap-2">
                 <User className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-widest">Cuenta</span>
+                <span className="text-xs font-bold uppercase tracking-widest">CUENTA</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#1a212e] border-[#2d3748] rounded-2xl p-2 shadow-2xl">
               <DropdownMenuItem asChild className="focus:bg-white/5 rounded-xl py-3 px-4 cursor-pointer">
                 <Link href="/profile/me" className="flex items-center gap-3">
                   <User className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-bold text-white">Identidad Admin</span>
+                  <span className="text-sm font-bold text-white">Ver Perfil</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="focus:bg-white/5 rounded-xl py-3 px-4 cursor-pointer">
