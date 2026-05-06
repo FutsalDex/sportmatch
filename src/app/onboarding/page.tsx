@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -13,7 +12,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowRight, CheckCircle2, UserCircle, Lock, Mail } from 'lucide-react';
+import { ArrowRight, CheckCircle2, UserCircle, Lock, Mail, ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -40,7 +39,7 @@ export default function OnboardingPage() {
   });
 
   useEffect(() => {
-    // Si el usuario ya está autenticado en el paso 1, saltamos al 2
+    // Si el usuario ya está autenticado, saltamos el paso de registro
     if (user && step === 1 && !isProcessing) {
       setStep(2);
     }
@@ -104,6 +103,16 @@ export default function OnboardingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white p-6">
       <div className="max-w-md mx-auto w-full pt-12 space-y-10">
+        {/* Navigation Control */}
+        {step > 1 && !isProcessing && (
+          <button 
+            onClick={() => setStep(step - 1)}
+            className="flex items-center text-muted-foreground hover:text-primary transition-colors text-xs font-bold uppercase tracking-widest gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" /> Volver
+          </button>
+        )}
+
         {/* Progress Bars */}
         <div className="space-y-4">
           <div className="flex gap-2">
