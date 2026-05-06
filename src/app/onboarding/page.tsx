@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowRight, CheckCircle2, UserCircle, Lock, Mail, AlertCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
@@ -22,6 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const auth = useAuth();
   const db = useFirestore();
   const { user } = useUser();
@@ -39,6 +40,14 @@ export default function OnboardingPage() {
     province: '',
     bio: '',
   });
+
+  useEffect(() => {
+    // Detectar si venimos de "Acceso cuenta"
+    const mode = searchParams.get('mode');
+    if (mode === 'login') {
+      setIsLoginMode(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     // Si el usuario ya está autenticado y no está en proceso de registro/login, saltar a paso 2

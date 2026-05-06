@@ -108,8 +108,8 @@ export default function Home() {
             <Button asChild className="h-16 px-10 rounded-2xl bg-primary text-background font-black text-lg uppercase tracking-widest hover:bg-primary/90 shadow-[0_0_40px_rgba(234,179,8,0.3)]">
               <Link href="/onboarding">Crear cuenta</Link>
             </Button>
-            <Button variant="outline" onClick={() => setDiscipline(null)} className="h-16 px-10 rounded-2xl border-white/10 bg-white/5 font-black text-lg uppercase tracking-widest hover:bg-white/10">
-              Cambiar Deporte
+            <Button asChild variant="outline" className="h-16 px-10 rounded-2xl border-white/10 bg-white/5 font-black text-lg uppercase tracking-widest hover:bg-white/10">
+              <Link href="/onboarding?mode=login">Acceso cuenta</Link>
             </Button>
           </div>
 
