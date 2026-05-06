@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useUser, useFirestore, useDoc } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { TopNav } from '@/components/navigation/top-nav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +25,13 @@ import Link from 'next/link';
 export default function DashboardPage() {
   const { user } = useUser();
   const db = useFirestore();
-  const { data: userData, isLoading } = useDoc(user ? doc(db, 'users', user.uid) : null);
+
+  // Memorizamos la referencia del documento para evitar bucles infinitos de renderizado
+  const userDocRef = useMemoFirebase(() => {
+    return user ? doc(db, 'users', user.uid) : null;
+  }, [db, user?.uid]);
+
+  const { data: userData, isLoading } = useDoc(userDocRef);
 
   if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-primary font-bold animate-pulse uppercase tracking-[0.3em]">Cargando Terminal de Inteligencia...</div>;
 
