@@ -19,7 +19,6 @@ export default function Home() {
     setDiscipline(d);
   };
 
-  // Si no hay disciplina seleccionada, mostramos el selector inicial
   if (!discipline) {
     return (
       <div className="flex flex-col min-h-screen bg-black text-white items-center justify-center p-6">
@@ -80,15 +79,12 @@ export default function Home() {
     );
   }
 
-  // Página principal una vez seleccionada la disciplina
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       <TopNav />
       
       <main className="flex-1 flex flex-col">
-        {/* Hero Section */}
         <section className="relative pt-24 pb-32 px-6 flex flex-col items-center text-center space-y-10 overflow-hidden">
-          {/* Glow effect background */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 blur-[120px] -z-10 rounded-full" />
           
           <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 rounded-full px-4 py-1.5 gap-2 uppercase font-black text-[10px] tracking-widest">
@@ -109,11 +105,10 @@ export default function Home() {
               <Link href="/onboarding">Crear cuenta</Link>
             </Button>
             <Button asChild variant="outline" className="h-16 px-10 rounded-2xl border-white/10 bg-white/5 font-black text-lg uppercase tracking-widest hover:bg-white/10">
-              <Link href="/onboarding?mode=login">Acceso cuenta</Link>
+              <Link href="/login">Acceso cuenta</Link>
             </Button>
           </div>
 
-          {/* Social Proof */}
           <div className="flex items-center gap-3 pt-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <div className="flex -space-x-3">
               {['MR', 'SG', 'NV'].map((init, i) => (
@@ -128,7 +123,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Stats Bar */}
         <section className="bg-[#111827]/30 border-y border-white/5 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-center gap-12 md:gap-24">
             <div className="flex items-center gap-3">
@@ -151,17 +145,15 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Role Cards Section */}
         <section className="max-w-7xl mx-auto w-full px-6 py-24">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card role="Jugadores" description="Crea tu perfil de fútbol, muestra tus estadísticas y encuentra el equipo ideal." />
-            <Card role="Entrenadores" description="Muestra tu metodología y filosofía. Recibe ofertas de clubes que buscan tu liderazgo táctico." />
-            <Card role="Clubes" description="Gestiona tus proyectos, publica vacantes y utiliza IA para encontrar el talento perfecto." />
+            <RoleCard role="Jugadores" description="Crea tu perfil de fútbol, muestra tus estadísticas y encuentra el equipo ideal." />
+            <RoleCard role="Entrenadores" description="Muestra tu metodología y filosofía. Recibe ofertas de clubes que buscan tu liderazgo táctico." />
+            <RoleCard role="Clubes" description="Gestiona tus proyectos, publica vacantes y utiliza IA para encontrar el talento perfecto." />
           </div>
         </section>
       </main>
 
-      {/* Footer minimalista */}
       <footer className="py-12 px-6 border-t border-white/5 text-center">
         <p className="text-muted-foreground text-xs font-medium uppercase tracking-[0.3em]">SportMatch – Elite Scouting Terminal</p>
       </footer>
@@ -169,7 +161,7 @@ export default function Home() {
   );
 }
 
-function Card({ role, description }: { role: string; description: string }) {
+function RoleCard({ role, description }: { role: string; description: string }) {
   return (
     <div className="group p-10 bg-[#111827] border border-[#1F2937] rounded-[2.5rem] space-y-6 hover:border-primary/30 transition-all duration-500 relative overflow-hidden">
       <div className="space-y-4 relative z-10">
@@ -179,8 +171,6 @@ function Card({ role, description }: { role: string; description: string }) {
         </p>
       </div>
       <div className="h-1 w-12 bg-white/10 group-hover:bg-primary transition-colors duration-500 rounded-full" />
-      
-      {/* Decorative gradient */}
       <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-primary/5 blur-3xl rounded-full group-hover:bg-primary/10 transition-colors" />
     </div>
   );
