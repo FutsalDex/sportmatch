@@ -49,7 +49,6 @@ export function TopNav() {
     router.push('/');
   };
 
-  // Ocultamos el nav solo en el selector de disciplina inicial (sin deporte y en /)
   if (pathname === '/' && !discipline) return null;
 
   return (
@@ -66,7 +65,7 @@ export function TopNav() {
           {discipline && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 rounded-full bg-white/5 border border-white/10 px-4 text-[10px] font-black uppercase tracking-widest gap-2 text-primary hover:bg-white/10">
+                <Button variant="ghost" className="h-8 rounded-full bg-white/5 border border-white/10 px-4 text-[10px] font-black uppercase tracking-widest gap-2 text-primary hover:bg-white/10 hover:text-primary">
                   {discipline === 'Football' ? 'Fútbol' : 'Fútbol Sala'}
                   <ChevronDown className="w-3 h-3" />
                 </Button>
@@ -103,7 +102,7 @@ export function TopNav() {
         <div className="flex items-center gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="rounded-2xl bg-[#111827] border-white/10 hover:bg-white/10 h-10 px-6 gap-2">
+              <Button variant="outline" className="rounded-2xl bg-[#111827] border-white/10 hover:bg-white/10 hover:text-white text-white h-10 px-6 gap-2 transition-colors">
                 <User className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-widest">CUENTA</span>
               </Button>
