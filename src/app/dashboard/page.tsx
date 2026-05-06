@@ -3,8 +3,9 @@
 
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { TopNav } from '@/components/navigation/top-nav';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Zap, 
   TrendingUp, 
@@ -18,7 +19,7 @@ import {
 } from 'lucide-react';
 import { doc } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -26,7 +27,7 @@ export default function DashboardPage() {
   const db = useFirestore();
   const { data: userData, isLoading } = useDoc(user ? doc(db, 'users', user.uid) : null);
 
-  if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-primary font-bold animate-pulse">CARGANDO TERMINAL...</div>;
+  if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-primary font-bold animate-pulse uppercase tracking-[0.3em]">Cargando Terminal de Inteligencia...</div>;
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
@@ -114,7 +115,7 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Sección de Pipeline / Kanban (Simulado para Clubes o Interesados) */}
+        {/* Sección de Pipeline / Kanban */}
         <section className="space-y-6">
           <div className="flex items-center justify-between border-b border-white/5 pb-4">
             <h2 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center">
@@ -177,7 +178,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Columna 3: Pre-Seleccionados / Match */}
+            {/* Columna 3: Finalistas */}
             <div className="space-y-4">
               <div className="flex items-center justify-between px-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Finalistas (0)</span>
