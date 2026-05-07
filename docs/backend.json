@@ -63,7 +63,10 @@
         },
         "profileImageUrl": {
           "type": "string"
-        }
+        },
+        "instagram": { "type": "string" },
+        "tiktok": { "type": "string" },
+        "twitter": { "type": "string" }
       },
       "required": [
         "id",
@@ -95,8 +98,9 @@
         "id": { "type": "string" },
         "userId": { "type": "string" },
         "bio": { "type": "string" },
-        "teamHistory": { "type": "array", "items": { "type": "string" } },
+        "teamHistory": { "type": "array", "items": { "type": "object" } },
         "videoUrls": { "type": "array", "items": { "type": "string" } },
+        "socialVideoUrls": { "type": "array", "items": { "type": "string" } },
         "height": { "type": "number" },
         "weight": { "type": "number" },
         "strongFoot": { "type": "string" },
@@ -105,21 +109,6 @@
         "analysis": { "type": "string" }
       },
       "required": ["id", "userId", "bio"]
-    },
-    "PrivateProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "PrivateProfile",
-      "type": "object",
-      "description": "Sensitive contact information.",
-      "properties": {
-        "id": { "type": "string" },
-        "userId": { "type": "string" },
-        "phoneNumber": { "type": "string" },
-        "whatsappNumber": { "type": "string" },
-        "emailContact": { "type": "string", "format": "email" },
-        "address": { "type": "string" }
-      },
-      "required": ["id", "userId", "phoneNumber", "emailContact"]
     }
   },
   "auth": {
@@ -133,14 +122,6 @@
           "entityName": "User",
           "schema": { "$ref": "#/backend/entities/User" },
           "description": "Publicly searchable user identities."
-        }
-      },
-      {
-        "path": "/recursos/espana/provincias/{provinceId}",
-        "definition": {
-          "entityName": "Province",
-          "schema": { "$ref": "#/backend/entities/Province" },
-          "description": "Normalized list of Spanish provinces for profile consistency."
         }
       },
       {
