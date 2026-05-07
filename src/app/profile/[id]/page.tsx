@@ -102,13 +102,13 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
       <main className="max-w-5xl mx-auto w-full px-6 space-y-12 -mt-10 relative z-10">
         
-        {/* Sección del "Book" de Fotos */}
+        {/* Sección del "Book" de Fotos con bloqueo visual */}
         <section className="space-y-4">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center">
               <Star className="w-4 h-4 mr-2 text-primary" /> Book de Jugador
             </h2>
-            {!isElite && <Badge className="bg-white/5 text-muted-foreground text-[8px] border-white/10 uppercase">Solo Verificados</Badge>}
+            {!isElite && <Badge className="bg-white/5 text-muted-foreground text-[8px] border-white/10 uppercase">Solo Perfiles Pro</Badge>}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -123,7 +123,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                     !isElite && "blur-xl opacity-40 scale-110",
                     isElite && "group-hover:scale-105"
                   )}
-                  data-ai-hint="football action"
+                  data-ai-hint="football player"
                 />
                 {!isElite && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm p-6 text-center">
@@ -138,7 +138,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </section>
 
-        {/* Datos Técnicos y Físicos */}
+        {/* Ficha Física: Datos Técnicos */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="card-elite rounded-[2rem] bg-[#111827]/60">
             <CardContent className="p-6 flex flex-col items-center justify-center space-y-2">
@@ -170,7 +170,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           </Card>
         </section>
 
-        {/* Tabs de Contenido Detallado */}
+        {/* Tabs Técnicos: Ficha, Trayectoria e IA Analytics */}
         <Tabs defaultValue="stats" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-[#111827] border border-white/5 rounded-2xl h-16 p-1.5">
             <TabsTrigger value="stats" className="rounded-xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-background">Ficha Técnica</TabsTrigger>
@@ -253,16 +253,21 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           </TabsContent>
 
           <TabsContent value="ai" className="mt-8 space-y-6">
-            <div className="p-10 bg-primary rounded-[3rem] text-background shadow-[0_0_60px_rgba(234,179,8,0.2)] relative overflow-hidden group">
+            <div className={cn(
+              "p-10 rounded-[3rem] text-background shadow-[0_0_60px_rgba(234,179,8,0.2)] relative overflow-hidden group transition-all",
+              isElite ? "bg-primary" : "bg-slate-800 text-white"
+            )}>
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 blur-3xl rounded-full" />
               
               <div className="space-y-6 relative z-10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Zap className="w-8 h-8 fill-background" />
+                    <Zap className={cn("w-8 h-8 fill-current", isElite ? "text-background" : "text-primary")} />
                     <h3 className="text-2xl font-black font-headline tracking-tighter uppercase italic">Análisis IA SportMatch</h3>
                   </div>
-                  <Badge className="bg-background text-primary border-none font-black text-[10px] tracking-widest">POTENCIAL ELITE</Badge>
+                  <Badge className={cn("border-none font-black text-[10px] tracking-widest", isElite ? "bg-background text-primary" : "bg-primary text-background")}>
+                    {isElite ? "POTENCIAL ELITE" : "ANÁLISIS EN CURSO"}
+                  </Badge>
                 </div>
                 
                 <p className="text-xl font-bold leading-tight italic">
@@ -270,35 +275,22 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                  <div className="bg-background/10 backdrop-blur-md p-6 rounded-3xl space-y-2 border border-white/5">
+                  <div className="bg-white/10 backdrop-blur-md p-6 rounded-3xl space-y-2 border border-white/5">
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Probabilidad de Fichaje</span>
                     <div className="flex items-end gap-2">
                       <span className="text-4xl font-black leading-none">82%</span>
                       <TrendingUp className="w-5 h-5 mb-1" />
                     </div>
                   </div>
-                  <div className="bg-background/10 backdrop-blur-md p-6 rounded-3xl space-y-2 border border-white/5">
+                  <div className="bg-white/10 backdrop-blur-md p-6 rounded-3xl space-y-2 border border-white/5">
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Riesgo de Lesión</span>
                     <div className="flex items-end gap-2">
-                      <span className="text-4xl font-black leading-none text-green-900">BAJO</span>
+                      <span className="text-4xl font-black leading-none">BAJO</span>
                       <ShieldCheck className="w-5 h-5 mb-1" />
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {['Visión Táctica', 'Fuerza Explosiva', 'Control Orientado'].map((skill, i) => (
-                <div key={i} className="card-elite rounded-[2rem] p-6 bg-[#111827]/60 flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{skill}</span>
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <div key={s} className={cn("w-1.5 h-4 rounded-full", s <= 4 ? "bg-primary" : "bg-white/5")} />
-                    ))}
-                  </div>
-                </div>
-              ))}
             </div>
           </TabsContent>
         </Tabs>

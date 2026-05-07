@@ -120,6 +120,7 @@ export default function MyProfilePage() {
         </div>
 
         <div className="space-y-8 pb-24">
+          {/* Tarjeta de Datos Básicos */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -159,6 +160,7 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
+          {/* Tarjeta de Bio Profesional */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
