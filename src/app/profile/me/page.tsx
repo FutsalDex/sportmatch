@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -34,7 +33,6 @@ export default function MyProfilePage() {
   const db = useFirestore();
   const { toast } = useToast();
 
-  // Memorizamos las referencias para evitar bucles infinitos de renderizado
   const userRef = useMemoFirebase(() => {
     return user ? doc(db, 'users', user.uid) : null;
   }, [db, user?.uid]);
@@ -68,7 +66,6 @@ export default function MyProfilePage() {
     }
   }, [userData, profileData]);
 
-  // Redirección si no hay usuario después de cargar
   useEffect(() => {
     if (!isAuthLoading && !user) {
       router.push('/login');
@@ -112,12 +109,12 @@ export default function MyProfilePage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <h1 className="text-5xl font-bold font-headline tracking-tighter">Mi Perfil</h1>
-            <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">Gestión de Identidad Digital</p>
+            <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">GESTIÓN DE IDENTIDAD DIGITAL</p>
           </div>
           <Button variant="outline" asChild className="rounded-xl border-primary/50 text-primary hover:bg-primary/10 px-6 font-bold h-12 gap-2">
-            <a href={`/profile/${user?.uid}`}>
+            <Link href={`/profile/${user?.uid}`}>
               Ver Perfil Público <ExternalLink className="w-4 h-4" />
-            </a>
+            </Link>
           </Button>
         </div>
 
@@ -126,12 +123,12 @@ export default function MyProfilePage() {
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
                 <Globe className="w-6 h-6 text-primary" />
-                <h2 className="text-2xl font-bold font-headline tracking-tight">Datos Básicos</h2>
+                <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Datos Básicos</h2>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-widest">Nombre</Label>
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-widest">NOMBRE</Label>
                   <Input 
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -139,7 +136,7 @@ export default function MyProfilePage() {
                   />
                 </div>
                 <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-widest">Provincia</Label>
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-widest">PROVINCIA</Label>
                   <Select 
                     value={formData.province} 
                     onValueChange={(v) => setFormData({...formData, province: v})}
@@ -165,7 +162,7 @@ export default function MyProfilePage() {
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
                 <FileText className="w-6 h-6 text-primary" />
-                <h2 className="text-2xl font-bold font-headline tracking-tight">Bio Profesional</h2>
+                <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Bio Profesional</h2>
               </div>
               
               <div className="space-y-3">

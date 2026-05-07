@@ -1,4 +1,3 @@
-
 "use client";
 
 import { use, useState, useEffect } from 'react';
@@ -13,7 +12,6 @@ import {
   MessageCircle,
   TrendingUp,
   Target,
-  LineChart,
   User,
   Scale,
   Ruler,
@@ -125,6 +123,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                     !isElite && "blur-xl opacity-40 scale-110",
                     isElite && "group-hover:scale-105"
                   )}
+                  data-ai-hint="football action"
                 />
                 {!isElite && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm p-6 text-center">
