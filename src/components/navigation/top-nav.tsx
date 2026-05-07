@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -53,20 +52,20 @@ export function TopNav() {
   if (pathname === '/' && !discipline) return null;
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-black/80 backdrop-blur-xl border-b border-white/5 px-6">
-      <div className="max-w-7xl mx-auto flex items-center justify-between h-16">
-        <div className="flex items-center space-x-6">
+    <nav className="sticky top-0 z-50 w-full bg-black/80 backdrop-blur-xl border-b border-white/5">
+      <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-4 md:px-6 overflow-x-auto no-scrollbar gap-4">
+        <div className="flex items-center space-x-3 md:space-x-6 shrink-0">
           <Link href="/" className="flex items-center space-x-2 group">
             <div className="bg-primary/10 p-2 rounded-xl group-hover:bg-primary/20 transition-colors">
-              <Trophy className="w-6 h-6 text-primary" />
+              <Trophy className="w-5 h-5 md:w-6 md:h-6 text-primary" />
             </div>
-            <span className="font-headline font-bold text-xl tracking-tighter">SportMatch</span>
+            <span className="font-headline font-bold text-lg md:text-xl tracking-tighter">SportMatch</span>
           </Link>
 
           {discipline && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 rounded-full bg-white/5 border border-white/10 px-4 text-[10px] font-black uppercase tracking-widest gap-2 text-primary hover:bg-white/10 hover:text-primary">
+                <Button variant="ghost" className="h-8 rounded-full bg-white/5 border border-white/10 px-3 md:px-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest gap-2 text-primary hover:bg-white/10 hover:text-primary shrink-0">
                   {discipline === 'Football' ? 'Fútbol' : 'Fútbol Sala'}
                   <ChevronDown className="w-3 h-3" />
                 </Button>
@@ -81,7 +80,7 @@ export function TopNav() {
           )}
         </div>
 
-        <div className="hidden md:flex items-center space-x-8">
+        <div className="hidden lg:flex items-center space-x-8 shrink-0">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -89,7 +88,7 @@ export function TopNav() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center space-x-2 text-[11px] font-bold tracking-widest transition-colors",
+                  "flex items-center space-x-2 text-[11px] font-bold tracking-widest transition-colors whitespace-nowrap",
                   isActive ? "text-primary" : "text-muted-foreground hover:text-white"
                 )}
               >
@@ -100,15 +99,15 @@ export function TopNav() {
           })}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3 shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="outline" 
-                className="rounded-2xl bg-[#111827] border-white/10 text-white h-10 px-6 gap-2 transition-colors hover:bg-white/20 hover:text-white"
+                className="rounded-2xl bg-[#111827] border-white/10 text-white h-9 md:h-10 px-4 md:px-6 gap-2 transition-colors hover:bg-white/20 hover:text-white shrink-0"
               >
                 <User className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-widest">CUENTA</span>
+                <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">CUENTA</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#1a212e] border-[#2d3748] rounded-2xl p-2 shadow-2xl">

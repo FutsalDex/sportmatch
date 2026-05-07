@@ -43,8 +43,8 @@ export default function DashboardPage() {
             <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 px-4 py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">
               Centro de Mando Activo
             </Badge>
-            <h1 className="text-3xl md:text-5xl font-bold font-headline tracking-tighter">Hola, {userData?.name?.split(' ')[0] || 'Scout'}</h1>
-            <p className="text-xs md:text-base text-muted-foreground font-medium">Gestiona tu carrera y analiza tu impacto.</p>
+            <h1 className="text-2xl md:text-5xl font-bold font-headline tracking-tighter">Hola, {userData?.name?.split(' ')[0] || 'Scout'}</h1>
+            <p className="text-[10px] md:text-base text-muted-foreground font-medium">Gestiona tu carrera y analiza tu impacto.</p>
           </div>
           <div className="flex gap-4">
             <div className="bg-[#111827] border border-white/5 p-3 md:p-4 rounded-2xl md:rounded-3xl flex items-center gap-4">

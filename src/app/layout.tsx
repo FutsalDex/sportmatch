@@ -1,9 +1,9 @@
-
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { DisciplineProvider } from '@/context/discipline-context';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { BottomNav } from '@/components/navigation/bottom-nav';
 
 export const metadata: Metadata = {
   title: 'SportMatch AI - Elite Digital Scouting',
@@ -25,9 +25,10 @@ export default function RootLayout({
       <body className="font-body antialiased bg-[#000000] selection:bg-primary selection:text-primary-foreground">
         <FirebaseClientProvider>
           <DisciplineProvider>
-            <main className="min-h-screen">
+            <main className="min-h-screen pb-20 md:pb-0">
               {children}
             </main>
+            <BottomNav />
             <Toaster />
           </DisciplineProvider>
         </FirebaseClientProvider>
