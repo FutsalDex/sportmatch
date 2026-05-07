@@ -16,7 +16,6 @@ import {
   Weight as WeightIcon,
   Calendar,
   Footprints,
-  Target,
   Upload,
   Lock,
   Trophy,
@@ -30,7 +29,8 @@ import {
   Youtube,
   Instagram,
   Twitter,
-  Music2
+  Music2,
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,7 +53,6 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
-import Link from 'link';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -86,7 +85,7 @@ export default function MyProfilePage() {
   const [formData, setFormData] = useState({
     name: '',
     province: '',
-    country: '',
+    country: 'España',
     nationality: '',
     age: '',
     position: '',
@@ -137,7 +136,7 @@ export default function MyProfilePage() {
         height: profileData.height?.toString() || '',
         weight: profileData.weight?.toString() || '',
         strongFoot: profileData.strongFoot || '',
-        bookImageUrls: profileData.bookImageUrls || ['', '', ''],
+        bookImageUrls: profileData.bookImageUrls?.slice(0, 3) || ['', '', ''],
         videoUrls: profileData.videoUrls?.slice(0, 2) || ['', ''],
         socialVideoUrls: profileData.socialVideoUrls?.slice(0, 2) || ['', ''],
         teamHistory: (profileData.teamHistory || []).sort((a: SeasonEntry, b: SeasonEntry) => b.season.localeCompare(a.season))
@@ -158,8 +157,9 @@ export default function MyProfilePage() {
 
     // Datos Básicos (Máx 10)
     let basicScore = 0;
-    if (formData.name) basicScore += 3;
-    if (formData.country && formData.province) basicScore += 3;
+    if (formData.name) basicScore += 2;
+    if (formData.nationality) basicScore += 2;
+    if (formData.country && formData.province) basicScore += 2;
     if (formData.instagram || formData.tiktok || formData.twitter) basicScore += 4;
     score += Math.min(basicScore, 10);
 
@@ -187,7 +187,7 @@ export default function MyProfilePage() {
     // Historial Deportivo (Máx 10)
     if (formData.teamHistory.length > 0) score += 10;
 
-    // El resto hasta 100 se asigna por Verificación o Análisis IA (30 pts)
+    // El resto (30 pts) se asigna por Verificación o Análisis IA avanzado
     if (userData?.verificationStatus === 'verified') score += 30;
 
     return Math.min(score, 100);
@@ -219,7 +219,7 @@ export default function MyProfilePage() {
       height: parseFloat(formData.height) || 0,
       weight: parseFloat(formData.weight) || 0,
       strongFoot: formData.strongFoot,
-      bookImageUrls: formData.bookImageUrls,
+      bookImageUrls: formData.bookImageUrls.filter(u => !!u),
       videoUrls: formData.videoUrls.filter(v => !!v),
       socialVideoUrls: formData.socialVideoUrls.filter(v => !!v),
       teamHistory: formData.teamHistory
@@ -287,6 +287,7 @@ export default function MyProfilePage() {
         teamHistory: updatedHistory,
         newSeason: { season: '', club: '', position: '', goals: 0, assists: 0, matches: 0 }
       }));
+      toast({ title: "Temporada Añadida", description: "Se ha actualizado tu historial." });
     }
   };
 
@@ -331,7 +332,7 @@ export default function MyProfilePage() {
         </div>
 
         <div className="space-y-8">
-          {/* DATOS BÁSICOS CON REDES SOCIALES */}
+          {/* DATOS BÁSICOS */}
           <Card className="bg-[#111827] border-[#1F2937] rounded-[2.5rem]">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -345,8 +346,42 @@ export default function MyProfilePage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Nacionalidad</Label>
-                  <Input value={formData.nationality} onChange={e => setFormData({...formData, nationality: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl" />
+                  <div className="relative">
+                    <Flag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <Input value={formData.nationality} onChange={e => setFormData({...formData, nationality: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12" />
+                  </div>
                 </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">País (Residencia Actual)</Label>
+                  <Select value={formData.country} onValueChange={v => setFormData({...formData, country: v, province: ''})}>
+                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-4">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-primary" />
+                        <SelectValue placeholder="País" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#111827] border-white/10 text-white">
+                      {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">{GET_LOCATION_LABEL(formData.country)}</Label>
+                  <Select value={formData.province} onValueChange={v => setFormData({...formData, province: v})}>
+                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-4">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-primary" />
+                        <SelectValue placeholder="Selecciona zona" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#111827] border-white/10 text-white">
+                      {GET_LOCATION_LIST(formData.country).map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6 border-t border-white/5">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Instagram</Label>
                   <div className="relative">
@@ -379,7 +414,7 @@ export default function MyProfilePage() {
                 <Activity className="w-6 h-6" />
                 <h2 className="text-2xl font-bold font-headline uppercase">Física y Técnica</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Edad</Label>
                   <Input type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl" />
@@ -389,6 +424,24 @@ export default function MyProfilePage() {
                   <Input type="number" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl" />
                 </div>
                 <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Peso (KG)</Label>
+                  <Input type="number" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Pierna Hábil</Label>
+                  <Select value={formData.strongFoot} onValueChange={v => setFormData({...formData, strongFoot: v})}>
+                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl gap-3">
+                      <Footprints className="w-4 h-4 text-primary" />
+                      <SelectValue placeholder="Pierna" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#111827] border-white/10 text-white">
+                      <SelectItem value="Derecha">Derecha</SelectItem>
+                      <SelectItem value="Izquierda">Izquierda</SelectItem>
+                      <SelectItem value="Ambidiestro">Ambidiestro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2 col-span-2 md:col-span-1">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Posición</Label>
                   <Input value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl" />
                 </div>
@@ -396,7 +449,7 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* GALERÍA MULTIMEDIA CON IG/TIKTOK VIDEOS */}
+          {/* GALERÍA MULTIMEDIA */}
           <Card className="bg-[#111827] border-[#1F2937] rounded-[2.5rem]">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -404,38 +457,119 @@ export default function MyProfilePage() {
                 <h2 className="text-2xl font-bold font-headline uppercase">Galería Multimedia</h2>
               </div>
               
-              <div className="space-y-10">
-                <div className="flex items-center gap-6">
-                  <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary/20 bg-black">
-                    {formData.profileImageUrl ? <Image src={formData.profileImageUrl} alt="Profile" fill className="object-cover" /> : <UserIcon className="w-10 h-10 m-auto opacity-20" />}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                {/* Foto Principal */}
+                <div className="space-y-4">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Foto de Perfil Principal</Label>
+                  <div className="flex items-center gap-6">
+                    <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary/20 bg-black shadow-xl group">
+                      {formData.profileImageUrl ? (
+                        <Image src={formData.profileImageUrl} alt="Profile" fill className="object-cover" />
+                      ) : (
+                        <UserIcon className="w-10 h-10 m-auto opacity-20" />
+                      )}
+                      {uploading === 'profile-main' && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                        </div>
+                      )}
+                    </div>
+                    <Button asChild className="h-14 rounded-2xl bg-primary text-background font-black uppercase text-[10px] tracking-widest cursor-pointer hover:scale-105 transition-transform">
+                      <label htmlFor="profile-upload"><Upload className="w-4 h-4 mr-2" /> Subir Imagen</label>
+                    </Button>
+                    <input type="file" id="profile-upload" className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'profile')} />
                   </div>
-                  <Button asChild className="h-14 rounded-2xl bg-primary text-background font-black uppercase text-[10px] tracking-widest cursor-pointer">
-                    <label htmlFor="profile-upload"><Upload className="w-4 h-4 mr-2" /> Actualizar Foto</label>
-                  </Button>
-                  <input type="file" id="profile-upload" className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'profile')} />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-white/5">
-                  <div className="space-y-4">
-                    <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2"><Youtube className="text-red-500 w-4 h-4" /> YouTube Highlights</Label>
-                    {[0, 1].map(idx => (
-                      <Input key={idx} disabled={!isElite} placeholder="URL de YouTube" value={formData.videoUrls[idx]} onChange={e => {
+                {/* Book Multimedia */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Book de Scouting (Máx 3)</Label>
+                    {!isElite && <Badge className="bg-primary/10 text-primary border-none text-[8px]">PLAN PRO</Badge>}
+                  </div>
+                  <div className="flex gap-4">
+                    {[0, 1, 2].map(idx => (
+                      <div key={idx} className="relative group">
+                        <div className={cn(
+                          "w-20 h-20 rounded-xl overflow-hidden border-2 border-dashed flex flex-col items-center justify-center transition-all",
+                          formData.bookImageUrls[idx] ? "border-primary/40 bg-black" : "border-white/10 hover:border-primary/20"
+                        )}>
+                          {formData.bookImageUrls[idx] ? (
+                            <Image src={formData.bookImageUrls[idx]} alt={`Book ${idx}`} fill className="object-cover" />
+                          ) : (
+                            <Camera className="w-5 h-5 opacity-20" />
+                          )}
+                          {uploading === `book-${idx}` && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                            </div>
+                          )}
+                          <label htmlFor={`book-upload-${idx}`} className="absolute inset-0 cursor-pointer" />
+                          <input 
+                            type="file" 
+                            id={`book-upload-${idx}`} 
+                            disabled={!isElite}
+                            className="hidden" 
+                            accept="image/*" 
+                            onChange={e => handleFileUpload(e, 'book', idx)} 
+                          />
+                        </div>
+                        {formData.bookImageUrls[idx] && (
+                           <button 
+                             onClick={() => {
+                               const updated = [...formData.bookImageUrls];
+                               updated[idx] = '';
+                               setFormData({...formData, bookImageUrls: updated});
+                             }}
+                             className="absolute -top-1 -right-1 bg-red-500 rounded-full p-1 shadow-lg"
+                           >
+                             <Trash2 className="w-2.5 h-2.5" />
+                           </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-white/5">
+                <div className="space-y-4">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2">
+                    <Youtube className="text-red-500 w-4 h-4" /> YouTube Highlights (Planes Pro)
+                  </Label>
+                  {[0, 1].map(idx => (
+                    <Input 
+                      key={idx} 
+                      disabled={!isElite} 
+                      placeholder="URL de YouTube" 
+                      value={formData.videoUrls[idx]} 
+                      onChange={e => {
                         const updated = [...formData.videoUrls];
                         updated[idx] = e.target.value;
                         setFormData({...formData, videoUrls: updated});
-                      }} className="h-12 bg-[#1F2937]/50 border-none rounded-xl" />
-                    ))}
-                  </div>
-                  <div className="space-y-4">
-                    <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2"><Instagram className="text-pink-500 w-4 h-4" /> Instagram / TikTok Clips</Label>
-                    {[0, 1].map(idx => (
-                      <Input key={idx} disabled={!isElite} placeholder="URL de IG o TikTok" value={formData.socialVideoUrls[idx]} onChange={e => {
+                      }} 
+                      className="h-12 bg-[#1F2937]/50 border-none rounded-xl focus:ring-1 focus:ring-primary/40" 
+                    />
+                  ))}
+                </div>
+                <div className="space-y-4">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2">
+                    <Instagram className="text-pink-500 w-4 h-4" /> Instagram / TikTok Clips
+                  </Label>
+                  {[0, 1].map(idx => (
+                    <Input 
+                      key={idx} 
+                      disabled={!isElite} 
+                      placeholder="URL de IG o TikTok" 
+                      value={formData.socialVideoUrls[idx]} 
+                      onChange={e => {
                         const updated = [...formData.socialVideoUrls];
                         updated[idx] = e.target.value;
                         setFormData({...formData, socialVideoUrls: updated});
-                      }} className="h-12 bg-[#1F2937]/50 border-none rounded-xl" />
-                    ))}
-                  </div>
+                      }} 
+                      className="h-12 bg-[#1F2937]/50 border-none rounded-xl focus:ring-1 focus:ring-primary/40" 
+                    />
+                  ))}
                 </div>
               </div>
             </CardContent>
@@ -449,27 +583,66 @@ export default function MyProfilePage() {
                   <Trophy className="w-6 h-6" />
                   <h2 className="text-2xl font-bold font-headline uppercase">Historial Deportivo</h2>
                 </div>
-                {!isElite && <Badge className="bg-yellow-500/10 text-yellow-500 border-none">PLAN FREE: MÁX 1 TEMPORADA</Badge>}
+                {!isElite && <Badge className="bg-yellow-500/10 text-yellow-500 border-none font-black text-[8px] uppercase tracking-widest px-4 py-1.5 rounded-full">PLAN FREE: MÁX 1 TEMPORADA</Badge>}
               </div>
+
               <div className="space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-[#1F2937]/20 p-6 rounded-3xl">
-                  <Input placeholder="Temporada (23/24)" value={formData.newSeason.season} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-[#030712] border-none" />
-                  <Input placeholder="Club" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-[#030712] border-none" />
-                  <Input placeholder="Posición" value={formData.newSeason.position} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, position: e.target.value}})} className="bg-[#030712] border-none" />
-                  <Button onClick={addSeason} className="col-span-full h-12 bg-primary/10 text-primary border border-primary/20 font-black uppercase text-[10px]">Añadir Temporada</Button>
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-4 bg-[#1F2937]/20 p-6 rounded-3xl">
+                  <div className="space-y-1">
+                    <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Temporada</Label>
+                    <Input placeholder="24/25" value={formData.newSeason.season} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-[#030712] border-none rounded-xl" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Club</Label>
+                    <Input placeholder="Nombre Club" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-[#030712] border-none rounded-xl" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Posición</Label>
+                    <Input placeholder="Posición" value={formData.newSeason.position} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, position: e.target.value}})} className="bg-[#030712] border-none rounded-xl" />
+                  </div>
+                  <div className="space-y-1 text-center">
+                    <Label className="text-[8px] uppercase font-black text-muted-foreground">PJ</Label>
+                    <Input type="number" value={formData.newSeason.matches} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl text-center" />
+                  </div>
+                  <div className="space-y-1 text-center">
+                    <Label className="text-[8px] uppercase font-black text-muted-foreground">Goles</Label>
+                    <Input type="number" value={formData.newSeason.goals} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl text-center" />
+                  </div>
+                  <div className="space-y-1 text-center">
+                    <Label className="text-[8px] uppercase font-black text-muted-foreground">Asist</Label>
+                    <Input type="number" value={formData.newSeason.assists} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, assists: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl text-center" />
+                  </div>
+                  <Button onClick={addSeason} className="col-span-full h-12 bg-primary/10 text-primary border border-primary/20 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-primary/20">Añadir a Trayectoria</Button>
                 </div>
+
                 {formData.teamHistory.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-6 bg-[#1F2937]/50 rounded-2xl group border border-transparent hover:border-primary/30">
+                  <div key={idx} className="flex items-center justify-between p-6 bg-[#1F2937]/50 rounded-2xl group border border-transparent hover:border-primary/30 transition-all">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
                         <span className="text-primary font-black text-xs">{item.season}</span>
-                        <span className="font-bold text-xl">{item.club}</span>
+                        <span className="font-bold text-xl font-headline tracking-tight">{item.club}</span>
                       </div>
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold">{item.position}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{item.position}</p>
                     </div>
+                    
+                    <div className="flex items-center gap-12 mr-10">
+                      <div className="flex flex-col items-center">
+                        <span className="text-[8px] font-black text-muted-foreground uppercase">PJ</span>
+                        <span className="font-bold">{item.matches}</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="text-[8px] font-black text-muted-foreground uppercase">Goles</span>
+                        <span className="font-bold text-primary">{item.goals}</span>
+                      </div>
+                      <div className="flex flex-col items-center">
+                        <span className="text-[8px] font-black text-muted-foreground uppercase">Asist</span>
+                        <span className="font-bold">{item.assists}</span>
+                      </div>
+                    </div>
+
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => editSeason(idx)}><Pencil className="w-4 h-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => removeSeason(idx)}><Trash2 className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => editSeason(idx)} className="text-primary hover:bg-primary/10"><Pencil className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => removeSeason(idx)} className="text-red-500 hover:bg-red-500/10"><Trash2 className="w-4 h-4" /></Button>
                     </div>
                   </div>
                 ))}
@@ -478,8 +651,8 @@ export default function MyProfilePage() {
           </Card>
         </div>
 
-        <Button onClick={handleSave} className="fixed bottom-10 right-10 z-50 h-20 px-12 rounded-3xl bg-primary text-background font-black uppercase tracking-widest shadow-2xl hover:scale-105 transition-transform">
-          <Sparkles className="w-6 h-6 mr-2 fill-current" /> Guardar Perfil
+        <Button onClick={handleSave} className="fixed bottom-10 right-10 z-50 h-20 px-12 rounded-3xl bg-primary text-background font-black uppercase tracking-widest shadow-[0_0_50px_rgba(234,179,8,0.4)] hover:scale-105 transition-transform group">
+          <Sparkles className="w-6 h-6 mr-3 fill-current group-hover:animate-pulse" /> Guardar Perfil Scouting
         </Button>
       </main>
     </div>
