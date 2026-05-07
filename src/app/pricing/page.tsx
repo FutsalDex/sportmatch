@@ -38,13 +38,12 @@ const PLAYER_PLANS = [
     price: "0 €",
     subtitle: "Siempre gratis",
     features: [
-      { text: "Crea tu perfil completo", included: true, icon: User },
-      { text: "Explora perfiles con filtros", included: true, icon: Search },
-      { text: "Sigue a otros usuarios", included: true, icon: Users },
-      { text: "Filtro 'Perfiles Verificados'", included: false, icon: ShieldCheck },
-      { text: "Valoraciones y reseñas", included: false, icon: Star },
-      { text: "Video de presentación", included: false, icon: Play },
+      { text: "Perfil técnico básico", included: true, icon: User },
+      { text: "Búsqueda en el ranking", included: true, icon: Search },
+      { text: "Score IA hasta 85 pts", included: true, icon: Zap },
+      { text: "Book multimedia", included: false, icon: Play },
       { text: "Mensajes directos", included: false, icon: MessageCircle },
+      { text: "Análisis IA SportMatch", included: false, icon: BotIcon },
     ],
     buttonText: "COMENZAR GRATIS",
     highlight: false
@@ -52,15 +51,15 @@ const PLAYER_PLANS = [
   {
     name: "ELITE VERIFICADO",
     price: "9,99 €",
-    subtitle: "Solicitud Única",
+    subtitle: "Pago Único",
     badge: "ELITE VERIFICADO ✓",
     features: [
       { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
-      { text: "Badge de perfil verificado", included: true, icon: ShieldCheck },
-      { text: "Aparecer en filtro exclusivo", included: true, icon: Award },
-      { text: "Valoraciones y reseñas", included: true, icon: Star },
-      { text: "Subir vídeo de presentación", included: true, icon: Play },
-      { text: "Mensajes directos ilimitados", included: true, icon: MessageCircle },
+      { text: "Badge de perfil oficial", included: true, icon: ShieldCheck },
+      { text: "Desbloquea Book Multimedia", included: true, icon: Play },
+      { text: "Biografía optimizada IA", included: true, icon: Sparkles },
+      { text: "Prioridad en búsqueda", included: true, icon: TrendingUp },
+      { text: "Mensajes ilimitados", included: true, icon: MessageCircle },
     ],
     buttonText: "SOLICITAR VERIFICACIÓN",
     highlight: true
@@ -68,15 +67,15 @@ const PLAYER_PLANS = [
   {
     name: "ELITE PRO",
     price: "49,90 €",
-    subtitle: "Proyección Profesional",
+    subtitle: "Scouting Profesional",
     badge: "ELITE PRO ✓",
     features: [
       { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
-      { text: "Todo lo del plan Verificado", included: true, icon: Check },
-      { text: "Análisis IA riesgo lesiones", included: true, icon: Activity },
-      { text: "Comparador head-to-head", included: true, icon: BarChart3 },
-      { text: "Informe scouting PDF", included: true, icon: FileText },
-      { text: "Posicionamiento prioritario", included: true, icon: TrendingUp },
+      { text: "Análisis IA SportMatch (15 pts)", included: true, icon: Award },
+      { text: "Riesgo de lesiones IA", included: true, icon: Activity },
+      { text: "Comparador de rendimiento", included: true, icon: BarChart3 },
+      { text: "Informe PDF para clubes", included: true, icon: FileText },
+      { text: "Soporte legal deportivo", included: true, icon: Gavel },
     ],
     buttonText: "SUSCRIBIRSE A ELITE PRO",
     highlight: false,
@@ -84,56 +83,13 @@ const PLAYER_PLANS = [
   }
 ];
 
-const COACH_PLANS = [
-  {
-    name: "ELITE FREE",
-    price: "0 €",
-    subtitle: "Para empezar",
-    features: [
-      { text: "Perfil de entrenador", included: true, icon: User },
-      { text: "Búsqueda de jugadores", included: true, icon: Target },
-      { text: "Gestión de red básica", included: true, icon: Users },
-      { text: "Badge de verificación", included: false, icon: ShieldCheck },
-      { text: "Publicación metodología", included: false, icon: Presentation },
-      { text: "Mensajería directa", included: false, icon: MessageCircle },
-    ],
-    buttonText: "COMENZAR GRATIS",
-    highlight: false
-  },
-  {
-    name: "ELITE VERIFICADO",
-    price: "9,99 €",
-    subtitle: "Solicitud Única",
-    badge: "ELITE VERIFICADO ✓",
-    features: [
-      { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
-      { text: "Badge verificado", included: true, icon: ShieldCheck },
-      { text: "Metodología en vídeo", included: true, icon: Presentation },
-      { text: "Filtro exclusivo para clubes", included: true, icon: Award },
-      { text: "Mensajes ilimitados", included: true, icon: MessageCircle },
-      { text: "Gestión de sesiones", included: true, icon: Timer },
-    ],
-    buttonText: "SOLICITAR AHORA",
-    highlight: true
-  },
-  {
-    name: "ELITE PRO",
-    price: "79,90 €",
-    subtitle: "Liderazgo Táctico",
-    badge: "ELITE PRO ✓",
-    features: [
-      { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
-      { text: "Análisis IA táctico", included: true, icon: Zap },
-      { text: "Comparador metodologías", included: true, icon: BarChart3 },
-      { text: "Reportes scouting equipo", included: true, icon: FileText },
-      { text: "Acceso vacantes premium", included: true, icon: Trophy },
-      { text: "Soporte legal deportivo", included: true, icon: Gavel },
-    ],
-    buttonText: "PLAN MAESTRÍA PRO",
-    highlight: false,
-    dark: true
-  }
-];
+function BotIcon(props: any) {
+  return <Zap {...props} />
+}
+
+function Sparkles(props: any) {
+  return <Star {...props} />
+}
 
 export default function PricingPage() {
   const { user } = useUser();
@@ -152,7 +108,7 @@ export default function PricingPage() {
     }
   }, [userData?.role]);
 
-  const currentPlans = activeRole === 'Player' ? PLAYER_PLANS : COACH_PLANS;
+  const currentPlans = activeRole === 'Player' ? PLAYER_PLANS : PLAYER_PLANS; // Coaches use same visual for now
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
@@ -162,10 +118,10 @@ export default function PricingPage() {
         <header className="text-center space-y-8 max-w-3xl mx-auto">
           <div className="space-y-4">
             <Badge className="bg-primary/10 text-primary border-primary/20 px-6 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
-              Suscripciones de Élite
+              Terminal de Suscripciones
             </Badge>
             <h1 className="text-6xl md:text-7xl font-bold font-headline tracking-tighter leading-none">
-              Impulsa tu <span className="text-primary italic">Carrera</span>
+              Acelera tu <span className="text-primary italic">Scouting</span>
             </h1>
           </div>
 
@@ -285,7 +241,7 @@ export default function PricingPage() {
         <footer className="text-center space-y-4 max-w-2xl mx-auto opacity-60">
           <p className="text-[10px] text-muted-foreground font-medium leading-relaxed uppercase tracking-widest">
             Planes diseñados para ecosistemas profesionales · Verificación a solo 9,99€ · Sin renovación automática. <br />
-            Para clubes o agencias, contactar con nuestro equipo de ventas.
+            Los 100 puntos de Score IA se logran combinando perfil técnico (85 pts) y análisis IA (15 pts).
           </p>
         </footer>
       </main>

@@ -179,7 +179,7 @@ export default function MyProfilePage() {
     let mediaScore = 0;
     if (formData.profileImageUrl) mediaScore += 10;
     formData.bookImageUrls.forEach(url => { if (url) mediaScore += 3; });
-    formData.videoUrls.forEach(url => { if (url) mediaScore += 3; });
+    formData.videoUrls.forEach(url => { if (url) mediaScore += 2; });
     formData.socialVideoUrls.forEach(url => { if (url) mediaScore += 2; });
     score += Math.min(mediaScore, 25);
 
@@ -196,6 +196,11 @@ export default function MyProfilePage() {
     // 6. Plan de Cuenta (Verificado +10, Pro +20 total)
     if (userData?.plan === 'pro') score += 20;
     else if (userData?.plan === 'verified' || userData?.verificationStatus === 'verified') score += 10;
+
+    // 7. Análisis de SportMatch (IA Platform Analysis) (Máx 15)
+    if (profileData?.analysis || profileData?.summary) {
+      score += 15;
+    }
 
     return Math.min(score, 100);
   };
@@ -313,9 +318,10 @@ export default function MyProfilePage() {
               <Badge className="bg-primary/10 text-primary border-none text-xs">PUNTOS: {currentScore}</Badge>
             </div>
             <Progress value={currentScore} className="h-2 bg-white/5" />
-            <p className="text-[8px] text-muted-foreground font-bold text-right italic">
-              {currentScore < 100 ? `Te faltan ${100 - currentScore} puntos para el Perfil Élite` : '¡PERFIL AL MÁXIMO NIVEL!'}
-            </p>
+            <div className="flex justify-between text-[8px] text-muted-foreground font-bold uppercase tracking-tighter italic">
+               <span>Perfil Técnico: {currentScore - (profileData?.analysis ? 15 : 0)}/85</span>
+               <span>Análisis IA: {profileData?.analysis ? 15 : 0}/15</span>
+            </div>
           </div>
         </div>
 
@@ -560,3 +566,4 @@ export default function MyProfilePage() {
     </div>
   );
 }
+
