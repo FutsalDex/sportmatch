@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -283,7 +284,7 @@ export default function MyProfilePage() {
                       value={formData.nationality}
                       onChange={(e) => setFormData({...formData, nationality: e.target.value})}
                       placeholder="Ej: Española"
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50"
                     />
                   </div>
                 </div>
@@ -296,14 +297,14 @@ export default function MyProfilePage() {
                     }}
                   >
                     <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-4">
                         <Globe className="w-4 h-4 text-primary" />
                         <SelectValue placeholder="Selecciona país" />
                       </div>
                     </SelectTrigger>
                     <SelectContent className="bg-[#111827] border-[#1F2937] text-white">
                       {COUNTRIES.map((country) => (
-                        <SelectItem key={country} value={country}>{country}</SelectItem>
+                        <SelectItem key={country} value={country}>{country.toUpperCase()}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -315,7 +316,7 @@ export default function MyProfilePage() {
                     onValueChange={(v) => setFormData({...formData, province: v})}
                   >
                     <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-4">
                         <MapPin className="w-4 h-4 text-primary" />
                         <SelectValue placeholder={`Selecciona ${currentLocationLabel.toLowerCase()}`} />
                       </div>
@@ -348,7 +349,7 @@ export default function MyProfilePage() {
                       type="number"
                       value={formData.age}
                       onChange={(e) => setFormData({...formData, age: e.target.value})}
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50"
                     />
                   </div>
                 </div>
@@ -361,7 +362,7 @@ export default function MyProfilePage() {
                       step="0.01"
                       value={formData.height}
                       onChange={(e) => setFormData({...formData, height: e.target.value})}
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50"
                     />
                   </div>
                 </div>
@@ -374,7 +375,7 @@ export default function MyProfilePage() {
                       step="0.1"
                       value={formData.weight}
                       onChange={(e) => setFormData({...formData, weight: e.target.value})}
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50"
                     />
                   </div>
                 </div>
@@ -385,7 +386,7 @@ export default function MyProfilePage() {
                     <Input 
                       value={formData.position}
                       onChange={(e) => setFormData({...formData, position: e.target.value})}
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50"
                     />
                   </div>
                 </div>
@@ -397,8 +398,10 @@ export default function MyProfilePage() {
                       value={formData.strongFoot} 
                       onValueChange={(v) => setFormData({...formData, strongFoot: v})}
                     >
-                      <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50">
-                        <SelectValue placeholder="Selecciona pierna" />
+                      <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50">
+                        <div className="flex items-center gap-4">
+                          <SelectValue placeholder="Selecciona pierna" />
+                        </div>
                       </SelectTrigger>
                       <SelectContent className="bg-[#111827] border-[#1F2937] text-white">
                         <SelectItem value="Derecha">Derecha</SelectItem>
@@ -441,7 +444,7 @@ export default function MyProfilePage() {
                       <Button 
                         asChild
                         className={cn(
-                          "h-14 px-8 rounded-2xl bg-primary text-background hover:bg-primary/90 cursor-pointer",
+                          "h-14 px-8 rounded-2xl bg-primary text-background hover:bg-primary/90 shadow-[0_0_30px_rgba(234,179,8,0.2)] cursor-pointer",
                           uploading === 'profile-main' && "opacity-50 pointer-events-none"
                         )}
                       >
