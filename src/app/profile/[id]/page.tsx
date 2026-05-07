@@ -28,7 +28,9 @@ import {
   Music2,
   Flag,
   Award,
-  FileText
+  FileText,
+  GraduationCap,
+  Medal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -80,11 +82,12 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
     return null;
   };
 
-  // Lógica mejorada para detectar si hay contenido multimedia real
   const hasMultimedia = 
     (profileData?.videoUrls?.some((u: string) => !!u)) || 
     (profileData?.socialVideoUrls?.some((u: string) => !!u)) || 
     (profileData?.bookImageUrls?.some((u: string) => !!u));
+
+  const isCoach = userData.role === 'Coach';
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">
@@ -181,17 +184,30 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
         <Tabs defaultValue="stats" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-[#111827] border border-white/5 rounded-[2rem] h-16 p-1.5">
-            <TabsTrigger value="stats" className="rounded-2xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:text-white transition-all">Ficha Técnica</TabsTrigger>
+            <TabsTrigger value="stats" className="rounded-2xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:text-white transition-all">
+              {isCoach ? 'Titulaciones' : 'Ficha Técnica'}
+            </TabsTrigger>
             <TabsTrigger value="history" className="rounded-2xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:text-white transition-all">Trayectoria</TabsTrigger>
             <TabsTrigger value="ai" className="rounded-2xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:text-white transition-all">IA Analytics</TabsTrigger>
           </TabsList>
           
           <TabsContent value="stats" className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <StatCard icon={Ruler} label="Altura" value={`${profileData?.height || '--'} cm`} />
-              <StatCard icon={WeightIcon} label="Peso" value={`${profileData?.weight || '--'} kg`} />
-              <StatCard icon={Footprints} label="Pierna" value={profileData?.strongFoot || '--'} />
-              <StatCard icon={Target} label="Posición" value={userData.position || '--'} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {isCoach ? (
+                profileData?.certifications?.length > 0 ? (
+                  profileData.certifications.slice(0, 3).map((cert: string, i: number) => (
+                    <StatCard key={i} icon={GraduationCap} label={`Titulación ${i+1}`} value={cert} />
+                  ))
+                ) : (
+                  <StatCard icon={GraduationCap} label="Titulaciones" value="Pendiente de registro" />
+                )
+              ) : (
+                <>
+                  <StatCard icon={Ruler} label="Altura" value={`${profileData?.height || '--'} cm`} />
+                  <StatCard icon={WeightIcon} label="Peso" value={`${profileData?.weight || '--'} kg`} />
+                  <StatCard icon={Footprints} label="Pierna" value={profileData?.strongFoot || '--'} />
+                </>
+              )}
             </div>
 
             <Card className="card-elite rounded-[2.5rem] bg-[#111827]/40 border-white/5">
@@ -214,13 +230,22 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                       <span className="text-primary font-black text-xs bg-primary/10 px-3 py-1 rounded-full">{entry.season}</span>
                       <h4 className="font-bold text-2xl font-headline tracking-tight">{entry.club}</h4>
                     </div>
-                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mt-1">{entry.position}</p>
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mt-1">
+                      {isCoach ? (entry.league || 'Competición') : entry.position}
+                    </p>
                   </div>
-                  <div className="flex gap-10 text-center">
-                    <div><p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Partidos</p><p className="font-bold text-xl">{entry.matches || 0}</p></div>
-                    <div><p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Goles</p><p className="font-bold text-xl text-primary">{entry.goals || 0}</p></div>
-                    <div><p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Asist</p><p className="font-bold text-xl">{entry.assists || 0}</p></div>
-                  </div>
+                  {isCoach ? (
+                    <div className="flex gap-10 text-center">
+                      <div><p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Posición</p><p className="font-bold text-xl">{entry.leaguePosition || '-'}</p></div>
+                      <div><p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Ascenso</p><p className={cn("font-bold text-xl", entry.promotion === 'Sí' ? "text-primary" : "text-white")}>{entry.promotion || 'No'}</p></div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-10 text-center">
+                      <div><p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Partidos</p><p className="font-bold text-xl">{entry.matches || 0}</p></div>
+                      <div><p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Goles</p><p className="font-bold text-xl text-primary">{entry.goals || 0}</p></div>
+                      <div><p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Asist</p><p className="font-bold text-xl">{entry.assists || 0}</p></div>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
