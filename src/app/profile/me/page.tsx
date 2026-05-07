@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -16,7 +15,11 @@ import {
   Weight as WeightIcon,
   Calendar,
   Footprints,
-  Target
+  Target,
+  Upload,
+  Lock,
+  Trophy,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,15 +36,27 @@ import {
 import { TopNav } from '@/components/navigation/top-nav';
 import { useUser, useFirestore, useDoc, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import { PROVINCIAS_ESPANA } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
+
+interface SeasonEntry {
+  season: string;
+  club: string;
+  position: string;
+  goals: number;
+  assists: number;
+  matches: number;
+}
 
 export default function MyProfilePage() {
   const router = useRouter();
   const { user, isUserLoading: isAuthLoading } = useUser();
   const db = useFirestore();
+  const storage = getStorage();
   const { toast } = useToast();
 
   const userRef = useMemoFirebase(() => {
@@ -66,9 +81,18 @@ export default function MyProfilePage() {
     strongFoot: '',
     profileImageUrl: '',
     bookImageUrls: ['', '', ''],
-    teamHistory: [] as string[],
-    newTeam: ''
+    teamHistory: [] as SeasonEntry[],
+    newSeason: {
+      season: '',
+      club: '',
+      position: '',
+      goals: 0,
+      assists: 0,
+      matches: 0
+    }
   });
+
+  const [uploading, setUploading] = useState<string | null>(null);
 
   useEffect(() => {
     if (userData) {
@@ -128,27 +152,61 @@ export default function MyProfilePage() {
     });
   };
 
-  const addTeam = () => {
-    if (formData.newTeam.trim()) {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'profile' | 'book', index?: number) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Check plan for Book
+    const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
+    if (type === 'book' && !isElite) {
+      toast({
+        variant: "destructive",
+        title: "Acceso Denegado",
+        description: "El Book multimedia es exclusivo para planes Verificados o Pro."
+      });
+      return;
+    }
+
+    const uploadKey = `${type}-${index ?? 'main'}`;
+    setUploading(uploadKey);
+
+    try {
+      const fileName = `${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, `USUARIOS/${user.uid}/${fileName}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+
+      if (type === 'profile') {
+        setFormData({ ...formData, profileImageUrl: url });
+      } else if (type === 'book' && index !== undefined) {
+        const updated = [...formData.bookImageUrls];
+        updated[index] = url;
+        setFormData({ ...formData, bookImageUrls: updated });
+      }
+      toast({ title: "Subida Completa", description: "Imagen almacenada correctamente." });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo subir la imagen." });
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const addSeason = () => {
+    if (formData.newSeason.club && formData.newSeason.season) {
       setFormData({
         ...formData,
-        teamHistory: [...formData.teamHistory, formData.newTeam.trim()],
-        newTeam: ''
+        teamHistory: [formData.newSeason, ...formData.teamHistory],
+        newSeason: { season: '', club: '', position: '', goals: 0, assists: 0, matches: 0 }
       });
     }
   };
 
-  const removeTeam = (index: number) => {
+  const removeSeason = (index: number) => {
     const updated = formData.teamHistory.filter((_, i) => i !== index);
     setFormData({ ...formData, teamHistory: updated });
   };
 
-  const updateBookImage = (index: number, url: string) => {
-    const updated = [...formData.bookImageUrls];
-    updated[index] = url;
-    setFormData({ ...formData, bookImageUrls: updated });
-  };
-
+  const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
   const isLoading = isAuthLoading || isUserLoading || isProfileLoading;
 
   if (isLoading) {
@@ -218,82 +276,7 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Información Física y Técnica */}
-          <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
-            <CardContent className="p-10 space-y-8">
-              <div className="flex items-center space-x-3 text-primary">
-                <Target className="w-6 h-6 text-primary" />
-                <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Física y Técnica</h2>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">EDAD</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <Input 
-                      type="number"
-                      value={formData.age}
-                      onChange={(e) => setFormData({...formData, age: e.target.value})}
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 focus-visible:ring-1 focus-visible:ring-primary/50"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">ALTURA (M)</Label>
-                  <div className="relative">
-                    <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <Input 
-                      type="number"
-                      step="0.01"
-                      value={formData.height}
-                      onChange={(e) => setFormData({...formData, height: e.target.value})}
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 focus-visible:ring-1 focus-visible:ring-primary/50"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PESO (KG)</Label>
-                  <div className="relative">
-                    <WeightIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <Input 
-                      type="number"
-                      value={formData.weight}
-                      onChange={(e) => setFormData({...formData, weight: e.target.value})}
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 focus-visible:ring-1 focus-visible:ring-primary/50"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">POSICIÓN</Label>
-                  <Input 
-                    value={formData.position}
-                    onChange={(e) => setFormData({...formData, position: e.target.value})}
-                    placeholder="Ej: Delantero Centro"
-                    className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PIERNA HÁBIL</Label>
-                  <Select value={formData.strongFoot} onValueChange={(v) => setFormData({...formData, strongFoot: v})}>
-                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50">
-                      <div className="flex items-center gap-2">
-                        <Footprints className="w-4 h-4 text-primary" />
-                        <SelectValue placeholder="Selecciona pierna" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#111827] border-[#1F2937] text-white">
-                      <SelectItem value="Derecha">Derecha</SelectItem>
-                      <SelectItem value="Izquierda">Izquierda</SelectItem>
-                      <SelectItem value="Ambidiestro">Ambidiestro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Galería Multimedia */}
+          {/* Galería Multimedia con Upload */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -301,27 +284,79 @@ export default function MyProfilePage() {
                 <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Galería Multimedia</h2>
               </div>
               
-              <div className="space-y-6">
+              <div className="space-y-8">
+                {/* Foto Perfil */}
                 <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">URL FOTO DE PERFIL</Label>
-                  <Input 
-                    value={formData.profileImageUrl}
-                    onChange={(e) => setFormData({...formData, profileImageUrl: e.target.value})}
-                    placeholder="https://example.com/foto.jpg"
-                    className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
-                  />
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">FOTO DE PERFIL (UPLOAD A STORAGE)</Label>
+                  <div className="flex gap-4">
+                    <Input 
+                      value={formData.profileImageUrl}
+                      onChange={(e) => setFormData({...formData, profileImageUrl: e.target.value})}
+                      placeholder="URL o sube una imagen"
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50 flex-1"
+                    />
+                    <div className="relative">
+                      <input 
+                        type="file" 
+                        id="profile-upload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, 'profile')}
+                      />
+                      <Button 
+                        asChild
+                        className={cn(
+                          "h-14 px-8 rounded-2xl bg-primary text-background hover:bg-primary/90 cursor-pointer",
+                          uploading === 'profile-main' && "opacity-50 pointer-events-none"
+                        )}
+                      >
+                        <label htmlFor="profile-upload">
+                          {uploading === 'profile-main' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                        </label>
+                      </Button>
+                    </div>
+                  </div>
                 </div>
                 
+                {/* Book Fotos con Bloqueo */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {formData.bookImageUrls.map((url, idx) => (
+                  {[0, 1, 2].map((idx) => (
                     <div key={idx} className="space-y-3">
-                      <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">URL FOTO BOOK {idx + 1}</Label>
-                      <Input 
-                        value={url}
-                        onChange={(e) => updateBookImage(idx, e.target.value)}
-                        placeholder="URL de la imagen"
-                        className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
-                      />
+                      <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-between">
+                        FOTO BOOK {idx + 1}
+                        {!isElite && <Lock className="w-3 h-3 text-primary" />}
+                      </Label>
+                      <div className="relative">
+                        <Input 
+                          value={formData.bookImageUrls[idx]}
+                          disabled={!isElite}
+                          placeholder={isElite ? "URL de imagen" : "Plan Élite Requerido"}
+                          className={cn(
+                            "h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50",
+                            !isElite && "opacity-50 cursor-not-allowed"
+                          )}
+                        />
+                        {isElite && (
+                          <div className="mt-2">
+                             <input 
+                              type="file" 
+                              id={`book-upload-${idx}`} 
+                              className="hidden" 
+                              accept="image/*"
+                              onChange={(e) => handleFileUpload(e, 'book', idx)}
+                            />
+                            <Button 
+                              asChild
+                              size="sm"
+                              className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest cursor-pointer"
+                            >
+                              <label htmlFor={`book-upload-${idx}`}>
+                                {uploading === `book-${idx}` ? <Loader2 className="w-3 h-3 animate-spin" /> : "SUBIR A STORAGE"}
+                              </label>
+                            </Button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -329,72 +364,122 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Historial de Clubes */}
+          {/* Historial Deportivo Estructurado */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
-                <UserIcon className="w-6 h-6 text-primary" />
-                <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Historial de Clubes</h2>
+                <Trophy className="w-6 h-6 text-primary" />
+                <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Historial Deportivo</h2>
               </div>
               
               <div className="space-y-6">
-                <div className="flex gap-4">
-                  <Input 
-                    value={formData.newTeam}
-                    onChange={(e) => setFormData({...formData, newTeam: e.target.value})}
-                    placeholder="Nombre del club anterior..."
-                    className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50 flex-1"
-                  />
+                {/* Formulario Nueva Temporada */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-[#1F2937]/20 p-6 rounded-3xl border border-white/5">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Temporada</Label>
+                    <Input 
+                      placeholder="23/24" 
+                      value={formData.newSeason.season}
+                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})}
+                      className="bg-[#030712] border-none h-12 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Club</Label>
+                    <Input 
+                      placeholder="Nombre Club" 
+                      value={formData.newSeason.club}
+                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})}
+                      className="bg-[#030712] border-none h-12 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Posición</Label>
+                    <Input 
+                      placeholder="Delantero" 
+                      value={formData.newSeason.position}
+                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, position: e.target.value}})}
+                      className="bg-[#030712] border-none h-12 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Partidos</Label>
+                    <Input 
+                      type="number" 
+                      value={formData.newSeason.matches}
+                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value)}})}
+                      className="bg-[#030712] border-none h-12 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Goles</Label>
+                    <Input 
+                      type="number" 
+                      value={formData.newSeason.goals}
+                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value)}})}
+                      className="bg-[#030712] border-none h-12 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Asistencias</Label>
+                    <Input 
+                      type="number" 
+                      value={formData.newSeason.assists}
+                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, assists: parseInt(e.target.value)}})}
+                      className="bg-[#030712] border-none h-12 rounded-xl"
+                    />
+                  </div>
                   <Button 
-                    onClick={addTeam}
-                    className="h-14 w-14 rounded-2xl bg-primary text-background hover:bg-primary/90"
+                    onClick={addSeason}
+                    className="col-span-full h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 font-black uppercase text-[10px] tracking-widest mt-2"
                   >
-                    <Plus className="w-6 h-6" />
+                    <Plus className="w-4 h-4 mr-2" /> Añadir Temporada
                   </Button>
                 </div>
 
+                {/* Lista de Temporadas */}
                 <div className="space-y-3">
-                  {formData.teamHistory.map((team, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 bg-[#1F2937]/50 rounded-2xl group border border-transparent hover:border-primary/30 transition-all">
-                      <span className="font-bold text-lg">{team}</span>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => removeTeam(idx)}
-                        className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </Button>
+                  {formData.teamHistory.map((item, idx) => (
+                    <div key={idx} className="flex flex-col md:flex-row items-center justify-between p-6 bg-[#1F2937]/50 rounded-2xl group border border-transparent hover:border-primary/30 transition-all gap-4">
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-3">
+                          <span className="text-primary font-black text-xs uppercase tracking-widest">{item.season}</span>
+                          <span className="font-bold text-xl">{item.club}</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">{item.position}</p>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <p className="text-[8px] font-black text-muted-foreground uppercase">PJ</p>
+                          <p className="font-bold text-lg">{item.matches}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[8px] font-black text-muted-foreground uppercase">GOLES</p>
+                          <p className="font-bold text-lg text-primary">{item.goals}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-[8px] font-black text-muted-foreground uppercase">ASIST</p>
+                          <p className="font-bold text-lg">{item.assists}</p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => removeSeason(idx)}
+                          className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Tarjeta de Bio Profesional */}
-          <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
-            <CardContent className="p-10 space-y-8">
-              <div className="flex items-center space-x-3 text-primary">
-                <FileText className="w-6 h-6 text-primary" />
-                <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Bio Profesional</h2>
-              </div>
-              
-              <div className="space-y-3">
-                <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">TRAYECTORIA Y HABILIDADES</Label>
-                <Textarea 
-                  placeholder="Describe tu trayectoria..."
-                  className="min-h-[200px] bg-[#1F2937]/50 border-none rounded-3xl text-lg p-8 resize-none focus-visible:ring-1 focus-visible:ring-primary/50 placeholder:text-muted-foreground/30"
-                  value={formData.bio}
-                  onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                />
               </div>
             </CardContent>
           </Card>
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-6">
-            <Button variant="link" className="text-destructive font-bold text-sm hover:no-underline p-0 uppercase tracking-widest">
-              Eliminar Cuenta (Zona de Riesgo)
+            <Button variant="link" className="text-destructive font-bold text-sm hover:no-underline p-0 uppercase tracking-widest opacity-50">
+              Eliminar Cuenta
             </Button>
             
             <Button 

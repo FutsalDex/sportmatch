@@ -13,12 +13,14 @@ import {
   TrendingUp,
   Target,
   User as UserIcon,
-  Scale,
   Ruler,
+  Weight as WeightIcon,
+  CalendarDays,
   Footprints,
   Lock,
   Star,
-  ChevronRight
+  ChevronRight,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,11 +33,19 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
+interface SeasonEntry {
+  season: string;
+  club: string;
+  position: string;
+  goals: number;
+  assists: number;
+  matches: number;
+}
+
 export default function ProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const db = useFirestore();
 
-  // Memorizamos las referencias para evitar re-renderizados infinitos
   const userDocRef = useMemoFirebase(() => doc(db, 'users', id), [db, id]);
   const profileDocRef = useMemoFirebase(() => doc(db, 'userProfiles', id), [db, id]);
 
@@ -71,7 +81,6 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">
-      {/* Header Visual con Foto de Perfil */}
       <div className="relative pt-16 pb-20 px-6 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-primary/10 via-transparent to-transparent -z-10" />
         
@@ -85,7 +94,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           <div className="relative group">
             <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-75 group-hover:scale-100 transition-transform duration-700" />
             <Avatar className="w-40 h-40 border-4 border-primary shadow-[0_0_50px_rgba(234,179,8,0.2)] rounded-[3rem] overflow-hidden relative z-10 bg-[#111827]">
-              <AvatarImage src={`https://picsum.photos/seed/${id}/400/400`} className="object-cover" />
+              <AvatarImage src={userData.profileImageUrl || `https://picsum.photos/seed/${id}/400/400`} className="object-cover" />
               <AvatarFallback className="text-4xl font-black bg-[#111827]">{userData.name?.substring(0,2).toUpperCase()}</AvatarFallback>
             </Avatar>
             {userData.verificationStatus === 'verified' && (
@@ -110,8 +119,6 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       <main className="max-w-5xl mx-auto w-full px-6 space-y-12 -mt-10 relative z-10">
-        
-        {/* Sección del "Book" de Fotos con bloqueo visual */}
         <section className="space-y-4">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center">
@@ -121,10 +128,10 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
+            {(profileData?.bookImageUrls || [1, 2, 3]).map((url: string | number, i: number) => (
               <div key={i} className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/5 group">
                 <Image 
-                  src={`https://picsum.photos/seed/book-${id}-${i}/600/800`}
+                  src={typeof url === 'string' && url ? url : `https://picsum.photos/seed/book-${id}-${i}/600/800`}
                   alt={`Book ${i}`}
                   fill
                   className={cn(
@@ -146,39 +153,37 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </section>
 
-        {/* Ficha Física: Datos Técnicos */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="card-elite rounded-[2rem] bg-[#111827]/60">
             <CardContent className="p-6 flex flex-col items-center justify-center space-y-2">
-              <Calendar className="w-5 h-5 text-primary" />
+              <CalendarDays className="w-5 h-5 text-primary" />
               <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Edad</span>
-              <span className="font-bold text-xl">24 años</span>
+              <span className="font-bold text-xl">{userData.age || '--'} años</span>
             </CardContent>
           </Card>
           <Card className="card-elite rounded-[2rem] bg-[#111827]/60">
             <CardContent className="p-6 flex flex-col items-center justify-center space-y-2">
               <Ruler className="w-5 h-5 text-primary" />
               <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Altura</span>
-              <span className="font-bold text-xl">1.82 m</span>
+              <span className="font-bold text-xl">{profileData?.height || '--'} m</span>
             </CardContent>
           </Card>
           <Card className="card-elite rounded-[2rem] bg-[#111827]/60">
             <CardContent className="p-6 flex flex-col items-center justify-center space-y-2">
-              <Scale className="w-5 h-5 text-primary" />
+              <WeightIcon className="w-5 h-5 text-primary" />
               <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Peso</span>
-              <span className="font-bold text-xl">76 kg</span>
+              <span className="font-bold text-xl">{profileData?.weight || '--'} kg</span>
             </CardContent>
           </Card>
           <Card className="card-elite rounded-[2rem] bg-[#111827]/60">
             <CardContent className="p-6 flex flex-col items-center justify-center space-y-2">
               <Footprints className="w-5 h-5 text-primary" />
               <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Pierna Hábil</span>
-              <span className="font-bold text-xl">Derecha</span>
+              <span className="font-bold text-xl">{profileData?.strongFoot || '--'}</span>
             </CardContent>
           </Card>
         </section>
 
-        {/* Tabs Técnicos */}
         <Tabs defaultValue="stats" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-[#111827] border border-white/5 rounded-2xl h-16 p-1.5">
             <TabsTrigger value="stats" className="rounded-xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-background">Ficha Técnica</TabsTrigger>
@@ -199,10 +204,6 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                     <span className="text-xs font-bold text-muted-foreground">Posición Principal</span>
                     <span className="font-bold">{userData.position || 'No especificada'}</span>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl opacity-60">
-                    <span className="text-xs font-bold text-muted-foreground">Posición Secundaria</span>
-                    <span className="font-bold">Interior Derecho</span>
-                  </div>
                 </CardContent>
               </Card>
 
@@ -216,12 +217,6 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                   <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
                     <span className="text-xs font-bold text-muted-foreground">Provincia</span>
                     <span className="font-bold">{userData.province || 'No especificada'}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
-                    <span className="text-xs font-bold text-muted-foreground">Disponibilidad</span>
-                    <span className={cn("font-bold uppercase text-[10px]", userData.status === 'available' ? "text-green-500" : "text-yellow-500")}>
-                      {userData.status === 'available' ? "Inmediata" : "En contrato"}
-                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -238,26 +233,42 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               </div>
               <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                {profileData?.bio || "Analizando el perfil del jugador para generar una descripción técnica detallada..."}
+                {profileData?.bio || "Analizando el perfil del jugador..."}
               </p>
             </Card>
           </TabsContent>
 
           <TabsContent value="history" className="mt-8 space-y-6">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">Cronología de Clubes</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">Historial Deportivo Estructurado</h3>
             <div className="space-y-4">
               {profileData?.teamHistory && profileData.teamHistory.length > 0 ? (
-                profileData.teamHistory.map((team: string, idx: number) => (
-                  <div key={idx} className="group flex items-center gap-6 p-6 card-elite rounded-[2rem] bg-[#111827]/40 hover:bg-[#111827] transition-all border-white/5">
-                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center font-black text-2xl text-primary group-hover:bg-primary group-hover:text-background transition-all">
-                      {team[0]}
-                    </div>
+                profileData.teamHistory.map((entry: SeasonEntry, idx: number) => (
+                  <div key={idx} className="group flex flex-col md:flex-row items-center gap-6 p-6 card-elite rounded-[2rem] bg-[#111827]/40 hover:bg-[#111827] transition-all border-white/5">
                     <div className="flex-1">
-                      <h4 className="font-bold text-xl">{team}</h4>
-                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Temporada {2024 - idx}/{25 - idx}</p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-primary font-black text-xs uppercase tracking-widest">{entry.season}</span>
+                        <h4 className="font-bold text-xl">{entry.club}</h4>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{entry.position}</p>
                     </div>
-                    <Badge variant="outline" className="border-white/10 text-muted-foreground hidden md:flex">Nivel Profesional</Badge>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground opacity-30" />
+                    
+                    <div className="flex items-center gap-8">
+                       <div className="text-center">
+                        <p className="text-[8px] font-black text-muted-foreground uppercase">Partidos</p>
+                        <p className="font-bold text-lg">{entry.matches}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[8px] font-black text-muted-foreground uppercase">Goles</p>
+                        <p className="font-bold text-lg text-primary">{entry.goals}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[8px] font-black text-muted-foreground uppercase">Asist</p>
+                        <p className="font-bold text-lg">{entry.assists}</p>
+                      </div>
+                      <div className="bg-primary/10 p-2 rounded-xl">
+                        <BarChart3 className="w-4 h-4 text-primary" />
+                      </div>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -274,7 +285,6 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
               isElite ? "bg-primary" : "bg-slate-800 text-white"
             )}>
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 blur-3xl rounded-full" />
-              
               <div className="space-y-6 relative z-10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -285,33 +295,14 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                     {isElite ? "POTENCIAL ELITE" : "ANÁLISIS EN CURSO"}
                   </Badge>
                 </div>
-                
                 <p className="text-xl font-bold leading-tight italic">
-                  {profileData?.summary || "Perfil en fase de análisis avanzado. El Score de IA indica un potencial de crecimiento constante para las próximas temporadas."}
+                  {profileData?.summary || "Perfil en fase de análisis avanzado."}
                 </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                  <div className="bg-white/10 backdrop-blur-md p-6 rounded-3xl space-y-2 border border-white/5">
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">IA Score</span>
-                    <div className="flex items-end gap-2">
-                      <span className="text-4xl font-black leading-none">{userData.score || 65}</span>
-                      <TrendingUp className="w-5 h-5 mb-1" />
-                    </div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-md p-6 rounded-3xl space-y-2 border border-white/5">
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Riesgo de Lesión</span>
-                    <div className="flex items-end gap-2">
-                      <span className="text-4xl font-black leading-none">BAJO</span>
-                      <ShieldCheck className="w-5 h-5 mb-1" />
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </TabsContent>
         </Tabs>
 
-        {/* Action Button */}
         {!matchSent ? (
           <Button 
             onClick={() => {
