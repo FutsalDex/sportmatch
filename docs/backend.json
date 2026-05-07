@@ -55,6 +55,11 @@
           "type": "string",
           "description": "Certification verification status."
         },
+        "plan": {
+          "type": "string",
+          "enum": ["free", "verified", "pro"],
+          "description": "The subscription plan of the user."
+        },
         "age": {
           "type": "number"
         },
@@ -98,6 +103,7 @@
         "id": { "type": "string" },
         "userId": { "type": "string" },
         "bio": { "type": "string" },
+        "isAiBio": { "type": "boolean" },
         "teamHistory": { "type": "array", "items": { "type": "object" } },
         "videoUrls": { "type": "array", "items": { "type": "string" } },
         "socialVideoUrls": { "type": "array", "items": { "type": "string" } },

@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Check, 
-  X, 
   ShieldCheck, 
   Zap, 
   Star, 
@@ -22,7 +21,6 @@ import {
   FileText,
   User,
   Search,
-  Scale,
   Activity,
   TrendingUp,
   MessageCircle,
@@ -53,19 +51,19 @@ const PLAYER_PLANS = [
   },
   {
     name: "ELITE VERIFICADO",
-    price: "9,90 €",
-    oldPrice: "19,90 €",
-    subtitle: "Jugador Profesional",
+    price: "0,99 €",
+    oldPrice: "9,90 €",
+    subtitle: "Solicitud Única",
     badge: "ELITE VERIFICADO ✓",
     features: [
-      { text: "Todo lo del plan gratuito", included: true, icon: Check },
+      { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Badge de perfil verificado", included: true, icon: ShieldCheck },
       { text: "Aparecer en filtro exclusivo", included: true, icon: Award },
       { text: "Valoraciones y reseñas", included: true, icon: Star },
       { text: "Subir vídeo de presentación", included: true, icon: Play },
       { text: "Mensajes directos ilimitados", included: true, icon: MessageCircle },
     ],
-    buttonText: "VERIFICAR POR 1 AÑO",
+    buttonText: "SOLICITAR VERIFICACIÓN",
     highlight: true
   },
   {
@@ -74,14 +72,14 @@ const PLAYER_PLANS = [
     subtitle: "Proyección Profesional",
     badge: "ELITE PRO ✓",
     features: [
+      { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Todo lo del plan Verificado", included: true, icon: Check },
       { text: "Análisis IA riesgo lesiones", included: true, icon: Activity },
       { text: "Comparador head-to-head", included: true, icon: BarChart3 },
       { text: "Informe scouting PDF", included: true, icon: FileText },
       { text: "Posicionamiento prioritario", included: true, icon: TrendingUp },
-      { text: "Asesoría marca personal", included: true, icon: Award },
     ],
-    buttonText: "SUSCRIBIRSE A ELITE",
+    buttonText: "SUSCRIBIRSE A ELITE PRO",
     highlight: false,
     dark: true
   }
@@ -105,18 +103,18 @@ const COACH_PLANS = [
   },
   {
     name: "ELITE VERIFICADO",
-    price: "14,90 €",
-    subtitle: "Entrenador Verificado",
+    price: "0,99 €",
+    subtitle: "Solicitud Única",
     badge: "ELITE VERIFICADO ✓",
     features: [
-      { text: "Todo lo del plan gratuito", included: true, icon: Check },
+      { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Badge verificado", included: true, icon: ShieldCheck },
       { text: "Metodología en vídeo", included: true, icon: Presentation },
       { text: "Filtro exclusivo para clubes", included: true, icon: Award },
       { text: "Mensajes ilimitados", included: true, icon: MessageCircle },
       { text: "Gestión de sesiones", included: true, icon: Timer },
     ],
-    buttonText: "VERIFICAR AHORA",
+    buttonText: "SOLICITAR AHORA",
     highlight: true
   },
   {
@@ -125,14 +123,14 @@ const COACH_PLANS = [
     subtitle: "Liderazgo Táctico",
     badge: "ELITE PRO ✓",
     features: [
-      { text: "Todo lo del plan Estrategia", included: true, icon: Check },
+      { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Análisis IA táctico", included: true, icon: Zap },
       { text: "Comparador metodologías", included: true, icon: BarChart3 },
       { text: "Reportes scouting equipo", included: true, icon: FileText },
       { text: "Acceso vacantes premium", included: true, icon: Trophy },
       { text: "Soporte legal deportivo", included: true, icon: Gavel },
     ],
-    buttonText: "PLAN MAESTRÍA",
+    buttonText: "PLAN MAESTRÍA PRO",
     highlight: false,
     dark: true
   }
@@ -162,7 +160,6 @@ export default function PricingPage() {
       <TopNav />
       
       <main className="max-w-7xl mx-auto px-6 py-20 space-y-20">
-        {/* Header Section */}
         <header className="text-center space-y-8 max-w-3xl mx-auto">
           <div className="space-y-4">
             <Badge className="bg-primary/10 text-primary border-primary/20 px-6 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
@@ -195,7 +192,6 @@ export default function PricingPage() {
           </Tabs>
         </header>
 
-        {/* Pricing Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch pt-10">
           {currentPlans.map((plan, i) => (
             <Card 
@@ -209,7 +205,6 @@ export default function PricingPage() {
               {plan.highlight && (
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-primary to-transparent" />
               )}
-
               {plan.dark && (
                 <div className="absolute -top-12 -right-12 bg-primary/10 w-40 h-40 blur-[80px] rounded-full" />
               )}
@@ -291,19 +286,11 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* Footer info */}
         <footer className="text-center space-y-4 max-w-2xl mx-auto opacity-60">
           <p className="text-[10px] text-muted-foreground font-medium leading-relaxed uppercase tracking-widest">
-            Planes diseñados para ecosistemas profesionales · Facturación anual · Sin renovación automática. <br />
+            Planes diseñados para ecosistemas profesionales · Verificación a solo 0,99€ · Sin renovación automática. <br />
             Para clubes o agencias, contactar con nuestro equipo de ventas.
           </p>
-          <div className="flex justify-center gap-8">
-             <ShieldCheck className="w-5 h-5" />
-             <Zap className="w-5 h-5" />
-             <Star className="w-5 h-5" />
-             <Users className="w-5 h-5" />
-             <Award className="w-5 h-5" />
-          </div>
         </footer>
       </main>
     </div>
