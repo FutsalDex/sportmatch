@@ -1,3 +1,4 @@
+
 "use client";
 
 import { use, useState } from 'react';
@@ -78,6 +79,9 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
   );
 
   const isElite = userData.verificationStatus === 'verified' || (userData.score && userData.score > 85);
+
+  // Ordenar el historial de más reciente a más antiguo
+  const sortedHistory = profileData?.teamHistory ? [...profileData.teamHistory].sort((a: SeasonEntry, b: SeasonEntry) => b.season.localeCompare(a.season)) : [];
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">
@@ -241,8 +245,8 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           <TabsContent value="history" className="mt-8 space-y-6">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">Historial Deportivo Estructurado</h3>
             <div className="space-y-4">
-              {profileData?.teamHistory && profileData.teamHistory.length > 0 ? (
-                profileData.teamHistory.map((entry: SeasonEntry, idx: number) => (
+              {sortedHistory.length > 0 ? (
+                sortedHistory.map((entry: SeasonEntry, idx: number) => (
                   <div key={idx} className="group flex flex-col md:flex-row items-center gap-6 p-6 card-elite rounded-[2rem] bg-[#111827]/40 hover:bg-[#111827] transition-all border-white/5">
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
@@ -253,16 +257,16 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                     
                     <div className="flex items-center gap-8">
-                       <div className="text-center">
-                        <p className="text-[8px] font-black text-muted-foreground uppercase">Partidos</p>
+                      <div className="text-center">
+                        <p className="text-[8px] font-black text-muted-foreground uppercase mb-1">PJ</p>
                         <p className="font-bold text-lg">{entry.matches}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-[8px] font-black text-muted-foreground uppercase">Goles</p>
+                        <p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Goles</p>
                         <p className="font-bold text-lg text-primary">{entry.goals}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-[8px] font-black text-muted-foreground uppercase">Asist</p>
+                        <p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Asist</p>
                         <p className="font-bold text-lg">{entry.assists}</p>
                       </div>
                       <div className="bg-primary/10 p-2 rounded-xl">

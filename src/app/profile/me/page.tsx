@@ -125,7 +125,7 @@ export default function MyProfilePage() {
         weight: profileData.weight?.toString() || '',
         strongFoot: profileData.strongFoot || '',
         bookImageUrls: profileData.bookImageUrls || ['', '', ''],
-        teamHistory: profileData.teamHistory || []
+        teamHistory: (profileData.teamHistory || []).sort((a: SeasonEntry, b: SeasonEntry) => b.season.localeCompare(a.season))
       }));
     }
   }, [userData, profileData]);
@@ -241,9 +241,13 @@ export default function MyProfilePage() {
 
   const addSeason = () => {
     if (formData.newSeason.club.trim() && formData.newSeason.season.trim()) {
+      const updatedHistory = [{ ...formData.newSeason }, ...formData.teamHistory];
+      // Ordenar: más reciente primero (ej: "24/25" > "23/24")
+      updatedHistory.sort((a, b) => b.season.localeCompare(a.season));
+
       setFormData(prev => ({
         ...prev,
-        teamHistory: [{ ...prev.newSeason }, ...prev.teamHistory],
+        teamHistory: updatedHistory,
         newSeason: { season: '', club: '', position: '', goals: 0, assists: 0, matches: 0 }
       }));
       toast({
@@ -279,7 +283,6 @@ export default function MyProfilePage() {
     });
   };
 
-  const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
   const isLoading = isAuthLoading || isUserLoading || isProfileLoading;
 
   if (isLoading) {
@@ -529,19 +532,19 @@ export default function MyProfilePage() {
                     <div key={idx} className="space-y-3">
                       <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-between">
                         FOTO BOOK {idx + 1}
-                        {!isElite && <Lock className="w-3 h-3 text-primary" />}
+                        {userData?.verificationStatus !== 'verified' && <Lock className="w-3 h-3 text-primary" />}
                       </Label>
                       <div className="relative">
                         <Input 
                           value={formData.bookImageUrls[idx]}
-                          disabled={!isElite}
-                          placeholder={isElite ? "URL de imagen" : "Plan Élite Requerido"}
+                          disabled={userData?.verificationStatus !== 'verified'}
+                          placeholder={userData?.verificationStatus === 'verified' ? "URL de imagen" : "Plan Élite Requerido"}
                           className={cn(
                             "h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50",
-                            !isElite && "opacity-50 cursor-not-allowed"
+                            userData?.verificationStatus !== 'verified' && "opacity-50 cursor-not-allowed"
                           )}
                         />
-                        {isElite && (
+                        {userData?.verificationStatus === 'verified' && (
                           <div className="mt-2">
                              <input 
                               type="file" 
@@ -729,4 +732,3 @@ export default function MyProfilePage() {
     </div>
   );
 }
-
