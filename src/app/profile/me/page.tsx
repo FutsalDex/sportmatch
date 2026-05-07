@@ -212,7 +212,7 @@ export default function MyProfilePage() {
     setUploading(uploadKey);
 
     try {
-      const fileName = `${Date.now()}_${file.name}`;
+      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
       const storageRef = ref(storage, `USUARIOS/${user.uid}/${fileName}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
@@ -225,9 +225,13 @@ export default function MyProfilePage() {
         setFormData(prev => ({ ...prev, bookImageUrls: updated }));
       }
       toast({ title: "Subida Completa", description: "Imagen almacenada correctamente." });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload error:", error);
-      toast({ variant: "destructive", title: "Error", description: "No se pudo subir la imagen." });
+      toast({ 
+        variant: "destructive", 
+        title: "Error de permisos", 
+        description: error.message || "No tienes permiso para subir archivos." 
+      });
     } finally {
       setUploading(null);
     }
@@ -280,7 +284,6 @@ export default function MyProfilePage() {
       <TopNav />
       
       <main className="max-w-5xl mx-auto px-6 py-12 space-y-12">
-        {/* Header con Score IA */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div className="space-y-2">
             <h1 className="text-5xl font-bold font-headline tracking-tighter">Mi Perfil</h1>
@@ -311,7 +314,6 @@ export default function MyProfilePage() {
         </div>
 
         <div className="space-y-8 pb-24">
-          {/* Tarjeta de Datos Básicos */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -384,7 +386,6 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Física y Técnica */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -467,7 +468,6 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Galería Multimedia */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -495,6 +495,7 @@ export default function MyProfilePage() {
                       />
                       <Button 
                         asChild
+                        type="button"
                         className={cn(
                           "h-14 px-8 rounded-2xl bg-primary text-background hover:bg-primary/90 shadow-[0_0_30px_rgba(234,179,8,0.2)] cursor-pointer",
                           uploading === 'profile-main' && "opacity-50 pointer-events-none"
@@ -537,6 +538,7 @@ export default function MyProfilePage() {
                             <Button 
                               asChild
                               size="sm"
+                              type="button"
                               className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest cursor-pointer"
                             >
                               <label htmlFor={`book-upload-${idx}`}>
@@ -553,7 +555,6 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Biografía */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -572,7 +573,6 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Historial Deportivo */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -671,6 +671,7 @@ export default function MyProfilePage() {
                         <Button 
                           variant="ghost" 
                           size="icon"
+                          type="button"
                           onClick={() => removeSeason(idx)}
                           className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
