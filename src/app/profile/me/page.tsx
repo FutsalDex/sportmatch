@@ -184,10 +184,10 @@ export default function MyProfilePage() {
     score += Math.min(mediaScore, 25);
 
     // 4. Biografía Profesional (Máx 10)
-    if (formData.isAiBio) {
-      score += 10; // Solo verificado/pro puede tener isAiBio
+    if (formData.isAiBio && isElite) {
+      score += 10;
     } else if (formData.bio && formData.bio.length > 20) {
-      score += 5; // Usuarios free solo suman 5 por completar
+      score += 5;
     }
 
     // 5. Historial Deportivo (Máx 10)
