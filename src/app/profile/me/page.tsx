@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -24,7 +25,8 @@ import {
   Flag,
   Star,
   Zap,
-  Award
+  Award,
+  Pencil
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -246,7 +248,7 @@ export default function MyProfilePage() {
       }));
       toast({
         title: "Temporada Añadida",
-        description: "Se ha agregado el registro a tu historial temporalmente. No olvides guardar tu perfil."
+        description: "Se ha agregado el registro a tu historial. Recuerda guardar el perfil."
       });
     } else {
       toast({
@@ -262,6 +264,19 @@ export default function MyProfilePage() {
       ...prev,
       teamHistory: prev.teamHistory.filter((_, i) => i !== index)
     }));
+  };
+
+  const editSeason = (index: number) => {
+    const seasonToEdit = formData.teamHistory[index];
+    setFormData(prev => ({
+      ...prev,
+      newSeason: { ...seasonToEdit },
+      teamHistory: prev.teamHistory.filter((_, i) => i !== index)
+    }));
+    toast({
+      title: "Editando Temporada",
+      description: "Los datos se han cargado en el formulario para su edición."
+    });
   };
 
   const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
@@ -398,11 +413,11 @@ export default function MyProfilePage() {
                   <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">EDAD</Label>
                   <div className="relative">
                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <Input 
+                    <input 
                       type="number"
                       value={formData.age}
                       onChange={(e) => setFormData({...formData, age: e.target.value})}
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                      className="h-14 w-full bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -410,12 +425,12 @@ export default function MyProfilePage() {
                   <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">ALTURA (CM)</Label>
                   <div className="relative">
                     <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <Input 
+                    <input 
                       type="number"
                       step="1"
                       value={formData.height}
                       onChange={(e) => setFormData({...formData, height: e.target.value})}
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                      className="h-14 w-full bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -423,12 +438,12 @@ export default function MyProfilePage() {
                   <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PESO (KG)</Label>
                   <div className="relative">
                     <WeightIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <Input 
+                    <input 
                       type="number"
                       step="0.1"
                       value={formData.weight}
                       onChange={(e) => setFormData({...formData, weight: e.target.value})}
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                      className="h-14 w-full bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -655,28 +670,39 @@ export default function MyProfilePage() {
                         </div>
                         <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">{item.position}</p>
                       </div>
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-8">
                         <div className="text-center">
-                          <p className="text-[8px] font-black text-muted-foreground uppercase">PJ</p>
+                          <p className="text-[8px] font-black text-muted-foreground uppercase mb-1">PJ</p>
                           <p className="font-bold text-lg">{item.matches}</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-[8px] font-black text-muted-foreground uppercase">GOLES</p>
+                          <p className="text-[8px] font-black text-muted-foreground uppercase mb-1">GOLES</p>
                           <p className="font-bold text-lg text-primary">{item.goals}</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-[8px] font-black text-muted-foreground uppercase">ASIST</p>
+                          <p className="text-[8px] font-black text-muted-foreground uppercase mb-1">ASIST</p>
                           <p className="font-bold text-lg">{item.assists}</p>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          type="button"
-                          onClick={() => removeSeason(idx)}
-                          className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            type="button"
+                            onClick={() => editSeason(idx)}
+                            className="text-muted-foreground hover:text-primary transition-colors h-8 w-8"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            type="button"
+                            onClick={() => removeSeason(idx)}
+                            className="text-muted-foreground hover:text-red-500 transition-colors h-8 w-8"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -703,3 +729,4 @@ export default function MyProfilePage() {
     </div>
   );
 }
+
