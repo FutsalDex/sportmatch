@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -37,11 +36,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TopNav } from '@/components/navigation/top-nav';
-import { useUser, useFirestore, useDoc, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useFirebase, useDoc, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
-import { PROVINCIAS_ESPANA } from '@/lib/constants';
+import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -55,13 +54,10 @@ interface SeasonEntry {
   matches: number;
 }
 
-const COUNTRIES = ["España", "Portugal", "Andorra"];
-
 export default function MyProfilePage() {
   const router = useRouter();
   const { user, isUserLoading: isAuthLoading } = useUser();
-  const db = useFirestore();
-  const storage = getStorage();
+  const { firestore: db, storage } = useFirebase();
   const { toast } = useToast();
 
   const userRef = useMemoFirebase(() => {
@@ -107,7 +103,7 @@ export default function MyProfilePage() {
         ...prev,
         name: userData.name || '',
         province: userData.province || '',
-        country: userData.country || '',
+        country: userData.country || 'España',
         nationality: userData.nationality || '',
         age: userData.age?.toString() || '',
         position: userData.position || '',
@@ -165,7 +161,7 @@ export default function MyProfilePage() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'profile' | 'book', index?: number) => {
     const file = e.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !user || !storage) return;
 
     const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
     if (type === 'book' && !isElite) {
@@ -187,14 +183,15 @@ export default function MyProfilePage() {
       const url = await getDownloadURL(storageRef);
 
       if (type === 'profile') {
-        setFormData({ ...formData, profileImageUrl: url });
+        setFormData(prev => ({ ...prev, profileImageUrl: url }));
       } else if (type === 'book' && index !== undefined) {
         const updated = [...formData.bookImageUrls];
         updated[index] = url;
-        setFormData({ ...formData, bookImageUrls: updated });
+        setFormData(prev => ({ ...prev, bookImageUrls: updated }));
       }
       toast({ title: "Subida Completa", description: "Imagen almacenada correctamente." });
     } catch (error) {
+      console.error("Upload error:", error);
       toast({ variant: "destructive", title: "Error", description: "No se pudo subir la imagen." });
     } finally {
       setUploading(null);
@@ -227,6 +224,9 @@ export default function MyProfilePage() {
       </div>
     );
   }
+
+  const currentLocationList = GET_LOCATION_LIST(formData.country);
+  const currentLocationLabel = GET_LOCATION_LABEL(formData.country);
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
@@ -279,7 +279,9 @@ export default function MyProfilePage() {
                   <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PAÍS</Label>
                   <Select 
                     value={formData.country} 
-                    onValueChange={(v) => setFormData({...formData, country: v})}
+                    onValueChange={(v) => {
+                      setFormData({...formData, country: v, province: ''});
+                    }}
                   >
                     <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50">
                       <div className="flex items-center gap-2">
@@ -295,7 +297,7 @@ export default function MyProfilePage() {
                   </Select>
                 </div>
                 <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PROVINCIA</Label>
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">{currentLocationLabel}</Label>
                   <Select 
                     value={formData.province} 
                     onValueChange={(v) => setFormData({...formData, province: v})}
@@ -303,12 +305,12 @@ export default function MyProfilePage() {
                     <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-primary" />
-                        <SelectValue placeholder="Selecciona provincia" />
+                        <SelectValue placeholder={`Selecciona ${currentLocationLabel.toLowerCase()}`} />
                       </div>
                     </SelectTrigger>
                     <SelectContent className="bg-[#111827] border-[#1F2937] text-white max-h-[300px]">
-                      {PROVINCIAS_ESPANA.map((prov) => (
-                        <SelectItem key={prov} value={prov}>{prov}</SelectItem>
+                      {currentLocationList.map((loc) => (
+                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -562,8 +564,8 @@ export default function MyProfilePage() {
                     <Label className="text-[10px] uppercase font-bold text-muted-foreground">Asistencias</Label>
                     <Input 
                       type="number" 
-                      value={formData.newSeason.asists}
-                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, asists: parseInt(e.target.value)}})}
+                      value={formData.newSeason.assists}
+                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, assists: parseInt(e.target.value)}})}
                       className="bg-[#030712] border-none h-12 rounded-xl"
                     />
                   </div>
@@ -596,7 +598,7 @@ export default function MyProfilePage() {
                         </div>
                         <div className="text-center">
                           <p className="text-[8px] font-black text-muted-foreground uppercase">ASIST</p>
-                          <p className="font-bold text-lg">{item.asists}</p>
+                          <p className="font-bold text-lg">{item.assists}</p>
                         </div>
                         <Button 
                           variant="ghost" 
