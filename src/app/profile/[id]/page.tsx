@@ -58,8 +58,6 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
   if (!userData) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-white">Usuario no encontrado.</div>;
 
-  const isElite = userData.verificationStatus === 'verified' || userData.plan === 'verified' || userData.plan === 'pro';
-
   const getYoutubeId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = url.match(regExp);
@@ -80,6 +78,8 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
     return null;
   };
 
+  const hasMultimedia = (profileData?.videoUrls?.length > 0) || (profileData?.socialVideoUrls?.length > 0) || (profileData?.bookImageUrls?.length > 0);
+
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">
       <TopNav />
@@ -89,7 +89,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
         
         <Link href="/rankings" className="absolute top-6 left-6 z-20">
           <div className="bg-black/40 backdrop-blur-md p-3 rounded-2xl border border-white/10 hover:border-primary/50 transition-colors">
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-5 h-5 text-white" />
           </div>
         </Link>
 
@@ -127,22 +127,26 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="flex items-center justify-center gap-3">
-              <Badge variant="outline" className="text-primary border-primary/30 px-6 py-1.5 rounded-full font-black text-[10px] tracking-widest">{userData.role.toUpperCase()}</Badge>
-              <Badge className="bg-primary text-background font-black px-6 py-1.5 rounded-full text-[10px] tracking-widest shadow-xl">IA SCORE {userData.score || 0}</Badge>
+              <Badge variant="outline" className="text-primary border-primary/30 px-6 py-1.5 rounded-full font-black text-[10px] tracking-widest hover:bg-primary/5">
+                {userData.role.toUpperCase()}
+              </Badge>
+              <Badge className="bg-primary text-primary-foreground font-black px-6 py-1.5 rounded-full text-[10px] tracking-widest shadow-xl">
+                IA SCORE {userData.score || 0}
+              </Badge>
             </div>
           </div>
         </div>
       </div>
 
       <main className="max-w-5xl mx-auto w-full px-6 space-y-12">
-        {isElite && (
-          <section className="space-y-10">
+        {hasMultimedia && (
+          <section className="space-y-8">
             <div className="flex items-center justify-between border-b border-white/5 pb-4">
               <div className="flex items-center gap-3">
                 <Play className="w-5 h-5 text-primary fill-primary" />
-                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Vídeo Highlights & Scouting Book</h2>
+                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Material Gráfico de Perfil</h2>
               </div>
-              <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black tracking-widest uppercase">Elite Access</Badge>
+              <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black tracking-widest uppercase">Visual Scouting</Badge>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -171,9 +175,9 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
         <Tabs defaultValue="stats" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-[#111827] border border-white/5 rounded-[2rem] h-16 p-1.5">
-            <TabsTrigger value="stats" className="rounded-2xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-background transition-all">Ficha Técnica</TabsTrigger>
-            <TabsTrigger value="history" className="rounded-2xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-background transition-all">Trayectoria</TabsTrigger>
-            <TabsTrigger value="ai" className="rounded-2xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-background transition-all">IA Analytics</TabsTrigger>
+            <TabsTrigger value="stats" className="rounded-2xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:text-primary transition-all">Ficha Técnica</TabsTrigger>
+            <TabsTrigger value="history" className="rounded-2xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:text-primary transition-all">Trayectoria</TabsTrigger>
+            <TabsTrigger value="ai" className="rounded-2xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground hover:text-primary transition-all">IA Analytics</TabsTrigger>
           </TabsList>
           
           <TabsContent value="stats" className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -222,19 +226,19 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           </TabsContent>
 
           <TabsContent value="ai" className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="p-12 rounded-[3rem] bg-primary text-background shadow-[0_0_60px_rgba(234,179,8,0.3)] relative overflow-hidden">
+            <div className="p-12 rounded-[3rem] bg-primary text-primary-foreground shadow-[0_0_60px_rgba(234,179,8,0.3)] relative overflow-hidden">
               <Zap className="absolute -top-10 -right-10 w-40 h-40 opacity-10 rotate-12" />
               <div className="relative z-10 space-y-6">
                 <div className="flex items-center gap-3">
-                  <Award className="w-8 h-8 fill-background" />
+                  <Award className="w-8 h-8 fill-primary-foreground" />
                   <h3 className="text-3xl font-black uppercase italic tracking-tighter">Análisis IA SportMatch</h3>
                 </div>
                 <p className="font-bold text-2xl md:text-3xl italic leading-tight tracking-tight">
                   "{profileData?.summary || "Perfil en fase de análisis avanzado. El sistema está evaluando las métricas de rendimiento para generar una predicción de mercado."}"
                 </p>
                 <div className="flex gap-3">
-                  <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[10px] hover:bg-background/30">TENDENCIA POSITIVA</Badge>
-                  <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[10px] hover:bg-background/30">ALTA VISIBILIDAD</Badge>
+                  <Badge variant="outline" className="bg-black/10 text-primary-foreground border-black/20 font-black text-[10px] hover:bg-black/20">TENDENCIA POSITIVA</Badge>
+                  <Badge variant="outline" className="bg-black/10 text-primary-foreground border-black/20 font-black text-[10px] hover:bg-black/20">ALTA VISIBILIDAD</Badge>
                 </div>
               </div>
             </div>
