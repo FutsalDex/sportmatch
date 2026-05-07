@@ -10,7 +10,8 @@ import {
   Calendar,
   Search,
   Trophy,
-  Globe
+  Globe,
+  Loader2
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,7 +23,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { MOCK_USERS } from '@/lib/db-mock';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 import { TopNav } from '@/components/navigation/top-nav';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -32,6 +34,7 @@ import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL } from '@/lib/constant
 
 export default function RankingsPage() {
   const { toast } = useToast();
+  const db = useFirestore();
   const { discipline } = useDiscipline();
   const [favorites, setFavorites] = useState<string[]>([]);
   
@@ -40,6 +43,10 @@ export default function RankingsPage() {
   const [countryFilter, setCountryFilter] = useState<string>('España');
   const [zoneFilter, setZoneFilter] = useState<string>('all');
   
+  // Referencia memorizada a la colección de usuarios
+  const usersRef = useMemoFirebase(() => collection(db, 'users'), [db]);
+  const { data: realUsers, isLoading: isUsersLoading } = useCollection(usersRef);
+
   useEffect(() => {
     const saved = localStorage.getItem('sm_favorites');
     if (saved) setFavorites(JSON.parse(saved));
@@ -62,20 +69,21 @@ export default function RankingsPage() {
     localStorage.setItem('sm_favorites', JSON.stringify(newFavs));
   };
 
-  // Lógica de filtrado y ordenación segmentada
+  // Lógica de filtrado y ordenación sobre datos reales
   const filteredAndSortedUsers = useMemo(() => {
-    return [...MOCK_USERS]
+    if (!realUsers) return [];
+    
+    return realUsers
       .filter(user => {
         const matchesDiscipline = user.discipline === discipline;
         const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-        // Si no tenemos el campo country en el mock, asumimos España para los que no lo tienen
-        const userCountry = (user as any).country || 'España';
+        const userCountry = user.country || 'España';
         const matchesCountry = userCountry === countryFilter;
         const matchesZone = zoneFilter === 'all' || user.province === zoneFilter;
         return matchesDiscipline && matchesRole && matchesCountry && matchesZone;
       })
-      .sort((a, b) => b.score - a.score);
-  }, [discipline, roleFilter, countryFilter, zoneFilter]);
+      .sort((a, b) => (b.score || 0) - (a.score || 0));
+  }, [realUsers, discipline, roleFilter, countryFilter, zoneFilter]);
 
   const locationLabel = GET_LOCATION_LABEL(countryFilter);
   const locationList = GET_LOCATION_LIST(countryFilter);
@@ -158,12 +166,17 @@ export default function RankingsPage() {
         </div>
       </section>
 
-      {/* Lista de Resultados Compacta */}
+      {/* Lista de Resultados Reales */}
       <section className="max-w-5xl mx-auto w-full px-6 space-y-2">
-        {filteredAndSortedUsers.length === 0 ? (
+        {isUsersLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 space-y-4">
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sincronizando terminal de red...</p>
+          </div>
+        ) : filteredAndSortedUsers.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-white/5 rounded-[3rem]">
             <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No hay perfiles de {discipline === 'Football' ? 'Fútbol' : 'Futsal'} en esta zona.</p>
+            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No hay perfiles activos en esta zona.</p>
           </div>
         ) : (
           filteredAndSortedUsers.map((userItem, idx) => {
@@ -181,8 +194,8 @@ export default function RankingsPage() {
                       <div className="flex items-center gap-4 flex-1">
                         <div className="relative">
                           <Avatar className="w-14 h-14 rounded-xl border-2 border-white/5 group-hover:border-primary/20 transition-colors">
-                            <AvatarImage src={userItem.avatarUrl} className="object-cover" />
-                            <AvatarFallback className="bg-[#1F2937] text-sm font-bold">{userItem.name[0]}</AvatarFallback>
+                            <AvatarImage src={userItem.profileImageUrl} className="object-cover" />
+                            <AvatarFallback className="bg-[#1F2937] text-sm font-bold">{userItem.name?.[0] || 'U'}</AvatarFallback>
                           </Avatar>
                           {isTop3 && (
                             <div className="absolute -top-2 -left-2 bg-primary rounded-full p-1 shadow-lg">
@@ -202,7 +215,7 @@ export default function RankingsPage() {
                               {userItem.name}
                             </h3>
                             <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest truncate">
-                              {userItem.level}
+                              {userItem.level || 'Amateur'}
                             </p>
                           </div>
                           
@@ -210,21 +223,21 @@ export default function RankingsPage() {
                             <span className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mb-1 flex items-center gap-1">
                               Posición
                             </span>
-                            <span className="text-[10px] font-bold text-white truncate">{userItem.position}</span>
+                            <span className="text-[10px] font-bold text-white truncate">{userItem.position || '--'}</span>
                           </div>
 
                           <div className="hidden md:flex flex-col justify-center">
                             <span className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mb-1 flex items-center gap-1">
                               Edad
                             </span>
-                            <span className="text-[10px] font-bold text-white">{userItem.age} años</span>
+                            <span className="text-[10px] font-bold text-white">{userItem.age || '--'} años</span>
                           </div>
 
                           <div className="hidden md:flex flex-col justify-center">
                             <span className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mb-1 flex items-center gap-1">
                               Zona
                             </span>
-                            <span className="text-[10px] font-bold text-white truncate">{userItem.province}</span>
+                            <span className="text-[10px] font-bold text-white truncate">{userItem.province || '--'}</span>
                           </div>
                         </div>
                       </div>
@@ -244,7 +257,7 @@ export default function RankingsPage() {
 
                         <div className="bg-primary rounded-xl px-3 py-1.5 flex items-center gap-2 min-w-[60px] justify-center">
                           <Star className="w-3 h-3 fill-background text-background" />
-                          <span className="text-background font-black text-xs">{userItem.score}</span>
+                          <span className="text-background font-black text-xs">{userItem.score || 0}</span>
                         </div>
                       </div>
                     </CardContent>

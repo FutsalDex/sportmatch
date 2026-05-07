@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Search, Filter, SlidersHorizontal, MapPin, ShieldCheck, Star, Globe } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, MapPin, ShieldCheck, Star, Globe, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,30 +15,37 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { MOCK_USERS } from '@/lib/db-mock';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 import { TopNav } from '@/components/navigation/top-nav';
 import Link from 'next/link';
 import { useDiscipline } from '@/context/discipline-context';
 import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL } from '@/lib/constants';
 
 export default function SearchPage() {
+  const db = useFirestore();
   const { discipline } = useDiscipline();
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [countryFilter, setCountryFilter] = useState<string>('España');
   const [zoneFilter, setZoneFilter] = useState<string>('all');
 
+  const usersRef = useMemoFirebase(() => collection(db, 'users'), [db]);
+  const { data: realUsers, isLoading: isUsersLoading } = useCollection(usersRef);
+
   const filteredUsers = useMemo(() => {
-    return MOCK_USERS.filter(user => {
+    if (!realUsers) return [];
+    
+    return realUsers.filter(user => {
       const matchesDiscipline = user.discipline === discipline;
-      const matchesQuery = user.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesQuery = (user.name || '').toLowerCase().includes(searchQuery.toLowerCase());
       const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-      const userCountry = (user as any).country || 'España';
+      const userCountry = user.country || 'España';
       const matchesCountry = countryFilter === 'all' || userCountry === countryFilter;
       const matchesZone = zoneFilter === 'all' || user.province === zoneFilter;
       return matchesDiscipline && matchesQuery && matchesRole && matchesCountry && matchesZone;
-    }).sort((a, b) => b.score - a.score);
-  }, [discipline, searchQuery, roleFilter, countryFilter, zoneFilter]);
+    }).sort((a, b) => (b.score || 0) - (a.score || 0));
+  }, [realUsers, discipline, searchQuery, roleFilter, countryFilter, zoneFilter]);
 
   const locationLabel = GET_LOCATION_LABEL(countryFilter);
   const locationList = GET_LOCATION_LIST(countryFilter);
@@ -116,7 +123,7 @@ export default function SearchPage() {
       <main className="max-w-7xl mx-auto w-full px-6 py-8 space-y-6">
         <div className="flex justify-between items-center border-b border-white/5 pb-4">
           <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
-            {filteredUsers.length} TALENTOS DE {discipline === 'Football' ? 'FÚTBOL' : 'FUTSAL'}
+            {isUsersLoading ? 'SINCRONIZANDO...' : `${filteredUsers.length} TALENTOS ACTIVOS`}
           </h2>
           <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 text-xs font-black uppercase tracking-widest gap-2">
             <SlidersHorizontal className="w-4 h-4" /> Score IA
@@ -124,49 +131,61 @@ export default function SearchPage() {
         </div>
 
         <div className="grid gap-4">
-          {filteredUsers.map((user) => (
-            <Link key={user.id} href={`/profile/${user.id}`}>
-              <Card className="card-elite rounded-[2.5rem] hover:border-primary/40 transition-all duration-300 group">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-6">
-                    <div className="relative">
-                      <Avatar className="w-20 h-20 rounded-2xl border-2 border-white/5 group-hover:border-primary/20 transition-colors">
-                        <AvatarImage src={user.avatarUrl} className="object-cover" />
-                        <AvatarFallback className="bg-[#1F2937] text-xl font-bold">{user.name.substring(0, 2)}</AvatarFallback>
-                      </Avatar>
-                      {user.verificationStatus === 'verified' && (
-                        <div className="absolute -bottom-1 -right-1 bg-[#030712] rounded-full p-1 shadow-xl">
-                          <ShieldCheck className="w-6 h-6 text-primary" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <h3 className="text-xl font-bold font-headline group-hover:text-primary transition-colors">{user.name}</h3>
-                      <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
-                        {user.role} • {user.position}
-                      </p>
+          {isUsersLoading ? (
+             <div className="flex flex-col items-center justify-center py-20 space-y-4">
+              <Loader2 className="w-10 h-10 text-primary animate-spin" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Localizando perfiles en la red...</p>
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="text-center py-20 border-2 border-dashed border-white/5 rounded-[3rem]">
+              <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
+              <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No se han encontrado resultados.</p>
+            </div>
+          ) : (
+            filteredUsers.map((user) => (
+              <Link key={user.id} href={`/profile/${user.id}`}>
+                <Card className="card-elite rounded-[2.5rem] hover:border-primary/40 transition-all duration-300 group">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-6">
+                      <div className="relative">
+                        <Avatar className="w-20 h-20 rounded-2xl border-2 border-white/5 group-hover:border-primary/20 transition-colors">
+                          <AvatarImage src={user.profileImageUrl} className="object-cover" />
+                          <AvatarFallback className="bg-[#1F2937] text-xl font-bold">{user.name?.substring(0, 2) || 'U'}</AvatarFallback>
+                        </Avatar>
+                        {user.verificationStatus === 'verified' && (
+                          <div className="absolute -bottom-1 -right-1 bg-[#030712] rounded-full p-1 shadow-xl">
+                            <ShieldCheck className="w-6 h-6 text-primary" />
+                          </div>
+                        )}
+                      </div>
                       
-                      <div className="flex items-center gap-4 text-xs pt-1">
-                        <div className="flex items-center text-muted-foreground">
-                          <MapPin className="w-3.5 h-3.5 mr-1.5" /> {user.province}
-                        </div>
-                        <div className="font-bold text-primary uppercase tracking-tighter">
-                          {user.level}
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <h3 className="text-xl font-bold font-headline group-hover:text-primary transition-colors">{user.name}</h3>
+                        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
+                          {user.role} • {user.position || '--'}
+                        </p>
+                        
+                        <div className="flex items-center gap-4 text-xs pt-1">
+                          <div className="flex items-center text-muted-foreground">
+                            <MapPin className="w-3.5 h-3.5 mr-1.5" /> {user.province || '--'}
+                          </div>
+                          <div className="font-bold text-primary uppercase tracking-tighter">
+                            {user.level || 'Amateur'}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex flex-col items-end">
-                      <Badge className="h-10 px-4 rounded-full bg-primary text-background font-black text-sm flex gap-1.5 border-none">
-                        <Star className="w-4 h-4 fill-current" /> {user.score}
-                      </Badge>
+                      <div className="flex flex-col items-end">
+                        <Badge className="h-10 px-4 rounded-full bg-primary text-background font-black text-sm flex gap-1.5 border-none">
+                          <Star className="w-4 h-4 fill-current" /> {user.score || 0}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+                  </CardContent>
+                </Card>
+              </Link>
+            ))
+          )}
         </div>
       </main>
     </div>
