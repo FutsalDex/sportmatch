@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -8,7 +9,7 @@ import {
   Zap,
   Calendar,
   Search,
-  ChevronDown
+  Trophy
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,14 +21,16 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { MOCK_USERS, User } from '@/lib/db-mock';
+import { MOCK_USERS } from '@/lib/db-mock';
 import { TopNav } from '@/components/navigation/top-nav';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useDiscipline } from '@/context/discipline-context';
 
 export default function RankingsPage() {
   const { toast } = useToast();
+  const { discipline } = useDiscipline();
   const [favorites, setFavorites] = useState<string[]>([]);
   
   // Estados de filtrado
@@ -47,38 +50,39 @@ export default function RankingsPage() {
     let newFavs;
     if (favorites.includes(userId)) {
       newFavs = favorites.filter(id => id !== userId);
-      toast({ title: "Eliminado", description: "Jugador quitado de favoritos." });
+      toast({ title: "Eliminado", description: "Quitado de favoritos." });
     } else {
       newFavs = [...favorites, userId];
-      toast({ title: "Guardado", description: "Jugador añadido a tus favoritos." });
+      toast({ title: "Guardado", description: "Añadido a tus favoritos." });
     }
     
     setFavorites(newFavs);
     localStorage.setItem('sm_favorites', JSON.stringify(newFavs));
   };
 
-  // Lógica de filtrado y ordenación
+  // Lógica de filtrado y ordenación segmentada por DISCIPLINA
   const filteredAndSortedUsers = useMemo(() => {
     return [...MOCK_USERS]
       .filter(user => {
+        // Filtro CRÍTICO: Solo mostrar la disciplina activa
+        const matchesDiscipline = user.discipline === discipline;
         const matchesRole = roleFilter === 'all' || user.role === roleFilter;
         const matchesPosition = positionFilter === 'all' || user.position === positionFilter;
         const matchesZone = zoneFilter === 'all' || user.province === zoneFilter;
-        return matchesRole && matchesPosition && matchesZone;
+        return matchesDiscipline && matchesRole && matchesPosition && matchesZone;
       })
       .sort((a, b) => b.score - a.score);
-  }, [roleFilter, positionFilter, zoneFilter]);
+  }, [discipline, roleFilter, positionFilter, zoneFilter]);
 
-  // Obtener posiciones únicas basadas en el rol seleccionado para los filtros
   const positions = useMemo(() => {
-    const filteredByRole = roleFilter === 'all' ? MOCK_USERS : MOCK_USERS.filter(u => u.role === roleFilter);
+    const base = MOCK_USERS.filter(u => u.discipline === discipline);
+    const filteredByRole = roleFilter === 'all' ? base : base.filter(u => u.role === roleFilter);
     return Array.from(new Set(filteredByRole.map(u => u.position)));
-  }, [roleFilter]);
+  }, [discipline, roleFilter]);
 
-  // Obtener zonas únicas
   const zones = useMemo(() => {
-    return Array.from(new Set(MOCK_USERS.map(u => u.province)));
-  }, []);
+    return Array.from(new Set(MOCK_USERS.filter(u => u.discipline === discipline).map(u => u.province)));
+  }, [discipline]);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">
@@ -87,10 +91,12 @@ export default function RankingsPage() {
       <header className="pt-10 pb-6 space-y-4 text-center px-6">
         <div className="flex justify-center">
           <div className="border border-primary/40 rounded-full px-6 py-1 bg-primary/5">
-             <span className="text-[9px] font-black uppercase tracking-[0.3em] text-primary">TERMINAL DE RANKING GLOBAL</span>
+             <span className="text-[9px] font-black uppercase tracking-[0.3em] text-primary">
+               RANKING GLOBAL {discipline === 'Football' ? 'FÚTBOL' : 'FÚTBOL SALA'}
+             </span>
           </div>
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tighter uppercase italic text-white leading-none">
+        <h1 className="text-5xl md:text-6xl font-bold font-headline tracking-tighter uppercase italic text-white leading-[0.8]">
           LÍDERES DEL TALENTO
         </h1>
       </header>
@@ -99,11 +105,10 @@ export default function RankingsPage() {
       <section className="max-w-5xl mx-auto w-full px-6 mb-8">
         <div className="bg-[#111827]/50 border border-white/5 p-4 rounded-[2rem] space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            {/* Toggle de Roles */}
             <div className="flex bg-[#030712] p-1 rounded-2xl border border-white/5">
               <Button 
                 variant="ghost" 
-                onClick={() => setRoleFilter(roleFilter === 'Player' ? 'all' : 'Player')}
+                onClick={() => setRoleFilter('Player')}
                 className={cn(
                   "h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
                   roleFilter === 'Player' ? "bg-primary text-background" : "text-muted-foreground hover:text-white"
@@ -113,7 +118,7 @@ export default function RankingsPage() {
               </Button>
               <Button 
                 variant="ghost" 
-                onClick={() => setRoleFilter(roleFilter === 'Coach' ? 'all' : 'Coach')}
+                onClick={() => setRoleFilter('Coach')}
                 className={cn(
                   "h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
                   roleFilter === 'Coach' ? "bg-primary text-background" : "text-muted-foreground hover:text-white"
@@ -123,7 +128,6 @@ export default function RankingsPage() {
               </Button>
             </div>
 
-            {/* Selectores de Posición y Zona */}
             <div className="flex flex-wrap items-center gap-3">
               <Select value={positionFilter} onValueChange={setPositionFilter}>
                 <SelectTrigger className="h-12 w-48 rounded-2xl bg-[#030712] border-white/10 text-[10px] font-bold uppercase tracking-widest text-white">
@@ -150,42 +154,40 @@ export default function RankingsPage() {
               </Select>
             </div>
           </div>
-          
-          <div className="flex items-center justify-between px-2">
-            <div className="flex items-center gap-4">
-               <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white">RESULTADOS: {filteredAndSortedUsers.length}</span>
-               <div className="h-1 w-24 bg-white/5 rounded-full overflow-hidden">
-                 <div className="h-full bg-primary w-1/3 animate-pulse" />
-               </div>
-            </div>
-            <p className="text-[9px] text-muted-foreground font-medium italic">Scouting en tiempo real activo</p>
-          </div>
         </div>
       </section>
 
-      {/* Lista de Resultados */}
+      {/* Lista de Resultados Compacta */}
       <section className="max-w-5xl mx-auto w-full px-6 space-y-2">
         {filteredAndSortedUsers.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-white/5 rounded-[3rem]">
             <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No se han encontrado talentos con estos criterios.</p>
+            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No hay perfiles de {discipline === 'Football' ? 'Fútbol' : 'Futsal'} con estos criterios.</p>
           </div>
         ) : (
           filteredAndSortedUsers.map((userItem, idx) => {
             const isFavorite = favorites.includes(userItem.id);
+            const isTop3 = idx < 3;
             
             return (
               <div key={userItem.id} className="group">
                 <Link href={`/profile/${userItem.id}`}>
-                  <Card className="rounded-2xl transition-all duration-300 overflow-hidden border-white/5 bg-[#111827]/40 hover:bg-[#111827] hover:border-primary/20 h-24">
+                  <Card className={cn(
+                    "rounded-2xl transition-all duration-300 overflow-hidden border-white/5 bg-[#111827]/40 hover:bg-[#111827] hover:border-primary/20 h-24",
+                    isTop3 && "border-primary/10 bg-primary/[0.02]"
+                  )}>
                     <CardContent className="p-4 flex items-center justify-between h-full">
-                      
                       <div className="flex items-center gap-4 flex-1">
                         <div className="relative">
                           <Avatar className="w-14 h-14 rounded-xl border-2 border-white/5 group-hover:border-primary/20 transition-colors">
                             <AvatarImage src={userItem.avatarUrl} className="object-cover" />
                             <AvatarFallback className="bg-[#1F2937] text-sm font-bold">{userItem.name[0]}</AvatarFallback>
                           </Avatar>
+                          {isTop3 && (
+                            <div className="absolute -top-2 -left-2 bg-primary rounded-full p-1 shadow-lg">
+                              <Trophy className="w-3 h-3 text-background" />
+                            </div>
+                          )}
                           {userItem.verificationStatus === 'verified' && (
                             <div className="absolute -bottom-1 -right-1 bg-primary rounded-lg p-0.5 border-2 border-[#030712]">
                               <ShieldCheck className="w-3 h-3 text-background" />
@@ -199,27 +201,27 @@ export default function RankingsPage() {
                               {userItem.name}
                             </h3>
                             <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest truncate">
-                              {userItem.discipline} • {userItem.level}
+                              {userItem.level}
                             </p>
                           </div>
                           
                           <div className="hidden md:flex flex-col justify-center">
                             <span className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mb-1 flex items-center gap-1">
-                              <Zap className="w-2.5 h-2.5 text-primary" /> Posición
+                              Posición
                             </span>
                             <span className="text-[10px] font-bold text-white truncate">{userItem.position}</span>
                           </div>
 
                           <div className="hidden md:flex flex-col justify-center">
                             <span className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mb-1 flex items-center gap-1">
-                              <Calendar className="w-2.5 h-2.5" /> Edad
+                              Edad
                             </span>
                             <span className="text-[10px] font-bold text-white">{userItem.age} años</span>
                           </div>
 
                           <div className="hidden md:flex flex-col justify-center">
                             <span className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mb-1 flex items-center gap-1">
-                              <MapPin className="w-2.5 h-2.5" /> Zona
+                              Zona
                             </span>
                             <span className="text-[10px] font-bold text-white truncate">{userItem.province}</span>
                           </div>
@@ -244,7 +246,6 @@ export default function RankingsPage() {
                           <span className="text-background font-black text-xs">{userItem.score}</span>
                         </div>
                       </div>
-
                     </CardContent>
                   </Card>
                 </Link>
