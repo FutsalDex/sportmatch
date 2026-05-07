@@ -22,7 +22,10 @@ import {
   Trophy,
   Loader2,
   Activity,
-  Flag
+  Flag,
+  Star,
+  Zap,
+  Award
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +39,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { TopNav } from '@/components/navigation/top-nav';
 import { useUser, useFirestore, useFirebase, useDoc, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -130,6 +135,35 @@ export default function MyProfilePage() {
     }
   }, [user, isAuthLoading, router]);
 
+  const calculateScore = () => {
+    let score = 0;
+    if (formData.name) score += 5;
+    if (formData.nationality) score += 5;
+    if (formData.country) score += 5;
+    if (formData.province) score += 5;
+    if (formData.age) score += 5;
+    if (formData.position) score += 5;
+    
+    if (formData.height) score += 5;
+    if (formData.weight) score += 5;
+    if (formData.strongFoot) score += 5;
+    
+    if (formData.profileImageUrl) score += 10;
+    
+    formData.bookImageUrls.forEach(url => {
+      if (url) score += 5;
+    });
+    
+    if (formData.bio && formData.bio.length > 50) score += 15;
+    else if (formData.bio) score += 5;
+    
+    if (formData.teamHistory.length > 0) score += 15;
+    
+    return Math.min(score, 100);
+  };
+
+  const currentScore = calculateScore();
+
   const handleSave = () => {
     if (!user || !userRef || !profileRef) return;
 
@@ -140,7 +174,8 @@ export default function MyProfilePage() {
       nationality: formData.nationality,
       age: parseInt(formData.age) || 0,
       position: formData.position,
-      profileImageUrl: formData.profileImageUrl
+      profileImageUrl: formData.profileImageUrl,
+      score: currentScore
     }, { merge: true });
 
     setDocumentNonBlocking(profileRef, {
@@ -246,11 +281,29 @@ export default function MyProfilePage() {
       <TopNav />
       
       <main className="max-w-5xl mx-auto px-6 py-12 space-y-12">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {/* Header con Score IA */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div className="space-y-2">
             <h1 className="text-5xl font-bold font-headline tracking-tighter">Mi Perfil</h1>
             <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">GESTIÓN DE IDENTIDAD DIGITAL</p>
           </div>
+          
+          <div className="flex-1 max-w-md bg-[#111827] border border-white/5 p-6 rounded-[2rem] space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-primary fill-primary" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-white">Potencial de Scouting IA</span>
+              </div>
+              <Badge className="bg-primary/10 text-primary border-none font-black text-xs">SCORE {currentScore}</Badge>
+            </div>
+            <Progress value={currentScore} className="h-2 bg-white/5" />
+            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider text-center">
+              {currentScore < 100 
+                ? `Completa tu biografía y historial para subir ${100 - currentScore} puntos` 
+                : "¡Perfil de Élite completado al 100%!"}
+            </p>
+          </div>
+
           <Button variant="outline" asChild className="rounded-xl border-primary/50 text-primary hover:bg-primary/10 px-6 font-bold h-12 gap-2">
             <Link href={`/profile/${user?.uid}`}>
               Ver Perfil Público <ExternalLink className="w-4 h-4" />
