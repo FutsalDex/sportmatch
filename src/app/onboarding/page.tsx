@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -12,12 +13,13 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowRight, CheckCircle2, UserCircle, Lock, Mail, ChevronLeft, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, CheckCircle2, UserCircle, Lock, Mail, ChevronLeft, Eye, EyeOff, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import { PROVINCIAS_ESPANA } from '@/lib/constants';
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -107,7 +109,6 @@ export default function OnboardingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white p-6">
       <div className="max-w-md mx-auto w-full pt-12 space-y-10">
-        {/* Volver Navigation */}
         {step > 1 && !isProcessing && (
           <button 
             onClick={() => setStep(step - 1)}
@@ -117,7 +118,6 @@ export default function OnboardingPage() {
           </button>
         )}
 
-        {/* Progress Bars */}
         <div className="space-y-4">
           <div className="flex gap-2">
             {[1, 2, 3].map((s) => (
@@ -233,12 +233,19 @@ export default function OnboardingPage() {
               </div>
               <div className="space-y-3">
                 <Label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground">Provincia</Label>
-                <Input 
-                  className="h-14 rounded-2xl bg-[#030712] border-white/10 focus:ring-primary/50 placeholder:text-muted-foreground/30 text-white" 
-                  placeholder="Ej: Madrid, Barcelona..." 
-                  value={formData.province} 
-                  onChange={e => setFormData({...formData, province: e.target.value})} 
-                />
+                <Select onValueChange={v => setFormData({...formData, province: v})}>
+                  <SelectTrigger className="h-14 rounded-2xl bg-[#030712] border-white/10 text-white pl-4">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                      <SelectValue placeholder="Selecciona una provincia" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#111827] border-white/10 text-white max-h-[300px]">
+                    {PROVINCIAS_ESPANA.map((prov) => (
+                      <SelectItem key={prov} value={prov}>{prov}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             
