@@ -199,18 +199,30 @@ export default function MyProfilePage() {
   };
 
   const addSeason = () => {
-    if (formData.newSeason.club && formData.newSeason.season) {
-      setFormData({
-        ...formData,
-        teamHistory: [formData.newSeason, ...formData.teamHistory],
+    if (formData.newSeason.club.trim() && formData.newSeason.season.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        teamHistory: [{ ...prev.newSeason }, ...prev.teamHistory],
         newSeason: { season: '', club: '', position: '', goals: 0, assists: 0, matches: 0 }
+      }));
+      toast({
+        title: "Temporada Añadida",
+        description: "Se ha agregado el registro a tu historial temporalmente. No olvides guardar tu perfil."
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Datos Incompletos",
+        description: "Por favor, completa al menos la Temporada y el Club."
       });
     }
   };
 
   const removeSeason = (index: number) => {
-    const updated = formData.teamHistory.filter((_, i) => i !== index);
-    setFormData({ ...formData, teamHistory: updated });
+    setFormData(prev => ({
+      ...prev,
+      teamHistory: prev.teamHistory.filter((_, i) => i !== index)
+    }));
   };
 
   const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
@@ -256,7 +268,7 @@ export default function MyProfilePage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">NOMBRE</Label>
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">NOMBRE Y APELLIDOS</Label>
                   <Input 
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -276,7 +288,7 @@ export default function MyProfilePage() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PAÍS</Label>
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PAÍS (RESIDENCIA ACTUAL)</Label>
                   <Select 
                     value={formData.country} 
                     onValueChange={(v) => {
@@ -547,7 +559,7 @@ export default function MyProfilePage() {
                     <Input 
                       type="number" 
                       value={formData.newSeason.matches}
-                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value)}})}
+                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value) || 0}})}
                       className="bg-[#030712] border-none h-12 rounded-xl"
                     />
                   </div>
@@ -556,7 +568,7 @@ export default function MyProfilePage() {
                     <Input 
                       type="number" 
                       value={formData.newSeason.goals}
-                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value)}})}
+                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value) || 0}})}
                       className="bg-[#030712] border-none h-12 rounded-xl"
                     />
                   </div>
@@ -565,11 +577,12 @@ export default function MyProfilePage() {
                     <Input 
                       type="number" 
                       value={formData.newSeason.assists}
-                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, assists: parseInt(e.target.value)}})}
+                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, assists: parseInt(e.target.value) || 0}})}
                       className="bg-[#030712] border-none h-12 rounded-xl"
                     />
                   </div>
                   <Button 
+                    type="button"
                     onClick={addSeason}
                     className="col-span-full h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 font-black uppercase text-[10px] tracking-widest mt-2"
                   >
