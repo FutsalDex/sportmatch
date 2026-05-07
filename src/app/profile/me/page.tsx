@@ -19,7 +19,8 @@ import {
   Upload,
   Lock,
   Trophy,
-  Loader2
+  Loader2,
+  Activity
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -156,7 +157,6 @@ export default function MyProfilePage() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Check plan for Book
     const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
     if (type === 'book' && !isElite) {
       toast({
@@ -276,7 +276,88 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Galería Multimedia con Upload */}
+          {/* Física y Técnica Restored */}
+          <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
+            <CardContent className="p-10 space-y-8">
+              <div className="flex items-center space-x-3 text-primary">
+                <Activity className="w-6 h-6 text-primary" />
+                <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Física y Técnica</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">EDAD</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <Input 
+                      type="number"
+                      value={formData.age}
+                      onChange={(e) => setFormData({...formData, age: e.target.value})}
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">ALTURA (M)</Label>
+                  <div className="relative">
+                    <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <Input 
+                      type="number"
+                      step="0.01"
+                      value={formData.height}
+                      onChange={(e) => setFormData({...formData, height: e.target.value})}
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PESO (KG)</Label>
+                  <div className="relative">
+                    <WeightIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <Input 
+                      type="number"
+                      step="0.1"
+                      value={formData.weight}
+                      onChange={(e) => setFormData({...formData, weight: e.target.value})}
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">POSICIÓN</Label>
+                  <div className="relative">
+                    <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <Input 
+                      value={formData.position}
+                      onChange={(e) => setFormData({...formData, position: e.target.value})}
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PIERNA HÁBIL</Label>
+                  <div className="relative">
+                    <Footprints className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <Select 
+                      value={formData.strongFoot} 
+                      onValueChange={(v) => setFormData({...formData, strongFoot: v})}
+                    >
+                      <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50">
+                        <SelectValue placeholder="Selecciona pierna" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#111827] border-[#1F2937] text-white">
+                        <SelectItem value="Derecha">Derecha</SelectItem>
+                        <SelectItem value="Izquierda">Izquierda</SelectItem>
+                        <SelectItem value="Ambidiestro">Ambidiestro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Galería Multimedia */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -285,9 +366,8 @@ export default function MyProfilePage() {
               </div>
               
               <div className="space-y-8">
-                {/* Foto Perfil */}
                 <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">FOTO DE PERFIL (UPLOAD A STORAGE)</Label>
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">FOTO DE PERFIL</Label>
                   <div className="flex gap-4">
                     <Input 
                       value={formData.profileImageUrl}
@@ -318,7 +398,6 @@ export default function MyProfilePage() {
                   </div>
                 </div>
                 
-                {/* Book Fotos con Bloqueo */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {[0, 1, 2].map((idx) => (
                     <div key={idx} className="space-y-3">
@@ -364,7 +443,26 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Historial Deportivo Estructurado */}
+          {/* Biografía */}
+          <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
+            <CardContent className="p-10 space-y-8">
+              <div className="flex items-center space-x-3 text-primary">
+                <FileText className="w-6 h-6 text-primary" />
+                <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Biografía Profesional</h2>
+              </div>
+              <div className="space-y-3">
+                <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">RESUMEN TÉCNICO</Label>
+                <Textarea 
+                  value={formData.bio}
+                  onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                  className="min-h-[200px] bg-[#1F2937]/50 border-none rounded-[2rem] text-lg p-8 focus-visible:ring-1 focus-visible:ring-primary/50"
+                  placeholder="Describe tus habilidades, trayectoria y lo que buscas..."
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Historial Deportivo */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -373,7 +471,6 @@ export default function MyProfilePage() {
               </div>
               
               <div className="space-y-6">
-                {/* Formulario Nueva Temporada */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-[#1F2937]/20 p-6 rounded-3xl border border-white/5">
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-muted-foreground">Temporada</Label>
@@ -424,8 +521,8 @@ export default function MyProfilePage() {
                     <Label className="text-[10px] uppercase font-bold text-muted-foreground">Asistencias</Label>
                     <Input 
                       type="number" 
-                      value={formData.newSeason.assists}
-                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, assists: parseInt(e.target.value)}})}
+                      value={formData.newSeason.asists}
+                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, asists: parseInt(e.target.value)}})}
                       className="bg-[#030712] border-none h-12 rounded-xl"
                     />
                   </div>
@@ -437,7 +534,6 @@ export default function MyProfilePage() {
                   </Button>
                 </div>
 
-                {/* Lista de Temporadas */}
                 <div className="space-y-3">
                   {formData.teamHistory.map((item, idx) => (
                     <div key={idx} className="flex flex-col md:flex-row items-center justify-between p-6 bg-[#1F2937]/50 rounded-2xl group border border-transparent hover:border-primary/30 transition-all gap-4">
@@ -459,7 +555,7 @@ export default function MyProfilePage() {
                         </div>
                         <div className="text-center">
                           <p className="text-[8px] font-black text-muted-foreground uppercase">ASIST</p>
-                          <p className="font-bold text-lg">{item.assists}</p>
+                          <p className="font-bold text-lg">{item.asists}</p>
                         </div>
                         <Button 
                           variant="ghost" 
