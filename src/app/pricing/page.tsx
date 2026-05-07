@@ -16,16 +16,12 @@ import {
   Award, 
   Trophy, 
   Target,
-  Timer,
-  Presentation,
   FileText,
   User,
   Search,
-  Activity,
   TrendingUp,
   MessageCircle,
   Play,
-  BarChart3,
   Gavel,
   Lock
 } from 'lucide-react';
@@ -56,7 +52,6 @@ const PLAYER_PLANS = [
     badge: "ELITE VERIFICADO ✓",
     features: [
       { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
-      { text: "Análisis IA SportMatch", included: true, icon: Award },
       { text: "Badge de perfil oficial", included: true, icon: ShieldCheck },
       { text: "Desbloquea Book Multimedia", included: true, icon: Play },
       { text: "Biografía optimizada IA", included: true, icon: Star },
@@ -72,11 +67,13 @@ const PLAYER_PLANS = [
     badge: "ELITE PRO ✓",
     features: [
       { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
-      { text: "Análisis IA SportMatch", included: true, icon: Award },
-      { text: "Riesgo de lesiones IA", included: true, icon: Activity },
-      { text: "Comparador de rendimiento", included: true, icon: BarChart3 },
+      { text: "Badge de perfil oficial", included: true, icon: ShieldCheck },
+      { text: "Desbloquea Book Multimedia", included: true, icon: Play },
+      { text: "Biografía optimizada IA", included: true, icon: Star },
+      { text: "Prioridad en búsqueda", included: true, icon: TrendingUp },
       { text: "Informe PDF para clubes", included: true, icon: FileText },
       { text: "Soporte legal deportivo", included: true, icon: Gavel },
+      { text: "Asesor deportivo SportMatch", included: true, icon: Users },
     ],
     buttonText: "SUSCRIBIRSE A ELITE PRO",
     highlight: false,
@@ -250,4 +247,3 @@ export default function PricingPage() {
     </div>
   );
 }
-
