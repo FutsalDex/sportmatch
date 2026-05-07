@@ -36,7 +36,7 @@ import { doc } from 'firebase/firestore';
 
 const PLAYER_PLANS = [
   {
-    name: "GRATUITO",
+    name: "ELITE FREE",
     price: "0 €",
     subtitle: "Siempre gratis",
     features: [
@@ -52,11 +52,11 @@ const PLAYER_PLANS = [
     highlight: false
   },
   {
-    name: "VERIFICADO",
+    name: "ELITE VERIFICADO",
     price: "9,90 €",
     oldPrice: "19,90 €",
     subtitle: "Jugador Profesional",
-    badge: "VERIFICADO ✓",
+    badge: "ELITE VERIFICADO ✓",
     features: [
       { text: "Todo lo del plan gratuito", included: true, icon: Check },
       { text: "Badge de perfil verificado", included: true, icon: ShieldCheck },
@@ -89,7 +89,7 @@ const PLAYER_PLANS = [
 
 const COACH_PLANS = [
   {
-    name: "GRATUITO",
+    name: "ELITE FREE",
     price: "0 €",
     subtitle: "Para empezar",
     features: [
@@ -104,10 +104,10 @@ const COACH_PLANS = [
     highlight: false
   },
   {
-    name: "ESTRATEGIA",
+    name: "ELITE VERIFICADO",
     price: "14,90 €",
     subtitle: "Entrenador Verificado",
-    badge: "VERIFICADO ✓",
+    badge: "ELITE VERIFICADO ✓",
     features: [
       { text: "Todo lo del plan gratuito", included: true, icon: Check },
       { text: "Badge verificado", included: true, icon: ShieldCheck },
@@ -120,10 +120,10 @@ const COACH_PLANS = [
     highlight: true
   },
   {
-    name: "MASTER ELITE",
+    name: "ELITE PRO",
     price: "79,90 €",
     subtitle: "Liderazgo Táctico",
-    badge: "MASTER ELITE ✓",
+    badge: "ELITE PRO ✓",
     features: [
       { text: "Todo lo del plan Estrategia", included: true, icon: Check },
       { text: "Análisis IA táctico", included: true, icon: Zap },
