@@ -56,6 +56,7 @@ const PLAYER_PLANS = [
       { text: "Desbloquea Book Multimedia", included: true, icon: Play },
       { text: "Biografía optimizada IA", included: true, icon: Star },
       { text: "Prioridad en búsqueda", included: true, icon: TrendingUp },
+      { text: "Análisis IA SportMatch", included: true, icon: Award },
     ],
     buttonText: "SOLICITAR VERIFICACIÓN",
     highlight: true
@@ -66,13 +67,9 @@ const PLAYER_PLANS = [
     subtitle: "Scouting Profesional",
     badge: "ELITE PRO ✓",
     features: [
+      { text: "Lo incluido en el Plan Verificado", included: true, icon: Check },
       { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
-      { text: "Badge de perfil oficial", included: true, icon: ShieldCheck },
-      { text: "Desbloquea Book Multimedia", included: true, icon: Play },
-      { text: "Biografía optimizada IA", included: true, icon: Star },
-      { text: "Prioridad en búsqueda", included: true, icon: TrendingUp },
       { text: "Informe PDF para clubes", included: true, icon: FileText },
-      { text: "Soporte legal deportivo", included: true, icon: Gavel },
       { text: "Asesor deportivo SportMatch", included: true, icon: Users },
     ],
     buttonText: "SUSCRIBIRSE A ELITE PRO",
