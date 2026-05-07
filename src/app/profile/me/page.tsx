@@ -26,6 +26,7 @@ import { doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { PROVINCIAS_ESPANA } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function MyProfilePage() {
   const router = useRouter();
@@ -128,7 +129,7 @@ export default function MyProfilePage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-widest">NOMBRE</Label>
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">NOMBRE</Label>
                   <Input 
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -136,7 +137,7 @@ export default function MyProfilePage() {
                   />
                 </div>
                 <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-widest">PROVINCIA</Label>
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PROVINCIA</Label>
                   <Select 
                     value={formData.province} 
                     onValueChange={(v) => setFormData({...formData, province: v})}
@@ -166,6 +167,7 @@ export default function MyProfilePage() {
               </div>
               
               <div className="space-y-3">
+                <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">TRAYECTORIA Y HABILIDADES</Label>
                 <Textarea 
                   placeholder="Describe tu trayectoria..."
                   className="min-h-[200px] bg-[#1F2937]/50 border-none rounded-3xl text-lg p-8 resize-none focus-visible:ring-1 focus-visible:ring-primary/50 placeholder:text-muted-foreground/30"
