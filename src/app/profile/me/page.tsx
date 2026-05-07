@@ -51,6 +51,7 @@ import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL } from '@/lib/constant
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface SeasonEntry {
   season: string;
@@ -242,7 +243,6 @@ export default function MyProfilePage() {
   const addSeason = () => {
     if (formData.newSeason.club.trim() && formData.newSeason.season.trim()) {
       const updatedHistory = [{ ...formData.newSeason }, ...formData.teamHistory];
-      // Ordenar: más reciente primero (ej: "24/25" > "23/24")
       updatedHistory.sort((a, b) => b.season.localeCompare(a.season));
 
       setFormData(prev => ({
@@ -332,6 +332,7 @@ export default function MyProfilePage() {
         </div>
 
         <div className="space-y-8 pb-24">
+          {/* SECCIÓN DATOS BÁSICOS */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -404,6 +405,7 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
+          {/* SECCIÓN FÍSICA Y TÉCNICA */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -486,6 +488,7 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
+          {/* SECCIÓN GALERÍA MULTIMEDIA CON PREVIEW */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -496,6 +499,21 @@ export default function MyProfilePage() {
               <div className="space-y-8">
                 <div className="space-y-3">
                   <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">FOTO DE PERFIL</Label>
+                  
+                  {formData.profileImageUrl && (
+                    <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary/20 mb-4 group">
+                      <Image 
+                        src={formData.profileImageUrl} 
+                        alt="Profile preview" 
+                        fill 
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Camera className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex gap-4">
                     <Input 
                       value={formData.profileImageUrl}
@@ -528,51 +546,67 @@ export default function MyProfilePage() {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {[0, 1, 2].map((idx) => (
-                    <div key={idx} className="space-y-3">
-                      <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-between">
-                        FOTO BOOK {idx + 1}
-                        {userData?.verificationStatus !== 'verified' && <Lock className="w-3 h-3 text-primary" />}
-                      </Label>
-                      <div className="relative">
-                        <Input 
-                          value={formData.bookImageUrls[idx]}
-                          disabled={userData?.verificationStatus !== 'verified'}
-                          placeholder={userData?.verificationStatus === 'verified' ? "URL de imagen" : "Plan Élite Requerido"}
-                          className={cn(
-                            "h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50",
-                            userData?.verificationStatus !== 'verified' && "opacity-50 cursor-not-allowed"
-                          )}
-                        />
-                        {userData?.verificationStatus === 'verified' && (
-                          <div className="mt-2">
-                             <input 
-                              type="file" 
-                              id={`book-upload-${idx}`} 
-                              className="hidden" 
-                              accept="image/*"
-                              onChange={(e) => handleFileUpload(e, 'book', idx)}
+                  {[0, 1, 2].map((idx) => {
+                    const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
+                    return (
+                      <div key={idx} className="space-y-3">
+                        <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-between">
+                          FOTO BOOK {idx + 1}
+                          {!isElite && <Lock className="w-3 h-3 text-primary" />}
+                        </Label>
+                        
+                        {formData.bookImageUrls[idx] && isElite && (
+                          <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 mb-2">
+                            <Image 
+                              src={formData.bookImageUrls[idx]} 
+                              alt={`Book ${idx + 1} preview`} 
+                              fill 
+                              className="object-cover"
                             />
-                            <Button 
-                              asChild
-                              size="sm"
-                              type="button"
-                              className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest cursor-pointer"
-                            >
-                              <label htmlFor={`book-upload-${idx}`}>
-                                {uploading === `book-${idx}` ? <Loader2 className="w-3 h-3 animate-spin" /> : "SUBIR A STORAGE"}
-                              </label>
-                            </Button>
                           </div>
                         )}
+
+                        <div className="relative">
+                          <Input 
+                            value={formData.bookImageUrls[idx]}
+                            disabled={!isElite}
+                            placeholder={isElite ? "URL de imagen" : "Plan Élite Requerido"}
+                            className={cn(
+                              "h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50",
+                              !isElite && "opacity-50 cursor-not-allowed"
+                            )}
+                          />
+                          {isElite && (
+                            <div className="mt-2">
+                               <input 
+                                type="file" 
+                                id={`book-upload-${idx}`} 
+                                className="hidden" 
+                                accept="image/*"
+                                onChange={(e) => handleFileUpload(e, 'book', idx)}
+                              />
+                              <Button 
+                                asChild
+                                size="sm"
+                                type="button"
+                                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest cursor-pointer"
+                              >
+                                <label htmlFor={`book-upload-${idx}`}>
+                                  {uploading === `book-${idx}` ? <Loader2 className="w-3 h-3 animate-spin" /> : "SUBIR A STORAGE"}
+                                </label>
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* SECCIÓN BIOGRAFÍA */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -591,6 +625,7 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
+          {/* SECCIÓN HISTORIAL DEPORTIVO */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
