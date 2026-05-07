@@ -26,7 +26,6 @@ export default function DashboardPage() {
   const { user } = useUser();
   const db = useFirestore();
 
-  // Memorizamos la referencia del documento para evitar bucles infinitos de renderizado
   const userDocRef = useMemoFirebase(() => {
     return user ? doc(db, 'users', user.uid) : null;
   }, [db, user?.uid]);
@@ -40,7 +39,6 @@ export default function DashboardPage() {
       <TopNav />
       
       <main className="max-w-7xl mx-auto px-6 py-10 space-y-10">
-        {/* Header con Bienvenida */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
@@ -62,7 +60,6 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* KPIs Principales */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="card-elite rounded-[2.5rem] relative overflow-hidden group">
             <CardContent className="p-8 space-y-4">
@@ -114,14 +111,13 @@ export default function DashboardPage() {
                 <p className="font-bold text-lg font-headline">Hazte Pro</p>
                 <p className="text-xs text-muted-foreground font-medium">Desbloquea análisis de riesgo de lesiones y comparador head-to-head.</p>
               </div>
-              <Button className="w-full bg-primary text-background font-black uppercase text-[10px] tracking-widest rounded-2xl">
+              <Button className="w-full bg-primary text-background font-black uppercase text-[10px] tracking-widest rounded-2xl hover:bg-primary/90">
                 Mejorar Ahora <ArrowUpRight className="ml-2 w-4 h-4" />
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        {/* Sección de Pipeline / Kanban */}
         <section className="space-y-6">
           <div className="flex items-center justify-between border-b border-white/5 pb-4">
             <h2 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center">
@@ -133,7 +129,6 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Columna 1: Interesados */}
             <div className="space-y-4">
               <div className="flex items-center justify-between px-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Interesados (2)</span>
@@ -160,7 +155,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Columna 2: En Revisión */}
             <div className="space-y-4">
               <div className="flex items-center justify-between px-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">En Revisión (1)</span>
@@ -184,7 +178,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Columna 3: Finalistas */}
             <div className="space-y-4">
               <div className="flex items-center justify-between px-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Finalistas (0)</span>
@@ -197,7 +190,6 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* IA Insights Section */}
         <section className="bg-primary rounded-[3rem] p-10 text-background flex flex-col md:flex-row items-center gap-10 shadow-[0_0_60px_rgba(234,179,8,0.2)]">
           <div className="bg-background p-6 rounded-[2rem] shadow-2xl">
             <Zap className="w-12 h-12 text-primary fill-primary" />
@@ -208,8 +200,8 @@ export default function DashboardPage() {
               "Tu Score ha subido +4 puntos tras actualizar tu biografía. El 80% de los clubes en {userData?.province || 'tu zona'} buscan perfiles con tu versatilidad táctica."
             </p>
             <div className="flex gap-4">
-              <Badge className="bg-background text-primary border-none font-black text-[10px]">TENDENCIA ASCENDENTE</Badge>
-              <Badge className="bg-background text-primary border-none font-black text-[10px]">ALTA VISIBILIDAD</Badge>
+              <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[10px] hover:bg-background/30">TENDENCIA ASCENDENTE</Badge>
+              <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[10px] hover:bg-background/30">ALTA VISIBILIDAD</Badge>
             </div>
           </div>
           <Button variant="outline" className="h-16 rounded-3xl border-background text-background hover:bg-background hover:text-primary font-black px-8">

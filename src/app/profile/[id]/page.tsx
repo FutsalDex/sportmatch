@@ -1,3 +1,4 @@
+
 "use client";
 
 import { use, useState } from 'react';
@@ -84,7 +85,6 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
       <TopNav />
       
       <div className="relative pt-16 pb-20 px-6 overflow-hidden">
-        {/* Fondo decorativo */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 blur-[120px] -z-10 rounded-full" />
         
         <Link href="/rankings" className="absolute top-6 left-6 z-20">
@@ -135,7 +135,6 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       <main className="max-w-5xl mx-auto w-full px-6 space-y-12">
-        {/* MATERIAL GRÁFICO (SOLO PARA ELITE/VERIFIED) */}
         {isElite && (
           <section className="space-y-10">
             <div className="flex items-center justify-between border-b border-white/5 pb-4">
@@ -234,8 +233,8 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                   "{profileData?.summary || "Perfil en fase de análisis avanzado. El sistema está evaluando las métricas de rendimiento para generar una predicción de mercado."}"
                 </p>
                 <div className="flex gap-3">
-                  <Badge className="bg-background text-primary border-none font-black text-[10px] tracking-widest">TENDENCIA POSITIVA</Badge>
-                  <Badge className="bg-background text-primary border-none font-black text-[10px] tracking-widest">ALTA VISIBILIDAD</Badge>
+                  <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[10px] hover:bg-background/30">TENDENCIA POSITIVA</Badge>
+                  <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[10px] hover:bg-background/30">ALTA VISIBILIDAD</Badge>
                 </div>
               </div>
             </div>

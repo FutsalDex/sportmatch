@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -104,10 +105,10 @@ export function TopNav() {
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="outline" 
-                className="rounded-2xl bg-[#111827] border-white/10 text-white h-10 px-6 gap-2 transition-colors hover:bg-white/10 hover:text-white active:bg-white/10"
+                className="rounded-2xl bg-[#111827] border-white/10 text-white h-10 px-6 gap-2 transition-colors hover:bg-white/20 hover:text-white"
               >
                 <User className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-widest text-white">CUENTA</span>
+                <span className="text-xs font-bold uppercase tracking-widest">CUENTA</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#1a212e] border-[#2d3748] rounded-2xl p-2 shadow-2xl">
