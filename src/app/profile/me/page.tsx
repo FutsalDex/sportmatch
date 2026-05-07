@@ -502,27 +502,18 @@ export default function MyProfilePage() {
                 <div className="space-y-3">
                   <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">FOTO DE PERFIL (ACCESO LIBRE)</Label>
                   
-                  {formData.profileImageUrl && (
-                    <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary/20 mb-4 group shadow-xl">
-                      <Image 
-                        src={formData.profileImageUrl} 
-                        alt="Profile preview" 
-                        fill 
-                        className="object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Camera className="w-6 h-6 text-white" />
+                  <div className="flex items-center gap-6">
+                    {formData.profileImageUrl && (
+                      <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary/20 group shadow-xl bg-black">
+                        <Image 
+                          src={formData.profileImageUrl} 
+                          alt="Profile preview" 
+                          fill 
+                          className="object-cover"
+                        />
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  <div className="flex gap-4">
-                    <Input 
-                      value={formData.profileImageUrl}
-                      onChange={(e) => setFormData({...formData, profileImageUrl: e.target.value})}
-                      placeholder="URL o sube una imagen"
-                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50 flex-1"
-                    />
                     <div className="relative">
                       <input 
                         type="file" 
@@ -535,12 +526,12 @@ export default function MyProfilePage() {
                         asChild
                         type="button"
                         className={cn(
-                          "h-14 px-8 rounded-2xl bg-primary text-background hover:bg-primary/90 shadow-[0_0_30px_rgba(234,179,8,0.2)] cursor-pointer",
+                          "h-14 px-8 rounded-2xl bg-primary text-background hover:bg-primary/90 shadow-[0_0_30px_rgba(234,179,8,0.2)] cursor-pointer flex items-center gap-3 font-black uppercase text-[10px] tracking-widest",
                           uploading === 'profile-main' && "opacity-50 pointer-events-none"
                         )}
                       >
                         <label htmlFor="profile-upload">
-                          {uploading === 'profile-main' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+                          {uploading === 'profile-main' ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Upload className="w-4 h-4" /> SUBIR FOTO DE PERFIL</>}
                         </label>
                       </Button>
                     </div>
@@ -558,49 +549,43 @@ export default function MyProfilePage() {
                           {!isElite && <Lock className="w-3 h-3 text-primary" />}
                         </Label>
                         
-                        {formData.bookImageUrls[idx] && isElite && (
-                          <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 mb-2 shadow-lg">
+                        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 mb-2 shadow-lg bg-black flex flex-col items-center justify-center">
+                          {formData.bookImageUrls[idx] && isElite ? (
                             <Image 
                               src={formData.bookImageUrls[idx]} 
                               alt={`Book ${idx + 1} preview`} 
                               fill 
                               className="object-cover"
                             />
-                          </div>
-                        )}
-
-                        <div className="relative">
-                          <Input 
-                            value={formData.bookImageUrls[idx]}
-                            disabled={!isElite}
-                            placeholder={isElite ? "URL de imagen" : "Plan Élite Requerido"}
-                            className={cn(
-                              "h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50",
-                              !isElite && "opacity-50 cursor-not-allowed"
-                            )}
-                          />
-                          {isElite && (
-                            <div className="mt-2">
-                               <input 
-                                type="file" 
-                                id={`book-upload-${idx}`} 
-                                className="hidden" 
-                                accept="image/*"
-                                onChange={(e) => handleFileUpload(e, 'book', idx)}
-                              />
-                              <Button 
-                                asChild
-                                size="sm"
-                                type="button"
-                                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-[10px] font-black uppercase tracking-widest cursor-pointer"
-                              >
-                                <label htmlFor={`book-upload-${idx}`}>
-                                  {uploading === `book-${idx}` ? <Loader2 className="w-3 h-3 animate-spin" /> : "SUBIR A STORAGE"}
-                                </label>
-                              </Button>
+                          ) : (
+                            <div className="text-center p-6 space-y-2 opacity-30">
+                              <Camera className="w-10 h-10 mx-auto" />
+                              <p className="text-[8px] font-black uppercase tracking-widest">{isElite ? 'SIN IMAGEN' : 'ELITE REQUIRED'}</p>
                             </div>
                           )}
                         </div>
+
+                        {isElite && (
+                          <div className="relative">
+                            <input 
+                              type="file" 
+                              id={`book-upload-${idx}`} 
+                              className="hidden" 
+                              accept="image/*"
+                              onChange={(e) => handleFileUpload(e, 'book', idx)}
+                            />
+                            <Button 
+                              asChild
+                              size="sm"
+                              type="button"
+                              className="w-full h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 font-black uppercase text-[10px] tracking-widest cursor-pointer"
+                            >
+                              <label htmlFor={`book-upload-${idx}`}>
+                                {uploading === `book-${idx}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Upload className="w-3 h-3 mr-2" /> SUBIR AL BOOK</>}
+                              </label>
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
