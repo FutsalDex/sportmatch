@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -25,10 +26,12 @@ export default function RootLayout({
       <body className="font-body antialiased bg-[#000000] selection:bg-primary selection:text-primary-foreground">
         <FirebaseClientProvider>
           <DisciplineProvider>
-            <main className="min-h-screen pb-20 md:pb-0">
-              {children}
-            </main>
-            <BottomNav />
+            <div className="flex flex-col min-h-screen">
+              <div className="flex-1 pb-20 md:pb-0">
+                {children}
+              </div>
+              <BottomNav />
+            </div>
             <Toaster />
           </DisciplineProvider>
         </FirebaseClientProvider>
