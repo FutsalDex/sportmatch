@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -407,12 +406,12 @@ export default function MyProfilePage() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">ALTURA (M)</Label>
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">ALTURA (CM)</Label>
                   <div className="relative">
                     <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                     <Input 
                       type="number"
-                      step="0.01"
+                      step="1"
                       value={formData.height}
                       onChange={(e) => setFormData({...formData, height: e.target.value})}
                       className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 pr-6 focus-visible:ring-1 focus-visible:ring-primary/50"

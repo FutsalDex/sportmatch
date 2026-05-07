@@ -165,7 +165,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             <CardContent className="p-6 flex flex-col items-center justify-center space-y-2">
               <Ruler className="w-5 h-5 text-primary" />
               <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Altura</span>
-              <span className="font-bold text-xl">{profileData?.height || '--'} m</span>
+              <span className="font-bold text-xl">{profileData?.height || '--'} cm</span>
             </CardContent>
           </Card>
           <Card className="card-elite rounded-[2rem] bg-[#111827]/60">
