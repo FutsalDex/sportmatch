@@ -14,6 +14,8 @@ export interface User {
   level: string;
   avatarUrl: string;
   verificationStatus: VerificationStatus;
+  position: string;
+  age: number;
 }
 
 export interface UserProfile {
@@ -50,6 +52,8 @@ export const MOCK_USERS: User[] = [
     level: 'Semi-Pro',
     avatarUrl: 'https://picsum.photos/seed/u1/100/100',
     verificationStatus: 'verified',
+    position: 'Delantero Centro',
+    age: 23,
   },
   {
     id: 'u2',
@@ -62,6 +66,8 @@ export const MOCK_USERS: User[] = [
     level: 'Professional',
     avatarUrl: 'https://picsum.photos/seed/u2/100/100',
     verificationStatus: 'verified',
+    position: 'Entrenador Principal',
+    age: 34,
   },
   {
     id: 'u3',
@@ -74,6 +80,8 @@ export const MOCK_USERS: User[] = [
     level: 'Professional',
     avatarUrl: 'https://picsum.photos/seed/u3/100/100',
     verificationStatus: 'verified',
+    position: 'Institución',
+    age: 45,
   },
   {
     id: 'u4',
@@ -86,6 +94,8 @@ export const MOCK_USERS: User[] = [
     level: 'Amateur',
     avatarUrl: 'https://picsum.photos/seed/u4/100/100',
     verificationStatus: 'none',
+    position: 'Extremo Izquierdo',
+    age: 19,
   }
 ];
 

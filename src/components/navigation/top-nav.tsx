@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -9,13 +8,12 @@ import {
   BarChart3, 
   LayoutDashboard, 
   Briefcase, 
-  ShieldAlert, 
   User, 
   ChevronDown,
   LogOut,
   ShieldCheck,
-  Settings,
-  CreditCard
+  CreditCard,
+  Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -33,6 +31,7 @@ import {
 const navItems = [
   { icon: Home, label: 'INICIO', href: '/' },
   { icon: BarChart3, label: 'RANKING', href: '/rankings' },
+  { icon: Star, label: 'FAVORITOS', href: '/favorites' },
   { icon: LayoutDashboard, label: 'DASHBOARD', href: '/dashboard' },
   { icon: Briefcase, label: 'SCOUTING', href: '/search' },
   { icon: CreditCard, label: 'PLANES', href: '/pricing' },
@@ -108,7 +107,7 @@ export function TopNav() {
                 className="rounded-2xl bg-[#111827] border-white/10 text-white h-10 px-6 gap-2 transition-colors hover:bg-white/10 hover:text-white active:bg-white/10"
               >
                 <User className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-widest">CUENTA</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-white">CUENTA</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#1a212e] border-[#2d3748] rounded-2xl p-2 shadow-2xl">
