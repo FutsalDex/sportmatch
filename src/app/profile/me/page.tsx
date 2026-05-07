@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -6,7 +7,16 @@ import {
   FileText, 
   Sparkles, 
   MapPin,
-  ExternalLink
+  ExternalLink,
+  Plus,
+  Trash2,
+  Camera,
+  User as UserIcon,
+  Ruler,
+  Weight as WeightIcon,
+  Calendar,
+  Footprints,
+  Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,7 +58,16 @@ export default function MyProfilePage() {
   const [formData, setFormData] = useState({
     name: '',
     province: '',
-    bio: ''
+    age: '',
+    position: '',
+    bio: '',
+    height: '',
+    weight: '',
+    strongFoot: '',
+    profileImageUrl: '',
+    bookImageUrls: ['', '', ''],
+    teamHistory: [] as string[],
+    newTeam: ''
   });
 
   useEffect(() => {
@@ -56,13 +75,21 @@ export default function MyProfilePage() {
       setFormData(prev => ({
         ...prev,
         name: userData.name || '',
-        province: userData.province || ''
+        province: userData.province || '',
+        age: userData.age?.toString() || '',
+        position: userData.position || '',
+        profileImageUrl: userData.profileImageUrl || ''
       }));
     }
     if (profileData) {
       setFormData(prev => ({
         ...prev,
-        bio: profileData.bio || ''
+        bio: profileData.bio || '',
+        height: profileData.height?.toString() || '',
+        weight: profileData.weight?.toString() || '',
+        strongFoot: profileData.strongFoot || '',
+        bookImageUrls: profileData.bookImageUrls || ['', '', ''],
+        teamHistory: profileData.teamHistory || []
       }));
     }
   }, [userData, profileData]);
@@ -78,17 +105,48 @@ export default function MyProfilePage() {
 
     setDocumentNonBlocking(userRef, {
       name: formData.name,
-      province: formData.province
+      province: formData.province,
+      age: parseInt(formData.age) || 0,
+      position: formData.position,
+      profileImageUrl: formData.profileImageUrl
     }, { merge: true });
 
     setDocumentNonBlocking(profileRef, {
-      bio: formData.bio
+      id: user.uid,
+      userId: user.uid,
+      bio: formData.bio,
+      height: parseFloat(formData.height) || 0,
+      weight: parseFloat(formData.weight) || 0,
+      strongFoot: formData.strongFoot,
+      bookImageUrls: formData.bookImageUrls,
+      teamHistory: formData.teamHistory
     }, { merge: true });
 
     toast({
       title: "Perfil Actualizado",
       description: "Tu identidad digital ha sido sincronizada con éxito."
     });
+  };
+
+  const addTeam = () => {
+    if (formData.newTeam.trim()) {
+      setFormData({
+        ...formData,
+        teamHistory: [...formData.teamHistory, formData.newTeam.trim()],
+        newTeam: ''
+      });
+    }
+  };
+
+  const removeTeam = (index: number) => {
+    const updated = formData.teamHistory.filter((_, i) => i !== index);
+    setFormData({ ...formData, teamHistory: updated });
+  };
+
+  const updateBookImage = (index: number, url: string) => {
+    const updated = [...formData.bookImageUrls];
+    updated[index] = url;
+    setFormData({ ...formData, bookImageUrls: updated });
   };
 
   const isLoading = isAuthLoading || isUserLoading || isProfileLoading;
@@ -155,6 +213,160 @@ export default function MyProfilePage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Información Física y Técnica */}
+          <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
+            <CardContent className="p-10 space-y-8">
+              <div className="flex items-center space-x-3 text-primary">
+                <Target className="w-6 h-6 text-primary" />
+                <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Física y Técnica</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">EDAD</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <Input 
+                      type="number"
+                      value={formData.age}
+                      onChange={(e) => setFormData({...formData, age: e.target.value})}
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 focus-visible:ring-1 focus-visible:ring-primary/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">ALTURA (M)</Label>
+                  <div className="relative">
+                    <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <Input 
+                      type="number"
+                      step="0.01"
+                      value={formData.height}
+                      onChange={(e) => setFormData({...formData, height: e.target.value})}
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 focus-visible:ring-1 focus-visible:ring-primary/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PESO (KG)</Label>
+                  <div className="relative">
+                    <WeightIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <Input 
+                      type="number"
+                      value={formData.weight}
+                      onChange={(e) => setFormData({...formData, weight: e.target.value})}
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 focus-visible:ring-1 focus-visible:ring-primary/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">POSICIÓN</Label>
+                  <Input 
+                    value={formData.position}
+                    onChange={(e) => setFormData({...formData, position: e.target.value})}
+                    placeholder="Ej: Delantero Centro"
+                    className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PIERNA HÁBIL</Label>
+                  <Select value={formData.strongFoot} onValueChange={(v) => setFormData({...formData, strongFoot: v})}>
+                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50">
+                      <div className="flex items-center gap-2">
+                        <Footprints className="w-4 h-4 text-primary" />
+                        <SelectValue placeholder="Selecciona pierna" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#111827] border-[#1F2937] text-white">
+                      <SelectItem value="Derecha">Derecha</SelectItem>
+                      <SelectItem value="Izquierda">Izquierda</SelectItem>
+                      <SelectItem value="Ambidiestro">Ambidiestro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Galería Multimedia */}
+          <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
+            <CardContent className="p-10 space-y-8">
+              <div className="flex items-center space-x-3 text-primary">
+                <Camera className="w-6 h-6 text-primary" />
+                <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Galería Multimedia</h2>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">URL FOTO DE PERFIL</Label>
+                  <Input 
+                    value={formData.profileImageUrl}
+                    onChange={(e) => setFormData({...formData, profileImageUrl: e.target.value})}
+                    placeholder="https://example.com/foto.jpg"
+                    className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {formData.bookImageUrls.map((url, idx) => (
+                    <div key={idx} className="space-y-3">
+                      <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">URL FOTO BOOK {idx + 1}</Label>
+                      <Input 
+                        value={url}
+                        onChange={(e) => updateBookImage(idx, e.target.value)}
+                        placeholder="URL de la imagen"
+                        className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Historial de Clubes */}
+          <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
+            <CardContent className="p-10 space-y-8">
+              <div className="flex items-center space-x-3 text-primary">
+                <UserIcon className="w-6 h-6 text-primary" />
+                <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Historial de Clubes</h2>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <Input 
+                    value={formData.newTeam}
+                    onChange={(e) => setFormData({...formData, newTeam: e.target.value})}
+                    placeholder="Nombre del club anterior..."
+                    className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50 flex-1"
+                  />
+                  <Button 
+                    onClick={addTeam}
+                    className="h-14 w-14 rounded-2xl bg-primary text-background hover:bg-primary/90"
+                  >
+                    <Plus className="w-6 h-6" />
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  {formData.teamHistory.map((team, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-4 bg-[#1F2937]/50 rounded-2xl group border border-transparent hover:border-primary/30 transition-all">
+                      <span className="font-bold text-lg">{team}</span>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => removeTeam(idx)}
+                        className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
             </CardContent>

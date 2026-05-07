@@ -11,6 +11,9 @@
           "type": "string",
           "description": "Unique identifier for the User entity."
         },
+        "name": {
+          "type": "string"
+        },
         "email": {
           "type": "string",
           "description": "The user's primary email address.",
@@ -43,6 +46,15 @@
         "verificationStatus": {
           "type": "string",
           "description": "Certification verification status."
+        },
+        "age": {
+          "type": "number"
+        },
+        "position": {
+          "type": "string"
+        },
+        "profileImageUrl": {
+          "type": "string"
         }
       },
       "required": [
@@ -77,6 +89,10 @@
         "bio": { "type": "string" },
         "teamHistory": { "type": "array", "items": { "type": "string" } },
         "videoUrls": { "type": "array", "items": { "type": "string" } },
+        "height": { "type": "number" },
+        "weight": { "type": "number" },
+        "strongFoot": { "type": "string" },
+        "bookImageUrls": { "type": "array", "items": { "type": "string" } },
         "summary": { "type": "string" },
         "analysis": { "type": "string" }
       },
