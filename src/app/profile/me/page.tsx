@@ -157,6 +157,7 @@ export default function MyProfilePage() {
 
   const calculateScore = () => {
     let score = 0;
+    const isFree = !isElite;
 
     // 1. Datos Básicos (Máx 10)
     let basicScore = 0;
@@ -178,13 +179,14 @@ export default function MyProfilePage() {
     // 3. Galería Multimedia (Máx 25)
     let mediaScore = 0;
     if (formData.profileImageUrl) mediaScore += 10;
+    // El Book y los vídeos solo suman si están disponibles/subidos
     formData.bookImageUrls.forEach(url => { if (url) mediaScore += 3; });
-    formData.videoUrls.forEach(url => { if (url) mediaScore += 2; });
-    formData.socialVideoUrls.forEach(url => { if (url) mediaScore += 2; });
+    formData.videoUrls.forEach(url => { if (url) mediaScore += 3; });
+    formData.socialVideoUrls.forEach(url => { if (url) mediaScore += 3; });
     score += Math.min(mediaScore, 25);
 
     // 4. Biografía Profesional (Máx 10)
-    if (formData.isAiBio && isElite) {
+    if (!isFree && formData.isAiBio) {
       score += 10;
     } else if (formData.bio && formData.bio.length > 20) {
       score += 5;
@@ -193,12 +195,12 @@ export default function MyProfilePage() {
     // 5. Historial Deportivo (Máx 10)
     if (formData.teamHistory.length > 0) score += 10;
 
-    // 6. Plan de Cuenta (Verificado +10, Pro +20 total)
+    // 6. Plan de Cuenta (Verificado +10, Pro +20)
     if (userData?.plan === 'pro') score += 20;
     else if (userData?.plan === 'verified' || userData?.verificationStatus === 'verified') score += 10;
 
-    // 7. Análisis de SportMatch (IA Platform Analysis) (Máx 15)
-    if (profileData?.analysis || profileData?.summary) {
+    // 7. Análisis de SportMatch (IA) (Máx 15) - SOLO NO FREE
+    if (!isFree && (profileData?.analysis || profileData?.summary)) {
       score += 15;
     }
 
@@ -319,8 +321,8 @@ export default function MyProfilePage() {
             </div>
             <Progress value={currentScore} className="h-2 bg-white/5" />
             <div className="flex justify-between text-[8px] text-muted-foreground font-bold uppercase tracking-tighter italic">
-               <span>Perfil Técnico: {currentScore - (profileData?.analysis ? 15 : 0)}/85</span>
-               <span>Análisis IA: {profileData?.analysis ? 15 : 0}/15</span>
+               <span>Perfil Técnico: {Math.min(currentScore - (isElite && (profileData?.analysis || profileData?.summary) ? 15 : 0), 85)}/85</span>
+               <span>Análisis IA: {isElite && (profileData?.analysis || profileData?.summary) ? 15 : 0}/15</span>
             </div>
           </div>
         </div>
@@ -338,18 +340,18 @@ export default function MyProfilePage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Nombre Completo</Label>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Nombre Completo</Label>
                   <Input value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Nacionalidad</Label>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Nacionalidad</Label>
                   <div className="relative">
-                    <Flag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <Input value={formData.nationality || ''} onChange={e => setFormData({...formData, nationality: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12 px-6" />
+                    <Flag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary z-10" />
+                    <Input value={formData.nationality || ''} onChange={e => setFormData({...formData, nationality: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12 pr-6" />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">País</Label>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">País</Label>
                   <Select value={formData.country || 'España'} onValueChange={v => setFormData({...formData, country: v, province: ''})}>
                     <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6"><SelectValue placeholder="País" /></SelectTrigger>
                     <SelectContent className="bg-[#111827] border-white/10 text-white">
@@ -358,7 +360,7 @@ export default function MyProfilePage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">{GET_LOCATION_LABEL(formData.country)}</Label>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">{GET_LOCATION_LABEL(formData.country)}</Label>
                   <Select value={formData.province || ''} onValueChange={v => setFormData({...formData, province: v})}>
                     <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6"><SelectValue placeholder="Zona" /></SelectTrigger>
                     <SelectContent className="bg-[#111827] border-white/10 text-white max-h-60">
@@ -370,7 +372,7 @@ export default function MyProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6 border-t border-white/5">
                 {['instagram', 'tiktok', 'twitter'].map((social) => (
                   <div key={social} className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">{social.toUpperCase()}</Label>
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">{social.toUpperCase()}</Label>
                     <Input placeholder="@usuario" value={(formData as any)[social] || ''} onChange={e => setFormData({...formData, [social]: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6" />
                   </div>
                 ))}
@@ -410,7 +412,7 @@ export default function MyProfilePage() {
                 )}
               >
                 {!isElite ? <Lock className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                {formData.isAiBio ? "OPTIMIZADO CON IA ✓" : isElite ? "OPTIMIZAR BIOGRAFÍA CON IA" : "OPTIMIZACIÓN IA (SOLO PRO)"}
+                {formData.isAiBio ? "OPTIMIZADO CON IA ✓" : isElite ? "OPTIMIZAR BIOGRAFÍA CON IA" : "OPTIMIZACIÓN IA (SOLO PRO/VERIFICADO)"}
               </Button>
             </CardContent>
           </Card>
@@ -432,12 +434,12 @@ export default function MyProfilePage() {
                   { label: 'Peso (KG)', key: 'weight', type: 'number' }
                 ].map((field) => (
                   <div key={field.key} className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">{field.label}</Label>
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">{field.label}</Label>
                     <Input type={field.type} value={(formData as any)[field.key] || ''} onChange={e => setFormData({...formData, [field.key]: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6" />
                   </div>
                 ))}
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Pierna</Label>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Pierna</Label>
                   <Select value={formData.strongFoot || ''} onValueChange={v => setFormData({...formData, strongFoot: v})}>
                     <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6"><SelectValue placeholder="Pierna" /></SelectTrigger>
                     <SelectContent className="bg-[#111827] border-white/10 text-white">
@@ -448,7 +450,7 @@ export default function MyProfilePage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Posición</Label>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Posición</Label>
                   <Input value={formData.position || ''} onChange={e => setFormData({...formData, position: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6" />
                 </div>
               </div>
@@ -467,25 +469,55 @@ export default function MyProfilePage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div className="space-y-4">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Foto de Perfil</Label>
-                  <div className="flex items-center gap-6">
-                    <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-primary/20 bg-black">
-                      {formData.profileImageUrl ? <Image src={formData.profileImageUrl} alt="P" fill className="object-cover" /> : <UserIcon className="m-auto opacity-10 w-8 h-8 mt-8" />}
-                    </div>
-                    <Button asChild className="h-12 rounded-xl bg-primary text-background font-black uppercase text-[10px] tracking-widest cursor-pointer">
-                      <label htmlFor="p-up"><Upload className="w-4 h-4 mr-2" /> SUBIR FOTO</label>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Foto de Perfil</Label>
+                  <div className="flex flex-col gap-4">
+                    {formData.profileImageUrl && (
+                      <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary/20 group shadow-xl">
+                        <Image src={formData.profileImageUrl} alt="Profile preview" fill className="object-cover" />
+                        <button 
+                          onClick={() => setFormData(prev => ({ ...prev, profileImageUrl: '' }))}
+                          className="absolute inset-0 bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-6 h-6 text-white" />
+                        </button>
+                      </div>
+                    )}
+                    <Button asChild className="h-14 rounded-xl bg-primary text-background font-black uppercase text-[10px] tracking-widest cursor-pointer w-fit">
+                      <label htmlFor="p-up">
+                        {uploading === 'profile-main' ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+                        SUBIR FOTO PERFIL
+                      </label>
                     </Button>
                     <input type="file" id="p-up" className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'profile')} />
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center"><Label className="text-[10px] uppercase font-bold text-muted-foreground">Book (Sólo Elite)</Label>{!isElite && <Lock className="w-3 h-3 text-muted-foreground" />}</div>
+                  <div className="flex justify-between items-center"><Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Book de Scouting (Solo Pro/Verificado)</Label>{!isElite && <Lock className="w-3 h-3 text-muted-foreground" />}</div>
                   <div className="flex gap-4">
                     {[0, 1, 2].map(i => (
-                      <div key={i} className="relative w-16 h-16 rounded-xl border-2 border-dashed border-white/10 overflow-hidden bg-black/40 group">
-                        {formData.bookImageUrls[i] ? <Image src={formData.bookImageUrls[i]} alt="B" fill className="object-cover" /> : <Camera className="m-auto opacity-10 w-4 h-4 mt-6" />}
-                        <label htmlFor={`b-up-${i}`} className="absolute inset-0 cursor-pointer" />
-                        <input type="file" id={`b-up-${i}`} className="hidden" disabled={!isElite} onChange={e => handleFileUpload(e, 'book', i)} />
+                      <div key={i} className="flex flex-col gap-2">
+                        <div className="relative w-20 h-20 rounded-xl border-2 border-dashed border-white/10 overflow-hidden bg-black/40 group">
+                          {formData.bookImageUrls[i] ? (
+                            <>
+                              <Image src={formData.bookImageUrls[i]} alt="Book" fill className="object-cover" />
+                              <button 
+                                onClick={() => {
+                                  const updated = [...formData.bookImageUrls];
+                                  updated[i] = '';
+                                  setFormData(prev => ({ ...prev, bookImageUrls: updated }));
+                                }}
+                                className="absolute inset-0 bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Trash2 className="w-4 h-4 text-white" />
+                              </button>
+                            </>
+                          ) : (
+                            <label htmlFor={`b-up-${i}`} className="flex flex-col items-center justify-center h-full w-full cursor-pointer hover:bg-white/5 transition-colors">
+                              {uploading === `book-${i}` ? <Loader2 className="animate-spin w-4 h-4 text-primary" /> : <Camera className="w-5 h-5 opacity-20" />}
+                            </label>
+                          )}
+                          <input type="file" id={`b-up-${i}`} className="hidden" disabled={!isElite} onChange={e => handleFileUpload(e, 'book', i)} />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -493,13 +525,13 @@ export default function MyProfilePage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-white/5">
                 <div className="space-y-4">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2"><Youtube className="text-red-500 w-4 h-4" /> YouTube Highlights</Label>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2 ml-2"><Youtube className="text-red-500 w-4 h-4" /> YouTube Highlights (Max 2)</Label>
                   {formData.videoUrls.map((v, i) => (
                     <Input key={i} placeholder="URL YouTube" value={v || ''} disabled={!isElite} onChange={e => { const u = [...formData.videoUrls]; u[i] = e.target.value; setFormData({...formData, videoUrls: u}); }} className="h-12 bg-[#1F2937]/50 border-none rounded-xl px-6" />
                   ))}
                 </div>
                 <div className="space-y-4">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2"><Instagram className="text-pink-500 w-4 h-4" /> Clips Sociales</Label>
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2 ml-2"><Instagram className="text-pink-500 w-4 h-4" /> Clips Sociales (Max 2)</Label>
                   {formData.socialVideoUrls.map((v, i) => (
                     <Input key={i} placeholder="URL IG/TikTok" value={v || ''} disabled={!isElite} onChange={e => { const u = [...formData.socialVideoUrls]; u[i] = e.target.value; setFormData({...formData, socialVideoUrls: u}); }} className="h-12 bg-[#1F2937]/50 border-none rounded-xl px-6" />
                   ))}
@@ -520,14 +552,21 @@ export default function MyProfilePage() {
               </div>
               <div className="space-y-6">
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4 bg-black/20 p-6 rounded-[2rem]">
-                  {['season', 'club', 'position', 'matches', 'goals', 'assists'].map(k => (
-                    <div key={k} className="space-y-1">
-                      <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">{k === 'matches' ? 'PJ' : k.toUpperCase()}</Label>
+                  {[
+                    { label: 'Temporada', key: 'season', type: 'text', placeholder: '24/25' },
+                    { label: 'Club', key: 'club', type: 'text', placeholder: 'Real Madrid' },
+                    { label: 'Posición', key: 'position', type: 'text', placeholder: 'Extremo' },
+                    { label: 'PJ', key: 'matches', type: 'number', placeholder: '0' },
+                    { label: 'GOLES', key: 'goals', type: 'number', placeholder: '0' },
+                    { label: 'ASIST', key: 'assists', type: 'number', placeholder: '0' }
+                  ].map(field => (
+                    <div key={field.key} className="space-y-1">
+                      <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">{field.label}</Label>
                       <Input 
-                        placeholder={k === 'season' ? '24/25' : ''} 
-                        type={['matches', 'goals', 'assists'].includes(k) ? 'number' : 'text'}
-                        value={(formData.newSeason as any)[k] || ''} 
-                        onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, [k]: e.target.value}})} 
+                        placeholder={field.placeholder} 
+                        type={field.type}
+                        value={(formData.newSeason as any)[field.key] || ''} 
+                        onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, [field.key]: e.target.value}})} 
                         className="bg-[#030712] border-none rounded-xl h-10 px-4" 
                       />
                     </div>
@@ -541,10 +580,14 @@ export default function MyProfilePage() {
                       <p className="text-[10px] text-muted-foreground uppercase font-black">{item.position}</p>
                     </div>
                     <div className="flex gap-8 mr-8">
-                      {[{l:'PJ',v:item.matches}, {l:'GOL',v:item.goals}, {l:'AST',v:item.assists}].map(s => (
-                        <div key={s.l} className="text-center">
-                          <p className="text-[8px] font-black text-muted-foreground uppercase">{s.l}</p>
-                          <p className="font-bold text-lg">{s.v}</p>
+                      {[
+                        { label: 'PJ', value: item.matches },
+                        { label: 'GOLES', value: item.goals },
+                        { label: 'ASIST', value: item.assists }
+                      ].map(stat => (
+                        <div key={stat.label} className="text-center">
+                          <p className="text-[8px] font-black text-muted-foreground uppercase">{stat.label}</p>
+                          <p className="font-bold text-lg">{stat.value}</p>
                         </div>
                       ))}
                     </div>
@@ -566,4 +609,3 @@ export default function MyProfilePage() {
     </div>
   );
 }
-

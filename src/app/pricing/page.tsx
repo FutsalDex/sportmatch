@@ -40,10 +40,10 @@ const PLAYER_PLANS = [
     features: [
       { text: "Perfil técnico básico", included: true, icon: User },
       { text: "Búsqueda en el ranking", included: true, icon: Search },
-      { text: "Score IA hasta 85 pts", included: true, icon: Zap },
+      { text: "Score IA hasta 45 pts", included: true, icon: Zap },
+      { text: "Sin análisis de IA", included: false, icon: Award },
       { text: "Book multimedia", included: false, icon: Play },
       { text: "Mensajes directos", included: false, icon: MessageCircle },
-      { text: "Análisis IA SportMatch", included: false, icon: BotIcon },
     ],
     buttonText: "COMENZAR GRATIS",
     highlight: false
@@ -55,11 +55,11 @@ const PLAYER_PLANS = [
     badge: "ELITE VERIFICADO ✓",
     features: [
       { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
+      { text: "Análisis IA SportMatch", included: true, icon: Award },
       { text: "Badge de perfil oficial", included: true, icon: ShieldCheck },
       { text: "Desbloquea Book Multimedia", included: true, icon: Play },
-      { text: "Biografía optimizada IA", included: true, icon: Sparkles },
+      { text: "Biografía optimizada IA", included: true, icon: Star },
       { text: "Prioridad en búsqueda", included: true, icon: TrendingUp },
-      { text: "Mensajes ilimitados", included: true, icon: MessageCircle },
     ],
     buttonText: "SOLICITAR VERIFICACIÓN",
     highlight: true
@@ -71,7 +71,7 @@ const PLAYER_PLANS = [
     badge: "ELITE PRO ✓",
     features: [
       { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
-      { text: "Análisis IA SportMatch (15 pts)", included: true, icon: Award },
+      { text: "Análisis IA SportMatch", included: true, icon: Award },
       { text: "Riesgo de lesiones IA", included: true, icon: Activity },
       { text: "Comparador de rendimiento", included: true, icon: BarChart3 },
       { text: "Informe PDF para clubes", included: true, icon: FileText },
@@ -82,14 +82,6 @@ const PLAYER_PLANS = [
     dark: true
   }
 ];
-
-function BotIcon(props: any) {
-  return <Zap {...props} />
-}
-
-function Sparkles(props: any) {
-  return <Star {...props} />
-}
 
 export default function PricingPage() {
   const { user } = useUser();
@@ -108,7 +100,7 @@ export default function PricingPage() {
     }
   }, [userData?.role]);
 
-  const currentPlans = activeRole === 'Player' ? PLAYER_PLANS : PLAYER_PLANS; // Coaches use same visual for now
+  const currentPlans = activeRole === 'Player' ? PLAYER_PLANS : PLAYER_PLANS;
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
