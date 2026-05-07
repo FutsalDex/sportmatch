@@ -1,4 +1,3 @@
-
 "use client";
 
 import { use, useState } from 'react';
@@ -27,7 +26,8 @@ import {
   Twitter,
   Music2,
   Flag,
-  Award
+  Award,
+  FileText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -56,7 +56,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
   if (!userData) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-white">Usuario no encontrado.</div>;
 
-  const isElite = userData.verificationStatus === 'verified' || (userData.score && userData.score > 85);
+  const isElite = userData.verificationStatus === 'verified' || userData.plan === 'verified' || userData.plan === 'pro';
 
   const getYoutubeId = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
