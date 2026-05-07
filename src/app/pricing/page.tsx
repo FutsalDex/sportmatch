@@ -26,7 +26,8 @@ import {
   MessageCircle,
   Play,
   BarChart3,
-  Gavel
+  Gavel,
+  Lock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -115,6 +116,9 @@ export default function PricingPage() {
             <h1 className="text-6xl md:text-7xl font-bold font-headline tracking-tighter leading-none">
               Acelera tu <span className="text-primary italic">Scouting</span>
             </h1>
+            <p className="text-muted-foreground font-medium max-w-xl mx-auto">
+              Optimiza tu visibilidad en la red con el respaldo de nuestra Inteligencia Artificial deportiva.
+            </p>
           </div>
 
           <Tabs 
@@ -161,7 +165,7 @@ export default function PricingPage() {
                   {plan.badge ? (
                     <Badge className={cn(
                       "border-none px-4 py-1 text-[10px] font-black tracking-widest uppercase",
-                      plan.dark ? "bg-white/10 text-white" : "bg-primary/20 text-primary"
+                      plan.dark ? "bg-white/10 text-white" : "bg-primary text-background"
                     )}>
                       {plan.badge}
                     </Badge>
@@ -205,7 +209,11 @@ export default function PricingPage() {
                           )} />
                         </div>
                         <span className="pt-0.5">{feature.text}</span>
-                        {feature.included && <Check className="w-3 h-3 ml-auto opacity-40" />}
+                        {feature.included ? (
+                          <Check className="w-3 h-3 ml-auto opacity-40" />
+                        ) : (
+                          <Lock className="w-3 h-3 ml-auto opacity-10" />
+                        )}
                       </div>
                     );
                   })}
@@ -230,13 +238,16 @@ export default function PricingPage() {
           ))}
         </div>
 
-        <footer className="text-center space-y-4 max-w-2xl mx-auto opacity-60">
+        <footer className="text-center space-y-6 max-w-4xl mx-auto opacity-60">
+          <div className="h-px bg-white/10 w-full" />
           <p className="text-[10px] text-muted-foreground font-medium leading-relaxed uppercase tracking-widest">
-            Planes diseñados para ecosistemas profesionales · Verificación a solo 9,99€ · Sin renovación automática. <br />
-            Los 100 puntos de Score IA se logran combinando perfil técnico (85 pts) y análisis IA (15 pts).
+            Planes diseñados para ecosistemas profesionales · Verificación a solo 9,99€ (Pago único) · Sin renovación automática. <br />
+            Los 100 puntos de Score IA se logran combinando Perfil Técnico (85 pts) y el Análisis IA de SportMatch (15 pts). <br />
+            El plan Free está limitado a 45 pts totales y 1 temporada en trayectoria.
           </p>
         </footer>
       </main>
     </div>
   );
 }
+
