@@ -342,20 +342,20 @@ export default function MyProfilePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Nombre y Apellidos</Label>
-                  <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl" />
+                  <Input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-6 pr-6" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Nacionalidad</Label>
                   <div className="relative">
                     <Flag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <Input value={formData.nationality} onChange={e => setFormData({...formData, nationality: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12" />
+                    <Input value={formData.nationality} onChange={e => setFormData({...formData, nationality: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12 pr-6" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">País (Residencia Actual)</Label>
                   <Select value={formData.country} onValueChange={v => setFormData({...formData, country: v, province: ''})}>
-                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-4">
-                      <div className="flex items-center gap-2">
+                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-6 gap-3">
+                      <div className="flex items-center gap-3">
                         <Globe className="w-4 h-4 text-primary" />
                         <SelectValue placeholder="País" />
                       </div>
@@ -368,8 +368,8 @@ export default function MyProfilePage() {
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">{GET_LOCATION_LABEL(formData.country)}</Label>
                   <Select value={formData.province} onValueChange={v => setFormData({...formData, province: v})}>
-                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-4">
-                      <div className="flex items-center gap-2">
+                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-6 gap-3">
+                      <div className="flex items-center gap-3">
                         <MapPin className="w-4 h-4 text-primary" />
                         <SelectValue placeholder="Selecciona zona" />
                       </div>
@@ -386,21 +386,21 @@ export default function MyProfilePage() {
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Instagram</Label>
                   <div className="relative">
                     <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <Input placeholder="@usuario" value={formData.instagram} onChange={e => setFormData({...formData, instagram: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12" />
+                    <Input placeholder="@usuario" value={formData.instagram} onChange={e => setFormData({...formData, instagram: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12 pr-6" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">TikTok</Label>
                   <div className="relative">
                     <Music2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <Input placeholder="@usuario" value={formData.tiktok} onChange={e => setFormData({...formData, tiktok: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12" />
+                    <Input placeholder="@usuario" value={formData.tiktok} onChange={e => setFormData({...formData, tiktok: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12 pr-6" />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Twitter / X</Label>
                   <div className="relative">
                     <Twitter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                    <Input placeholder="@usuario" value={formData.twitter} onChange={e => setFormData({...formData, twitter: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12" />
+                    <Input placeholder="@usuario" value={formData.twitter} onChange={e => setFormData({...formData, twitter: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12 pr-6" />
                   </div>
                 </div>
               </div>
@@ -417,22 +417,24 @@ export default function MyProfilePage() {
               <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Edad</Label>
-                  <Input type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl" />
+                  <Input type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-6 pr-6" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Altura (CM)</Label>
-                  <Input type="number" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl" />
+                  <Input type="number" value={formData.height} onChange={e => setFormData({...formData, height: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-6 pr-6" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Peso (KG)</Label>
-                  <Input type="number" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl" />
+                  <Input type="number" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-6 pr-6" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Pierna Hábil</Label>
                   <Select value={formData.strongFoot} onValueChange={v => setFormData({...formData, strongFoot: v})}>
-                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl gap-3">
-                      <Footprints className="w-4 h-4 text-primary" />
-                      <SelectValue placeholder="Pierna" />
+                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-6 gap-3">
+                      <div className="flex items-center gap-3">
+                        <Footprints className="w-4 h-4 text-primary" />
+                        <SelectValue placeholder="Pierna" />
+                      </div>
                     </SelectTrigger>
                     <SelectContent className="bg-[#111827] border-white/10 text-white">
                       <SelectItem value="Derecha">Derecha</SelectItem>
@@ -443,7 +445,7 @@ export default function MyProfilePage() {
                 </div>
                 <div className="space-y-2 col-span-2 md:col-span-1">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground">Posición</Label>
-                  <Input value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl" />
+                  <Input value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-6 pr-6" />
                 </div>
               </div>
             </CardContent>
@@ -548,7 +550,7 @@ export default function MyProfilePage() {
                         updated[idx] = e.target.value;
                         setFormData({...formData, videoUrls: updated});
                       }} 
-                      className="h-12 bg-[#1F2937]/50 border-none rounded-xl focus:ring-1 focus:ring-primary/40" 
+                      className="h-12 bg-[#1F2937]/50 border-none rounded-xl focus:ring-1 focus:ring-primary/40 pl-6 pr-6" 
                     />
                   ))}
                 </div>
@@ -567,7 +569,7 @@ export default function MyProfilePage() {
                         updated[idx] = e.target.value;
                         setFormData({...formData, socialVideoUrls: updated});
                       }} 
-                      className="h-12 bg-[#1F2937]/50 border-none rounded-xl focus:ring-1 focus:ring-primary/40" 
+                      className="h-12 bg-[#1F2937]/50 border-none rounded-xl focus:ring-1 focus:ring-primary/40 pl-6 pr-6" 
                     />
                   ))}
                 </div>
@@ -590,27 +592,27 @@ export default function MyProfilePage() {
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-4 bg-[#1F2937]/20 p-6 rounded-3xl">
                   <div className="space-y-1">
                     <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Temporada</Label>
-                    <Input placeholder="24/25" value={formData.newSeason.season} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-[#030712] border-none rounded-xl" />
+                    <Input placeholder="24/25" value={formData.newSeason.season} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-[#030712] border-none rounded-xl pl-4 pr-4" />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Club</Label>
-                    <Input placeholder="Nombre Club" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-[#030712] border-none rounded-xl" />
+                    <Input placeholder="Nombre Club" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-[#030712] border-none rounded-xl pl-4 pr-4" />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Posición</Label>
-                    <Input placeholder="Posición" value={formData.newSeason.position} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, position: e.target.value}})} className="bg-[#030712] border-none rounded-xl" />
+                    <Input placeholder="Posición" value={formData.newSeason.position} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, position: e.target.value}})} className="bg-[#030712] border-none rounded-xl pl-4 pr-4" />
                   </div>
                   <div className="space-y-1 text-center">
                     <Label className="text-[8px] uppercase font-black text-muted-foreground">PJ</Label>
-                    <Input type="number" value={formData.newSeason.matches} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl text-center" />
+                    <Input type="number" value={formData.newSeason.matches} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl text-center pl-2 pr-2" />
                   </div>
                   <div className="space-y-1 text-center">
                     <Label className="text-[8px] uppercase font-black text-muted-foreground">Goles</Label>
-                    <Input type="number" value={formData.newSeason.goals} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl text-center" />
+                    <Input type="number" value={formData.newSeason.goals} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl text-center pl-2 pr-2" />
                   </div>
                   <div className="space-y-1 text-center">
                     <Label className="text-[8px] uppercase font-black text-muted-foreground">Asist</Label>
-                    <Input type="number" value={formData.newSeason.assists} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, assists: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl text-center" />
+                    <Input type="number" value={formData.newSeason.assists} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, assists: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl text-center pl-2 pr-2" />
                   </div>
                   <Button onClick={addSeason} className="col-span-full h-12 bg-primary/10 text-primary border border-primary/20 font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-primary/20">Añadir a Trayectoria</Button>
                 </div>
@@ -652,7 +654,7 @@ export default function MyProfilePage() {
         </div>
 
         <Button onClick={handleSave} className="fixed bottom-10 right-10 z-50 h-20 px-12 rounded-3xl bg-primary text-background font-black uppercase tracking-widest shadow-[0_0_50px_rgba(234,179,8,0.4)] hover:scale-105 transition-transform group">
-          <Sparkles className="w-6 h-6 mr-3 fill-current group-hover:animate-pulse" /> Guardar Perfil Scouting
+          <Sparkles className="w-6 h-6 mr-3 fill-current group-hover:animate-pulse" /> GUARDAR PERFIL
         </Button>
       </main>
     </div>
