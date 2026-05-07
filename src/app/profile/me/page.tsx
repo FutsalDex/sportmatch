@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -20,7 +21,8 @@ import {
   Lock,
   Trophy,
   Loader2,
-  Activity
+  Activity,
+  Flag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,6 +55,8 @@ interface SeasonEntry {
   matches: number;
 }
 
+const COUNTRIES = ["España", "Portugal", "Andorra"];
+
 export default function MyProfilePage() {
   const router = useRouter();
   const { user, isUserLoading: isAuthLoading } = useUser();
@@ -74,6 +78,8 @@ export default function MyProfilePage() {
   const [formData, setFormData] = useState({
     name: '',
     province: '',
+    country: '',
+    nationality: '',
     age: '',
     position: '',
     bio: '',
@@ -101,6 +107,8 @@ export default function MyProfilePage() {
         ...prev,
         name: userData.name || '',
         province: userData.province || '',
+        country: userData.country || '',
+        nationality: userData.nationality || '',
         age: userData.age?.toString() || '',
         position: userData.position || '',
         profileImageUrl: userData.profileImageUrl || ''
@@ -131,6 +139,8 @@ export default function MyProfilePage() {
     setDocumentNonBlocking(userRef, {
       name: formData.name,
       province: formData.province,
+      country: formData.country,
+      nationality: formData.nationality,
       age: parseInt(formData.age) || 0,
       position: formData.position,
       profileImageUrl: formData.profileImageUrl
@@ -254,6 +264,37 @@ export default function MyProfilePage() {
                   />
                 </div>
                 <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">NACIONALIDAD</Label>
+                  <div className="relative">
+                    <Flag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <Input 
+                      value={formData.nationality}
+                      onChange={(e) => setFormData({...formData, nationality: e.target.value})}
+                      placeholder="Ej: Española"
+                      className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg pl-12 px-6 focus-visible:ring-1 focus-visible:ring-primary/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PAÍS</Label>
+                  <Select 
+                    value={formData.country} 
+                    onValueChange={(v) => setFormData({...formData, country: v})}
+                  >
+                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl text-lg px-6 focus-visible:ring-1 focus-visible:ring-primary/50">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-primary" />
+                        <SelectValue placeholder="Selecciona país" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#111827] border-[#1F2937] text-white">
+                      {COUNTRIES.map((country) => (
+                        <SelectItem key={country} value={country}>{country}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-3">
                   <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">PROVINCIA</Label>
                   <Select 
                     value={formData.province} 
@@ -276,7 +317,7 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Física y Técnica Restored */}
+          {/* Física y Técnica */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">

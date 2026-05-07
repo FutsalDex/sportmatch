@@ -39,6 +39,14 @@
           "type": "string",
           "description": "The geographic province from the official resources list."
         },
+        "country": {
+          "type": "string",
+          "description": "Current country of residence."
+        },
+        "nationality": {
+          "type": "string",
+          "description": "User's nationality."
+        },
         "level": {
           "type": "string",
           "description": "Professional or skill level."
