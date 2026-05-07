@@ -201,6 +201,7 @@ export default function MyProfilePage() {
     const file = e.target.files?.[0];
     if (!file || !user || !storage) return;
 
+    // Solo restringimos el 'book' para usuarios Pro/Elite. Profile es libre.
     const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
     if (type === 'book' && !isElite) {
       toast({
@@ -211,7 +212,7 @@ export default function MyProfilePage() {
       return;
     }
 
-    const uploadKey = `${type}-${index ?? 'main'}`;
+    const uploadKey = type === 'profile' ? 'profile-main' : `book-${index}`;
     setUploading(uploadKey);
 
     try {
@@ -233,7 +234,7 @@ export default function MyProfilePage() {
       toast({ 
         variant: "destructive", 
         title: "Error de permisos", 
-        description: error.message || "No tienes permiso para subir archivos." 
+        description: "No se ha podido subir la imagen. Verifica tu conexión o intenta de nuevo." 
       });
     } finally {
       setUploading(null);
@@ -488,7 +489,7 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* SECCIÓN GALERÍA MULTIMEDIA CON PREVIEW */}
+          {/* SECCIÓN GALERÍA MULTIMEDIA CON PREVIEW - ABIERTA PARA FOTO DE PERFIL */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -497,11 +498,12 @@ export default function MyProfilePage() {
               </div>
               
               <div className="space-y-8">
+                {/* FOTO DE PERFIL - DISPONIBLE PARA TODOS LOS PLANES */}
                 <div className="space-y-3">
-                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">FOTO DE PERFIL</Label>
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">FOTO DE PERFIL (ACCESO LIBRE)</Label>
                   
                   {formData.profileImageUrl && (
-                    <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary/20 mb-4 group">
+                    <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary/20 mb-4 group shadow-xl">
                       <Image 
                         src={formData.profileImageUrl} 
                         alt="Profile preview" 
@@ -545,7 +547,8 @@ export default function MyProfilePage() {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* BOOK MULTIMEDIA - RESTRINGIDO A ELITE/PRO */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-white/5">
                   {[0, 1, 2].map((idx) => {
                     const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
                     return (
@@ -556,7 +559,7 @@ export default function MyProfilePage() {
                         </Label>
                         
                         {formData.bookImageUrls[idx] && isElite && (
-                          <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 mb-2">
+                          <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 mb-2 shadow-lg">
                             <Image 
                               src={formData.bookImageUrls[idx]} 
                               alt={`Book ${idx + 1} preview`} 
