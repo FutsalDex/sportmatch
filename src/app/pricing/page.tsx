@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -22,7 +21,6 @@ import {
   TrendingUp,
   MessageCircle,
   Play,
-  Gavel,
   Lock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -36,8 +34,8 @@ const PLAYER_PLANS = [
     subtitle: "Siempre gratis",
     features: [
       { text: "Perfil técnico básico", included: true, icon: User },
-      { text: "Búsqueda en el ranking", included: true, icon: Search },
-      { text: "Score IA hasta 45 pts", included: true, icon: Zap },
+      { text: "Búsqueda de ofertas", included: true, icon: Search },
+      { text: "Acceso al ranking", included: true, icon: Zap },
       { text: "Sin análisis de IA", included: false, icon: Award },
       { text: "Book multimedia", included: false, icon: Play },
       { text: "Mensajes directos", included: false, icon: MessageCircle },
@@ -52,7 +50,7 @@ const PLAYER_PLANS = [
     badge: "ELITE VERIFICADO ✓",
     features: [
       { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
-      { text: "Badge de perfil oficial", included: true, icon: ShieldCheck },
+      { text: "Insignia de perfil oficial", included: true, icon: ShieldCheck },
       { text: "Desbloquea Book Multimedia", included: true, icon: Play },
       { text: "Biografía optimizada IA", included: true, icon: Star },
       { text: "Prioridad en búsqueda", included: true, icon: TrendingUp },
