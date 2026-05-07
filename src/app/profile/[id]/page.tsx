@@ -39,6 +39,7 @@ import { doc } from 'firebase/firestore';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { TopNav } from '@/components/navigation/top-nav';
 
 export default function ProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -80,6 +81,8 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">
+      <TopNav />
+      
       <div className="relative pt-16 pb-20 px-6 overflow-hidden">
         {/* Fondo decorativo */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 blur-[120px] -z-10 rounded-full" />
@@ -132,7 +135,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       <main className="max-w-5xl mx-auto w-full px-6 space-y-12">
-        {/* VIDEOS & BOOK SECTION (ONLY FOR ELITE/VERIFIED) */}
+        {/* MATERIAL GRÁFICO (SOLO PARA ELITE/VERIFIED) */}
         {isElite && (
           <section className="space-y-10">
             <div className="flex items-center justify-between border-b border-white/5 pb-4">
@@ -144,21 +147,21 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-               {profileData?.videoUrls?.map((url: string, i: number) => {
+               {profileData?.videoUrls?.filter((u: string) => !!u).map((url: string, i: number) => {
                 const vidId = getYoutubeId(url);
                 if (!vidId) return null;
                 return (
                   <iframe key={`yt-${i}`} src={`https://www.youtube.com/embed/${vidId}`} className="w-full aspect-video rounded-3xl border border-white/5 shadow-2xl" allowFullScreen />
                 );
               })}
-              {profileData?.socialVideoUrls?.map((url: string, i: number) => {
+              {profileData?.socialVideoUrls?.filter((u: string) => !!u).map((url: string, i: number) => {
                 const embed = getEmbedUrl(url);
                 if (!embed) return null;
                 return (
                   <iframe key={`social-${i}`} src={embed} className="w-full h-[400px] rounded-3xl border border-white/5 bg-black shadow-2xl" />
                 );
               })}
-              {profileData?.bookImageUrls?.map((url: string, i: number) => (
+              {profileData?.bookImageUrls?.filter((u: string) => !!u).map((url: string, i: number) => (
                 <div key={`img-${i}`} className="relative aspect-square md:aspect-video rounded-3xl overflow-hidden border border-white/5 group">
                   <Image src={url} alt={`Book ${i}`} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>
