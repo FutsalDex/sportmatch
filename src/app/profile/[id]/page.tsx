@@ -1,4 +1,3 @@
-
 "use client";
 
 import { use, useState } from 'react';
@@ -21,7 +20,8 @@ import {
   Lock,
   Star,
   ChevronRight,
-  BarChart3
+  BarChart3,
+  Youtube
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -80,8 +80,14 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
   const isElite = userData.verificationStatus === 'verified' || (userData.score && userData.score > 85);
 
-  // Ordenar el historial de más reciente a más antiguo
   const sortedHistory = profileData?.teamHistory ? [...profileData.teamHistory].sort((a: SeasonEntry, b: SeasonEntry) => b.season.localeCompare(a.season)) : [];
+
+  // Función para obtener el ID de YouTube de un enlace
+  const getYoutubeId = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">
@@ -98,7 +104,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           <div className="relative group">
             <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-75 group-hover:scale-100 transition-transform duration-700" />
             <Avatar className="w-40 h-40 border-4 border-primary shadow-[0_0_50px_rgba(234,179,8,0.2)] rounded-[3rem] overflow-hidden relative z-10 bg-[#111827]">
-              <AvatarImage src={userData.profileImageUrl || `https://picsum.photos/seed/${id}/400/400`} className="object-cover" />
+              <AvatarImage src={userData.profileImageUrl} className="object-cover" />
               <AvatarFallback className="text-4xl font-black bg-[#111827]">{userData.name?.substring(0,2).toUpperCase()}</AvatarFallback>
             </Avatar>
             {userData.verificationStatus === 'verified' && (
@@ -134,21 +140,16 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {(profileData?.bookImageUrls || [1, 2, 3]).map((url: string | number, i: number) => (
               <div key={i} className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/5 group">
-                <Image 
-                  src={typeof url === 'string' && url ? url : `https://picsum.photos/seed/book-${id}-${i}/600/800`}
-                  alt={`Book ${i}`}
-                  fill
-                  className={cn(
-                    "object-cover transition-all duration-700",
-                    !isElite && "blur-xl opacity-40 scale-110",
-                    isElite && "group-hover:scale-105"
-                  )}
-                />
+                {typeof url === 'string' && url ? (
+                  <Image src={url} alt={`Book ${i}`} fill className={cn("object-cover transition-all duration-700", !isElite && "blur-xl opacity-40 scale-110", isElite && "group-hover:scale-105")} />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#111827]/40 backdrop-blur-sm p-6 text-center">
+                    <Camera className="w-10 h-10 text-muted-foreground/20" />
+                  </div>
+                )}
                 {!isElite && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm p-6 text-center">
-                    <div className="bg-primary/20 p-3 rounded-2xl mb-3">
-                      <Lock className="w-6 h-6 text-primary" />
-                    </div>
+                    <div className="bg-primary/20 p-3 rounded-2xl mb-3"><Lock className="w-6 h-6 text-primary" /></div>
                     <p className="text-[10px] font-black uppercase tracking-widest leading-tight">Activo solo para<br/>perfiles verificados</p>
                   </div>
                 )}
@@ -156,6 +157,32 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             ))}
           </div>
         </section>
+
+        {/* SECCIÓN VIDEOS YOUTUBE - NUEVA */}
+        {isElite && profileData?.videoUrls && profileData.videoUrls.length > 0 && (
+          <section className="space-y-6">
+            <div className="flex items-center gap-3 px-2">
+              <Youtube className="w-5 h-5 text-red-500" />
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">Highlights & Match Clips</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {profileData.videoUrls.map((url: string, i: number) => {
+                const videoId = getYoutubeId(url);
+                if (!videoId) return null;
+                return (
+                  <div key={i} className="relative aspect-video rounded-[2rem] overflow-hidden border border-white/5 bg-black shadow-2xl">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${videoId}`}
+                      className="w-full h-full"
+                      allowFullScreen
+                      title={`Highlight ${i + 1}`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="card-elite rounded-[2rem] bg-[#111827]/60">
@@ -228,9 +255,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
             <Card className="card-elite rounded-[2.5rem] bg-[#111827]/40 p-8">
               <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-primary/10 rounded-2xl">
-                  <UserIcon className="w-6 h-6 text-primary" />
-                </div>
+                <div className="p-3 bg-primary/10 rounded-2xl"><UserIcon className="w-6 h-6 text-primary" /></div>
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Biografía Técnica</h3>
                   <p className="text-lg font-bold font-headline">Resumen de Carrera</p>
@@ -269,25 +294,18 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                         <p className="text-[8px] font-black text-muted-foreground uppercase mb-1">Asist</p>
                         <p className="font-bold text-lg">{entry.assists}</p>
                       </div>
-                      <div className="bg-primary/10 p-2 rounded-xl">
-                        <BarChart3 className="w-4 h-4 text-primary" />
-                      </div>
+                      <div className="bg-primary/10 p-2 rounded-xl"><BarChart3 className="w-4 h-4 text-primary" /></div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-10 border-2 border-dashed border-white/5 rounded-[2rem] text-muted-foreground uppercase text-[10px] font-bold tracking-widest">
-                  Sin historial registrado
-                </div>
+                <div className="text-center py-10 border-2 border-dashed border-white/5 rounded-[2rem] text-muted-foreground uppercase text-[10px] font-bold tracking-widest">Sin historial registrado</div>
               )}
             </div>
           </TabsContent>
 
           <TabsContent value="ai" className="mt-8 space-y-6">
-            <div className={cn(
-              "p-10 rounded-[3rem] text-background shadow-[0_0_60px_rgba(234,179,8,0.2)] relative overflow-hidden group transition-all",
-              isElite ? "bg-primary" : "bg-slate-800 text-white"
-            )}>
+            <div className={cn("p-10 rounded-[3rem] text-background shadow-[0_0_60px_rgba(234,179,8,0.2)] relative overflow-hidden group transition-all", isElite ? "bg-primary" : "bg-slate-800 text-white")}>
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 blur-3xl rounded-full" />
               <div className="space-y-6 relative z-10">
                 <div className="flex items-center justify-between">
@@ -308,21 +326,11 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
         </Tabs>
 
         {!matchSent ? (
-          <Button 
-            onClick={() => {
-              setIsMatching(true);
-              setTimeout(() => { setMatchSent(true); setIsMatching(false); }, 1000);
-            }}
-            disabled={isMatching}
-            className="w-full h-20 rounded-[2.5rem] text-xl font-black uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(234,179,8,0.2)] bg-primary hover:bg-primary/90 text-background transition-all"
-          >
+          <Button onClick={() => { setIsMatching(true); setTimeout(() => { setMatchSent(true); setIsMatching(false); }, 1000); }} disabled={isMatching} className="w-full h-20 rounded-[2.5rem] text-xl font-black uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(234,179,8,0.2)] bg-primary hover:bg-primary/90 text-background transition-all">
             {isMatching ? "Validando Scouting..." : "Solicitar Match Técnico"} <Zap className="ml-2 w-6 h-6 fill-current" />
           </Button>
         ) : (
-          <Button 
-            disabled
-            className="w-full h-20 rounded-[2.5rem] text-xl font-black uppercase tracking-[0.2em] bg-green-500/10 text-green-500 border border-green-500/20"
-          >
+          <Button disabled className="w-full h-20 rounded-[2.5rem] text-xl font-black uppercase tracking-[0.2em] bg-green-500/10 text-green-500 border border-green-500/20">
             Match Enviado Correctamente <MessageCircle className="ml-2 w-6 h-6" />
           </Button>
         )}

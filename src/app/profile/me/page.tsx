@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -26,7 +25,8 @@ import {
   Star,
   Zap,
   Award,
-  Pencil
+  Pencil,
+  Youtube
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -92,6 +92,7 @@ export default function MyProfilePage() {
     strongFoot: '',
     profileImageUrl: '',
     bookImageUrls: ['', '', ''],
+    videoUrls: ['', ''],
     teamHistory: [] as SeasonEntry[],
     newSeason: {
       season: '',
@@ -126,6 +127,7 @@ export default function MyProfilePage() {
         weight: profileData.weight?.toString() || '',
         strongFoot: profileData.strongFoot || '',
         bookImageUrls: profileData.bookImageUrls || ['', '', ''],
+        videoUrls: profileData.videoUrls?.slice(0, 2) || ['', ''],
         teamHistory: (profileData.teamHistory || []).sort((a: SeasonEntry, b: SeasonEntry) => b.season.localeCompare(a.season))
       }));
     }
@@ -155,11 +157,15 @@ export default function MyProfilePage() {
     formData.bookImageUrls.forEach(url => {
       if (url) score += 5;
     });
+
+    formData.videoUrls.forEach(url => {
+      if (url) score += 5;
+    });
     
     if (formData.bio && formData.bio.length > 50) score += 15;
     else if (formData.bio) score += 5;
     
-    if (formData.teamHistory.length > 0) score += 15;
+    if (formData.teamHistory.length > 0) score += 10;
     
     return Math.min(score, 100);
   };
@@ -188,6 +194,7 @@ export default function MyProfilePage() {
       weight: parseFloat(formData.weight) || 0,
       strongFoot: formData.strongFoot,
       bookImageUrls: formData.bookImageUrls,
+      videoUrls: formData.videoUrls.filter(v => !!v),
       teamHistory: formData.teamHistory
     }, { merge: true });
 
@@ -201,7 +208,6 @@ export default function MyProfilePage() {
     const file = e.target.files?.[0];
     if (!file || !user || !storage) return;
 
-    // Solo restringimos el 'book' para usuarios Pro/Elite. Profile es libre.
     const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
     if (type === 'book' && !isElite) {
       toast({
@@ -284,6 +290,8 @@ export default function MyProfilePage() {
     });
   };
 
+  const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
+
   const isLoading = isAuthLoading || isUserLoading || isProfileLoading;
 
   if (isLoading) {
@@ -320,7 +328,7 @@ export default function MyProfilePage() {
             <Progress value={currentScore} className="h-2 bg-white/5" />
             <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider text-center">
               {currentScore < 100 
-                ? `Completa tu biografía y historial para subir ${100 - currentScore} puntos` 
+                ? `Completa tu biografía e historial para subir ${100 - currentScore} puntos` 
                 : "¡Perfil de Élite completado al 100%!"}
             </p>
           </div>
@@ -489,7 +497,7 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* SECCIÓN GALERÍA MULTIMEDIA CON PREVIEW - ABIERTA PARA FOTO DE PERFIL */}
+          {/* SECCIÓN GALERÍA MULTIMEDIA */}
           <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -497,98 +505,95 @@ export default function MyProfilePage() {
                 <h2 className="text-2xl font-bold font-headline tracking-tight uppercase">Galería Multimedia</h2>
               </div>
               
-              <div className="space-y-8">
-                {/* FOTO DE PERFIL - DISPONIBLE PARA TODOS LOS PLANES */}
+              <div className="space-y-10">
+                {/* FOTO DE PERFIL */}
                 <div className="space-y-3">
                   <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">FOTO DE PERFIL (ACCESO LIBRE)</Label>
-                  
                   <div className="flex items-center gap-6">
-                    {formData.profileImageUrl && (
-                      <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary/20 group shadow-xl bg-black">
-                        <Image 
-                          src={formData.profileImageUrl} 
-                          alt="Profile preview" 
-                          fill 
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
-
+                    <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary/20 group shadow-xl bg-black">
+                      {formData.profileImageUrl ? (
+                        <Image src={formData.profileImageUrl} alt="Profile" fill className="object-cover" />
+                      ) : (
+                        <div className="flex items-center justify-center h-full opacity-20"><UserIcon className="w-10 h-10" /></div>
+                      )}
+                    </div>
                     <div className="relative">
-                      <input 
-                        type="file" 
-                        id="profile-upload" 
-                        className="hidden" 
-                        accept="image/*"
-                        onChange={(e) => handleFileUpload(e, 'profile')}
-                      />
-                      <Button 
-                        asChild
-                        type="button"
-                        className={cn(
-                          "h-14 px-8 rounded-2xl bg-primary text-background hover:bg-primary/90 shadow-[0_0_30px_rgba(234,179,8,0.2)] cursor-pointer flex items-center gap-3 font-black uppercase text-[10px] tracking-widest",
-                          uploading === 'profile-main' && "opacity-50 pointer-events-none"
-                        )}
-                      >
+                      <input type="file" id="profile-upload" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'profile')} />
+                      <Button asChild className={cn("h-14 px-8 rounded-2xl bg-primary text-background font-black uppercase text-[10px] tracking-widest cursor-pointer", uploading === 'profile-main' && "opacity-50 pointer-events-none")}>
                         <label htmlFor="profile-upload">
-                          {uploading === 'profile-main' ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Upload className="w-4 h-4" /> SUBIR FOTO DE PERFIL</>}
+                          {uploading === 'profile-main' ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Upload className="w-4 h-4 mr-2" /> ACTUALIZAR FOTO</>}
                         </label>
                       </Button>
                     </div>
                   </div>
                 </div>
                 
-                {/* BOOK MULTIMEDIA - RESTRINGIDO A ELITE/PRO */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-white/5">
-                  {[0, 1, 2].map((idx) => {
-                    const isElite = userData?.verificationStatus === 'verified' || (userData?.score && userData?.score > 85);
-                    return (
+                {/* BOOK MULTIMEDIA */}
+                <div className="pt-6 border-t border-white/5 space-y-4">
+                  <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em]">BOOK FOTOGRÁFICO (MÁX. 3 FOTOS)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[0, 1, 2].map((idx) => (
                       <div key={idx} className="space-y-3">
-                        <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em] flex items-center justify-between">
-                          FOTO BOOK {idx + 1}
-                          {!isElite && <Lock className="w-3 h-3 text-primary" />}
-                        </Label>
-                        
-                        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 mb-2 shadow-lg bg-black flex flex-col items-center justify-center">
-                          {formData.bookImageUrls[idx] && isElite ? (
-                            <Image 
-                              src={formData.bookImageUrls[idx]} 
-                              alt={`Book ${idx + 1} preview`} 
-                              fill 
-                              className="object-cover"
-                            />
+                        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 bg-black flex flex-col items-center justify-center">
+                          {formData.bookImageUrls[idx] ? (
+                            <Image src={formData.bookImageUrls[idx]} alt={`Book ${idx}`} fill className="object-cover" />
                           ) : (
                             <div className="text-center p-6 space-y-2 opacity-30">
                               <Camera className="w-10 h-10 mx-auto" />
-                              <p className="text-[8px] font-black uppercase tracking-widest">{isElite ? 'SIN IMAGEN' : 'ELITE REQUIRED'}</p>
+                              <p className="text-[8px] font-black uppercase tracking-widest">{isElite ? 'SIN IMAGEN' : 'PRO REQUIRED'}</p>
                             </div>
                           )}
                         </div>
-
                         {isElite && (
                           <div className="relative">
-                            <input 
-                              type="file" 
-                              id={`book-upload-${idx}`} 
-                              className="hidden" 
-                              accept="image/*"
-                              onChange={(e) => handleFileUpload(e, 'book', idx)}
-                            />
-                            <Button 
-                              asChild
-                              size="sm"
-                              type="button"
-                              className="w-full h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 font-black uppercase text-[10px] tracking-widest cursor-pointer"
-                            >
+                            <input type="file" id={`book-upload-${idx}`} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'book', idx)} />
+                            <Button asChild size="sm" className="w-full h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 font-black uppercase text-[10px] tracking-widest cursor-pointer">
                               <label htmlFor={`book-upload-${idx}`}>
-                                {uploading === `book-${idx}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Upload className="w-3 h-3 mr-2" /> SUBIR AL BOOK</>}
+                                {uploading === `book-${idx}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Upload className="w-3 h-3 mr-2" /> SUBIR FOTO</>}
                               </label>
                             </Button>
                           </div>
                         )}
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
+                </div>
+
+                {/* HIGHLIGHTS YOUTUBE - NUEVA SECCIÓN */}
+                <div className="pt-6 border-t border-white/5 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-muted-foreground font-bold text-xs uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Youtube className="w-4 h-4 text-red-500" /> HIGHLIGHTS YOUTUBE (MÁX. 2 ENLACES)
+                    </Label>
+                    {!isElite && <Badge className="bg-primary/20 text-primary border-none text-[8px] font-black uppercase">Solo Planes Pro</Badge>}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[0, 1].map((idx) => (
+                      <div key={idx} className="space-y-3">
+                        <div className="relative">
+                          <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-red-600/50" />
+                          <Input 
+                            disabled={!isElite}
+                            placeholder="https://www.youtube.com/watch?v=..."
+                            value={formData.videoUrls[idx]}
+                            onChange={(e) => {
+                              const updated = [...formData.videoUrls];
+                              updated[idx] = e.target.value;
+                              setFormData({...formData, videoUrls: updated});
+                            }}
+                            className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12 text-sm focus-visible:ring-1 focus-visible:ring-primary/50 disabled:opacity-20"
+                          />
+                          {!isElite && <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40" />}
+                        </div>
+                        {formData.videoUrls[idx] && isElite && (
+                          <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest px-2 flex items-center gap-1">
+                            <Sparkles className="w-3 h-3" /> Enlace listo para procesar
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -625,63 +630,29 @@ export default function MyProfilePage() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-[#1F2937]/20 p-6 rounded-3xl border border-white/5">
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-muted-foreground">Temporada</Label>
-                    <Input 
-                      placeholder="23/24" 
-                      value={formData.newSeason.season}
-                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})}
-                      className="bg-[#030712] border-none h-12 rounded-xl"
-                    />
+                    <Input placeholder="23/24" value={formData.newSeason.season} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-[#030712] border-none h-12 rounded-xl" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-muted-foreground">Club</Label>
-                    <Input 
-                      placeholder="Nombre Club" 
-                      value={formData.newSeason.club}
-                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})}
-                      className="bg-[#030712] border-none h-12 rounded-xl"
-                    />
+                    <Input placeholder="Nombre Club" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-[#030712] border-none h-12 rounded-xl" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-muted-foreground">Posición</Label>
-                    <Input 
-                      placeholder="Delantero" 
-                      value={formData.newSeason.position}
-                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, position: e.target.value}})}
-                      className="bg-[#030712] border-none h-12 rounded-xl"
-                    />
+                    <Input placeholder="Delantero" value={formData.newSeason.position} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, position: e.target.value}})} className="bg-[#030712] border-none h-12 rounded-xl" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-muted-foreground">Partidos</Label>
-                    <Input 
-                      type="number" 
-                      value={formData.newSeason.matches}
-                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value) || 0}})}
-                      className="bg-[#030712] border-none h-12 rounded-xl"
-                    />
+                    <Input type="number" value={formData.newSeason.matches} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none h-12 rounded-xl" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-muted-foreground">Goles</Label>
-                    <Input 
-                      type="number" 
-                      value={formData.newSeason.goals}
-                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value) || 0}})}
-                      className="bg-[#030712] border-none h-12 rounded-xl"
-                    />
+                    <Input type="number" value={formData.newSeason.goals} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none h-12 rounded-xl" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-muted-foreground">Asistencias</Label>
-                    <Input 
-                      type="number" 
-                      value={formData.newSeason.assists}
-                      onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, assists: parseInt(e.target.value) || 0}})}
-                      className="bg-[#030712] border-none h-12 rounded-xl"
-                    />
+                    <Input type="number" value={formData.newSeason.assists} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, assists: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none h-12 rounded-xl" />
                   </div>
-                  <Button 
-                    type="button"
-                    onClick={addSeason}
-                    className="col-span-full h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 font-black uppercase text-[10px] tracking-widest mt-2"
-                  >
+                  <Button type="button" onClick={addSeason} className="col-span-full h-12 rounded-xl bg-primary/10 text-primary border border-primary/20 font-black uppercase text-[10px] tracking-widest mt-2">
                     <Plus className="w-4 h-4 mr-2" /> Añadir Temporada
                   </Button>
                 </div>
@@ -710,24 +681,8 @@ export default function MyProfilePage() {
                           <p className="font-bold text-lg">{item.assists}</p>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            type="button"
-                            onClick={() => editSeason(idx)}
-                            className="text-muted-foreground hover:text-primary transition-colors h-8 w-8"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            type="button"
-                            onClick={() => removeSeason(idx)}
-                            className="text-muted-foreground hover:text-red-500 transition-colors h-8 w-8"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <Button variant="ghost" size="icon" type="button" onClick={() => editSeason(idx)} className="text-muted-foreground hover:text-primary transition-colors h-8 w-8"><Pencil className="w-4 h-4" /></Button>
+                          <Button variant="ghost" size="icon" type="button" onClick={() => removeSeason(idx)} className="text-muted-foreground hover:text-red-500 transition-colors h-8 w-8"><Trash2 className="w-4 h-4" /></Button>
                         </div>
                       </div>
                     </div>
@@ -738,16 +693,9 @@ export default function MyProfilePage() {
           </Card>
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-6">
-            <Button variant="link" className="text-destructive font-bold text-sm hover:no-underline p-0 uppercase tracking-widest opacity-50">
-              Eliminar Cuenta
-            </Button>
-            
-            <Button 
-              onClick={handleSave}
-              className="w-full md:w-auto bg-primary hover:bg-primary/90 text-background h-16 px-12 rounded-3xl text-lg font-black uppercase tracking-widest flex gap-3 shadow-[0_0_30px_rgba(234,179,8,0.2)]"
-            >
-              <Sparkles className="w-6 h-6 fill-current" />
-              Guardar Perfil
+            <Button variant="link" className="text-destructive font-bold text-sm hover:no-underline p-0 uppercase tracking-widest opacity-50">Eliminar Cuenta</Button>
+            <Button onClick={handleSave} className="w-full md:w-auto bg-primary hover:bg-primary/90 text-background h-16 px-12 rounded-3xl text-lg font-black uppercase tracking-widest flex gap-3 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+              <Sparkles className="w-6 h-6 fill-current" /> Guardar Perfil
             </Button>
           </div>
         </div>
