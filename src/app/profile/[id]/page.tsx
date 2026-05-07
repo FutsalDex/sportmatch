@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect } from 'react';
+import { use, useState } from 'react';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -12,53 +12,62 @@ import {
   MessageCircle,
   TrendingUp,
   Target,
-  User,
+  User as UserIcon,
   Scale,
   Ruler,
   Footprints,
   Lock,
   Star,
-  ChevronRight,
-  ExternalLink
+  ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MOCK_USERS, MOCK_PROFILES, User as UserType, UserProfile } from '@/lib/db-mock';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
 export default function ProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const [user, setUser] = useState<UserType | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const db = useFirestore();
+
+  // Memorizamos las referencias para evitar re-renderizados infinitos
+  const userDocRef = useMemoFirebase(() => doc(db, 'users', id), [db, id]);
+  const profileDocRef = useMemoFirebase(() => doc(db, 'userProfiles', id), [db, id]);
+
+  const { data: userData, isLoading: isUserLoading } = useDoc(userDocRef);
+  const { data: profileData, isLoading: isProfileLoading } = useDoc(profileDocRef);
+
   const [isMatching, setIsMatching] = useState(false);
   const [matchSent, setMatchSent] = useState(false);
 
-  useEffect(() => {
-    const userData = MOCK_USERS.find(u => u.id === id);
-    if (userData) {
-      setUser(userData);
-      setProfile(MOCK_PROFILES[id] || {
-        id: id,
-        bio: 'Analizando trayectoria profesional...',
-        teamHistory: ['Club Actual'],
-        achievements: [],
-        videos: []
-      });
-    }
-  }, [id]);
+  const isLoading = isUserLoading || isProfileLoading;
 
-  if (!user) return (
+  if (isLoading) return (
     <div className="min-h-screen bg-[#030712] flex items-center justify-center">
-      <div className="text-primary font-black animate-pulse uppercase tracking-[0.3em]">Inicializando Terminal...</div>
+      <div className="text-primary font-black animate-pulse uppercase tracking-[0.3em] text-center">
+        INICIALIZANDO TERMINAL...
+      </div>
     </div>
   );
 
-  const isElite = user.verificationStatus === 'verified' || user.score > 85;
+  if (!userData) return (
+    <div className="min-h-screen bg-[#030712] flex items-center justify-center">
+      <div className="text-white font-black uppercase tracking-[0.3em] text-center p-6">
+        USUARIO NO ENCONTRADO EN LA RED
+        <br />
+        <Button asChild variant="link" className="mt-4 text-primary">
+          <Link href="/rankings">VOLVER AL RANKING</Link>
+        </Button>
+      </div>
+    </div>
+  );
+
+  const isElite = userData.verificationStatus === 'verified' || (userData.score && userData.score > 85);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">
@@ -66,7 +75,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
       <div className="relative pt-16 pb-20 px-6 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-primary/10 via-transparent to-transparent -z-10" />
         
-        <Link href="/search" className="absolute top-6 left-6 z-20">
+        <Link href="/rankings" className="absolute top-6 left-6 z-20">
           <div className="bg-black/40 backdrop-blur-md p-3 rounded-2xl border border-white/10 hover:border-primary/50 transition-colors">
             <ArrowLeft className="w-5 h-5 text-white" />
           </div>
@@ -75,11 +84,11 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center space-y-6">
           <div className="relative group">
             <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-75 group-hover:scale-100 transition-transform duration-700" />
-            <Avatar className="w-40 h-40 border-4 border-primary shadow-[0_0_50px_rgba(234,179,8,0.2)] rounded-[3rem] overflow-hidden relative z-10">
-              <AvatarImage src={user.avatarUrl} className="object-cover" />
-              <AvatarFallback className="text-4xl font-black bg-[#111827]">{user.name.substring(0,2)}</AvatarFallback>
+            <Avatar className="w-40 h-40 border-4 border-primary shadow-[0_0_50px_rgba(234,179,8,0.2)] rounded-[3rem] overflow-hidden relative z-10 bg-[#111827]">
+              <AvatarImage src={`https://picsum.photos/seed/${id}/400/400`} className="object-cover" />
+              <AvatarFallback className="text-4xl font-black bg-[#111827]">{userData.name?.substring(0,2).toUpperCase()}</AvatarFallback>
             </Avatar>
-            {user.verificationStatus === 'verified' && (
+            {userData.verificationStatus === 'verified' && (
               <div className="absolute -bottom-2 -right-2 bg-primary rounded-2xl p-2.5 shadow-2xl border-4 border-[#030712] z-20">
                 <ShieldCheck className="w-6 h-6 text-background" />
               </div>
@@ -87,13 +96,13 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           </div>
           
           <div className="space-y-2">
-            <h1 className="text-5xl font-bold font-headline tracking-tighter uppercase italic">{user.name}</h1>
+            <h1 className="text-5xl font-bold font-headline tracking-tighter uppercase italic">{userData.name}</h1>
             <div className="flex items-center justify-center gap-3">
               <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 rounded-full px-4 py-1 font-black text-[10px] tracking-widest">
-                {user.role} • {user.discipline === 'Football' ? 'FÚTBOL 11' : 'FUTSAL'}
+                {userData.role} • {userData.discipline === 'Football' ? 'FÚTBOL 11' : 'FUTSAL'}
               </Badge>
               <Badge className="bg-primary text-background border-none font-black rounded-full px-4 py-1 text-[10px]">
-                IA SCORE {user.score}
+                IA SCORE {userData.score || 65}
               </Badge>
             </div>
           </div>
@@ -115,7 +124,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             {[1, 2, 3].map((i) => (
               <div key={i} className="relative aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/5 group">
                 <Image 
-                  src={`https://picsum.photos/seed/book-${user.id}-${i}/600/800`}
+                  src={`https://picsum.photos/seed/book-${id}-${i}/600/800`}
                   alt={`Book ${i}`}
                   fill
                   className={cn(
@@ -123,7 +132,6 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                     !isElite && "blur-xl opacity-40 scale-110",
                     isElite && "group-hover:scale-105"
                   )}
-                  data-ai-hint="football player"
                 />
                 {!isElite && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm p-6 text-center">
@@ -144,7 +152,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             <CardContent className="p-6 flex flex-col items-center justify-center space-y-2">
               <Calendar className="w-5 h-5 text-primary" />
               <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Edad</span>
-              <span className="font-bold text-xl">{user.age} años</span>
+              <span className="font-bold text-xl">24 años</span>
             </CardContent>
           </Card>
           <Card className="card-elite rounded-[2rem] bg-[#111827]/60">
@@ -170,7 +178,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           </Card>
         </section>
 
-        {/* Tabs Técnicos: Ficha, Trayectoria e IA Analytics */}
+        {/* Tabs Técnicos */}
         <Tabs defaultValue="stats" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-[#111827] border border-white/5 rounded-2xl h-16 p-1.5">
             <TabsTrigger value="stats" className="rounded-xl font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-background">Ficha Técnica</TabsTrigger>
@@ -189,7 +197,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
                     <span className="text-xs font-bold text-muted-foreground">Posición Principal</span>
-                    <span className="font-bold">{user.position}</span>
+                    <span className="font-bold">{userData.position || 'No especificada'}</span>
                   </div>
                   <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl opacity-60">
                     <span className="text-xs font-bold text-muted-foreground">Posición Secundaria</span>
@@ -206,12 +214,14 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
-                    <span className="text-xs font-bold text-muted-foreground">Residencia</span>
-                    <span className="font-bold">{user.province}</span>
+                    <span className="text-xs font-bold text-muted-foreground">Provincia</span>
+                    <span className="font-bold">{userData.province || 'No especificada'}</span>
                   </div>
                   <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl">
                     <span className="text-xs font-bold text-muted-foreground">Disponibilidad</span>
-                    <span className="font-bold text-green-500 uppercase text-[10px]">Inmediata</span>
+                    <span className={cn("font-bold uppercase text-[10px]", userData.status === 'available' ? "text-green-500" : "text-yellow-500")}>
+                      {userData.status === 'available' ? "Inmediata" : "En contrato"}
+                    </span>
                   </div>
                 </CardContent>
               </Card>
@@ -220,15 +230,15 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             <Card className="card-elite rounded-[2.5rem] bg-[#111827]/40 p-8">
               <div className="flex items-center gap-4 mb-6">
                 <div className="p-3 bg-primary/10 rounded-2xl">
-                  <User className="w-6 h-6 text-primary" />
+                  <UserIcon className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Biografía Técnica</h3>
-                  <p className="text-lg font-bold font-headline">Visión General del Jugador</p>
+                  <p className="text-lg font-bold font-headline">Resumen de Carrera</p>
                 </div>
               </div>
-              <p className="text-muted-foreground leading-relaxed">
-                {profile?.bio || "Analizando el perfil del jugador para generar una descripción técnica detallada..."}
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                {profileData?.bio || "Analizando el perfil del jugador para generar una descripción técnica detallada..."}
               </p>
             </Card>
           </TabsContent>
@@ -236,19 +246,25 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           <TabsContent value="history" className="mt-8 space-y-6">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground px-2">Cronología de Clubes</h3>
             <div className="space-y-4">
-              {profile?.teamHistory?.map((team, idx) => (
-                <div key={idx} className="group flex items-center gap-6 p-6 card-elite rounded-[2rem] bg-[#111827]/40 hover:bg-[#111827] transition-all border-white/5">
-                  <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center font-black text-2xl text-primary group-hover:bg-primary group-hover:text-background transition-all">
-                    {team[0]}
+              {profileData?.teamHistory && profileData.teamHistory.length > 0 ? (
+                profileData.teamHistory.map((team: string, idx: number) => (
+                  <div key={idx} className="group flex items-center gap-6 p-6 card-elite rounded-[2rem] bg-[#111827]/40 hover:bg-[#111827] transition-all border-white/5">
+                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center font-black text-2xl text-primary group-hover:bg-primary group-hover:text-background transition-all">
+                      {team[0]}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-xl">{team}</h4>
+                      <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Temporada {2024 - idx}/{25 - idx}</p>
+                    </div>
+                    <Badge variant="outline" className="border-white/10 text-muted-foreground hidden md:flex">Nivel Profesional</Badge>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground opacity-30" />
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-xl">{team}</h4>
-                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Temporada {2024 - idx}/{25 - idx}</p>
-                  </div>
-                  <Badge variant="outline" className="border-white/10 text-muted-foreground hidden md:flex">Tercera RFEF</Badge>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground opacity-30" />
+                ))
+              ) : (
+                <div className="text-center py-10 border-2 border-dashed border-white/5 rounded-[2rem] text-muted-foreground uppercase text-[10px] font-bold tracking-widest">
+                  Sin historial registrado
                 </div>
-              ))}
+              )}
             </div>
           </TabsContent>
 
@@ -271,14 +287,14 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 
                 <p className="text-xl font-bold leading-tight italic">
-                  "Jugador con una proyección de mercado ascendente. Su eficiencia en el último tercio del campo supera la media de su categoría en un 18%."
+                  {profileData?.summary || "Perfil en fase de análisis avanzado. El Score de IA indica un potencial de crecimiento constante para las próximas temporadas."}
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                   <div className="bg-white/10 backdrop-blur-md p-6 rounded-3xl space-y-2 border border-white/5">
-                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Probabilidad de Fichaje</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">IA Score</span>
                     <div className="flex items-end gap-2">
-                      <span className="text-4xl font-black leading-none">82%</span>
+                      <span className="text-4xl font-black leading-none">{userData.score || 65}</span>
                       <TrendingUp className="w-5 h-5 mb-1" />
                     </div>
                   </div>
@@ -312,7 +328,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             disabled
             className="w-full h-20 rounded-[2.5rem] text-xl font-black uppercase tracking-[0.2em] bg-green-500/10 text-green-500 border border-green-500/20"
           >
-            Match Pendiente de Revisión <MessageCircle className="ml-2 w-6 h-6" />
+            Match Enviado Correctamente <MessageCircle className="ml-2 w-6 h-6" />
           </Button>
         )}
       </main>
