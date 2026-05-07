@@ -6,9 +6,8 @@ import {
   Globe, 
   FileText, 
   Sparkles, 
-  ChevronDown,
-  ExternalLink,
-  MapPin
+  MapPin,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,17 +22,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TopNav } from '@/components/navigation/top-nav';
-import { useUser, useFirestore, useDoc, setDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useDoc, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { PROVINCIAS_ESPANA } from '@/lib/constants';
+import { useRouter } from 'next/navigation';
 
 export default function MyProfilePage() {
-  const { user } = useUser();
+  const router = useRouter();
+  const { user, isUserLoading: isAuthLoading } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
-  const { data: userData, isLoading } = useDoc(user ? doc(db, 'users', user.uid) : null);
-  const { data: profileData } = useDoc(user ? doc(db, 'userProfiles', user.uid) : null);
+
+  // Memorizamos las referencias para evitar bucles infinitos de renderizado
+  const userRef = useMemoFirebase(() => {
+    return user ? doc(db, 'users', user.uid) : null;
+  }, [db, user?.uid]);
+
+  const profileRef = useMemoFirebase(() => {
+    return user ? doc(db, 'userProfiles', user.uid) : null;
+  }, [db, user?.uid]);
+
+  const { data: userData, isLoading: isUserLoading } = useDoc(userRef);
+  const { data: profileData, isLoading: isProfileLoading } = useDoc(profileRef);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -57,37 +68,56 @@ export default function MyProfilePage() {
     }
   }, [userData, profileData]);
 
-  const handleSave = () => {
-    if (!user) return;
+  // Redirección si no hay usuario después de cargar
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isAuthLoading, router]);
 
-    const userRef = doc(db, 'users', user.uid);
+  const handleSave = () => {
+    if (!user || !userRef || !profileRef) return;
+
     setDocumentNonBlocking(userRef, {
       name: formData.name,
       province: formData.province
     }, { merge: true });
 
-    const profileRef = doc(db, 'userProfiles', user.uid);
     setDocumentNonBlocking(profileRef, {
       bio: formData.bio
     }, { merge: true });
 
     toast({
-      title: "Perfiles Actualizado",
+      title: "Perfil Actualizado",
       description: "Tu identidad digital ha sido sincronizada con éxito."
     });
   };
 
-  if (isLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-bold animate-pulse">Cargando Terminal...</div>;
+  const isLoading = isAuthLoading || isUserLoading || isProfileLoading;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center space-y-4">
+        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        <p className="text-primary font-bold uppercase tracking-[0.2em] animate-pulse">Cargando Terminal...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
       <TopNav />
       
       <main className="max-w-5xl mx-auto px-6 py-12 space-y-12">
-        <div className="flex items-center justify-between">
-          <h1 className="text-5xl font-bold font-headline tracking-tighter">Mi Perfil</h1>
-          <Button variant="outline" asChild className="rounded-xl border-primary/50 text-primary hover:bg-primary/10 px-6 font-bold h-12">
-            <a href={`/profile/${user?.uid}`}>Ver Público</a>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <h1 className="text-5xl font-bold font-headline tracking-tighter">Mi Perfil</h1>
+            <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">Gestión de Identidad Digital</p>
+          </div>
+          <Button variant="outline" asChild className="rounded-xl border-primary/50 text-primary hover:bg-primary/10 px-6 font-bold h-12 gap-2">
+            <a href={`/profile/${user?.uid}`}>
+              Ver Perfil Público <ExternalLink className="w-4 h-4" />
+            </a>
           </Button>
         </div>
 
@@ -149,21 +179,19 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-[#111827] border-[#1F2937] border rounded-[2.5rem] overflow-hidden">
-            <CardContent className="p-10 flex items-center justify-between">
-              <Button variant="link" className="text-[#EF4444] font-bold text-lg hover:no-underline p-0">
-                Eliminar Cuenta (Zona de Riesgo)
-              </Button>
-              
-              <Button 
-                onClick={handleSave}
-                className="bg-primary hover:bg-primary/90 text-background h-16 px-10 rounded-3xl text-lg font-black uppercase tracking-widest flex gap-3 shadow-[0_0_30px_rgba(234,179,8,0.2)]"
-              >
-                <Sparkles className="w-6 h-6 fill-current" />
-                Guardar Perfil
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-6">
+            <Button variant="link" className="text-destructive font-bold text-sm hover:no-underline p-0 uppercase tracking-widest">
+              Eliminar Cuenta (Zona de Riesgo)
+            </Button>
+            
+            <Button 
+              onClick={handleSave}
+              className="w-full md:w-auto bg-primary hover:bg-primary/90 text-background h-16 px-12 rounded-3xl text-lg font-black uppercase tracking-widest flex gap-3 shadow-[0_0_30px_rgba(234,179,8,0.2)]"
+            >
+              <Sparkles className="w-6 h-6 fill-current" />
+              Guardar Perfil
+            </Button>
+          </div>
         </div>
       </main>
     </div>
