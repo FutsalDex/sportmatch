@@ -51,8 +51,7 @@ const PLAYER_PLANS = [
   },
   {
     name: "ELITE VERIFICADO",
-    price: "0,99 €",
-    oldPrice: "9,90 €",
+    price: "9,99 €",
     subtitle: "Solicitud Única",
     badge: "ELITE VERIFICADO ✓",
     features: [
@@ -103,7 +102,7 @@ const COACH_PLANS = [
   },
   {
     name: "ELITE VERIFICADO",
-    price: "0,99 €",
+    price: "9,99 €",
     subtitle: "Solicitud Única",
     badge: "ELITE VERIFICADO ✓",
     features: [
@@ -226,9 +225,6 @@ export default function PricingPage() {
                 </div>
                 
                 <div className="space-y-1">
-                  {plan.oldPrice && (
-                    <p className="text-muted-foreground/50 line-through text-sm font-bold">{plan.oldPrice}</p>
-                  )}
                   <p className="text-5xl font-black font-headline tracking-tighter">
                     {plan.price}
                   </p>
@@ -288,7 +284,7 @@ export default function PricingPage() {
 
         <footer className="text-center space-y-4 max-w-2xl mx-auto opacity-60">
           <p className="text-[10px] text-muted-foreground font-medium leading-relaxed uppercase tracking-widest">
-            Planes diseñados para ecosistemas profesionales · Verificación a solo 0,99€ · Sin renovación automática. <br />
+            Planes diseñados para ecosistemas profesionales · Verificación a solo 9,99€ · Sin renovación automática. <br />
             Para clubes o agencias, contactar con nuestro equipo de ventas.
           </p>
         </footer>

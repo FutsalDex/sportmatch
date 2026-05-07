@@ -175,17 +175,20 @@ export default function MyProfilePage() {
     if (formData.strongFoot) physScore += 2;
     score += Math.min(physScore, 10);
 
-    // 3. Galería Multimedia (Máx 30)
+    // 3. Galería Multimedia (Máx 25)
     let mediaScore = 0;
     if (formData.profileImageUrl) mediaScore += 10;
-    formData.bookImageUrls.forEach(url => { if (url) mediaScore += 4; });
+    formData.bookImageUrls.forEach(url => { if (url) mediaScore += 3; });
     formData.videoUrls.forEach(url => { if (url) mediaScore += 3; });
-    formData.socialVideoUrls.forEach(url => { if (url) mediaScore += 3; });
-    score += Math.min(mediaScore, 30);
+    formData.socialVideoUrls.forEach(url => { if (url) mediaScore += 2; });
+    score += Math.min(mediaScore, 25);
 
     // 4. Biografía Profesional (Máx 10)
-    if (formData.bio && formData.bio.length > 50) score += 10;
-    else if (formData.bio) score += 5;
+    if (formData.isAiBio) {
+      score += 10; // Solo verificado/pro puede tener isAiBio
+    } else if (formData.bio && formData.bio.length > 20) {
+      score += 5; // Usuarios free solo suman 5 por completar
+    }
 
     // 5. Historial Deportivo (Máx 10)
     if (formData.teamHistory.length > 0) score += 10;
@@ -193,9 +196,6 @@ export default function MyProfilePage() {
     // 6. Plan de Cuenta (Verificado +10, Pro +20 total)
     if (userData?.plan === 'pro') score += 20;
     else if (userData?.plan === 'verified' || userData?.verificationStatus === 'verified') score += 10;
-
-    // 7. IA Bio (+10)
-    if (formData.isAiBio) score += 10;
 
     return Math.min(score, 100);
   };
@@ -283,10 +283,14 @@ export default function MyProfilePage() {
   };
 
   const toggleAiBio = () => {
+    if (!isElite) {
+      toast({ variant: "destructive", title: "Función Bloqueada", description: "Solo los perfiles Verificados o Pro pueden solicitar una biografía con IA." });
+      return;
+    }
     setFormData(prev => ({ ...prev, isAiBio: !prev.isAiBio }));
     toast({
       title: !formData.isAiBio ? "Bonificación IA Activada" : "Bonificación IA Desactivada",
-      description: !formData.isAiBio ? "Has ganado +10 puntos por usar IA en tu biografía." : "Se han restado 10 puntos de tu Score."
+      description: !formData.isAiBio ? "Has ganado +10 puntos por usar IA." : "Se han restado puntos del Score."
     });
   };
 
@@ -377,7 +381,9 @@ export default function MyProfilePage() {
                   <h2 className="text-2xl font-bold font-headline uppercase italic">Biografía Profesional</h2>
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant="outline" className="border-primary/20 text-primary text-[8px] font-black">MÁX 10 PTS</Badge>
+                  <Badge variant="outline" className="border-primary/20 text-primary text-[8px] font-black">
+                    {formData.isAiBio ? "MÁX 10 PTS" : "MÁX 5 PTS FREE"}
+                  </Badge>
                   {formData.isAiBio && <Badge className="bg-primary text-background text-[8px] font-black">+10 PTS IA</Badge>}
                 </div>
               </div>
@@ -390,12 +396,15 @@ export default function MyProfilePage() {
               <Button 
                 onClick={toggleAiBio} 
                 variant={formData.isAiBio ? "default" : "outline"}
+                disabled={!isElite}
                 className={cn(
                   "w-full h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest gap-2",
-                  formData.isAiBio ? "bg-primary text-background" : "border-primary/20 text-primary hover:bg-primary/5"
+                  formData.isAiBio ? "bg-primary text-background" : "border-primary/20 text-primary hover:bg-primary/5",
+                  !isElite && "opacity-50 cursor-not-allowed"
                 )}
               >
-                <Bot className="w-4 h-4" /> {formData.isAiBio ? "OPTIMIZADO CON IA ✓" : "OPTIMIZAR BIOGRAFÍA CON IA"}
+                {!isElite ? <Lock className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                {formData.isAiBio ? "OPTIMIZADO CON IA ✓" : isElite ? "OPTIMIZAR BIOGRAFÍA CON IA" : "OPTIMIZACIÓN IA (SOLO PRO)"}
               </Button>
             </CardContent>
           </Card>
@@ -448,7 +457,7 @@ export default function MyProfilePage() {
                   <Camera className="w-6 h-6" />
                   <h2 className="text-2xl font-bold font-headline uppercase italic">Galería Multimedia</h2>
                 </div>
-                <Badge variant="outline" className="border-primary/20 text-primary text-[8px] font-black">MÁX 30 PTS</Badge>
+                <Badge variant="outline" className="border-primary/20 text-primary text-[8px] font-black">MÁX 25 PTS</Badge>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div className="space-y-4">
