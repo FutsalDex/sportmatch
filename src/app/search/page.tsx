@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import { Search, Filter, SlidersHorizontal, MapPin, ShieldCheck, Star } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, MapPin, ShieldCheck, Star, Globe } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,21 +19,29 @@ import { MOCK_USERS } from '@/lib/db-mock';
 import { TopNav } from '@/components/navigation/top-nav';
 import Link from 'next/link';
 import { useDiscipline } from '@/context/discipline-context';
+import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL } from '@/lib/constants';
 
 export default function SearchPage() {
   const { discipline } = useDiscipline();
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [countryFilter, setCountryFilter] = useState<string>('España');
+  const [zoneFilter, setZoneFilter] = useState<string>('all');
 
   const filteredUsers = useMemo(() => {
     return MOCK_USERS.filter(user => {
-      // Filtro por disciplina obligatoria
       const matchesDiscipline = user.discipline === discipline;
       const matchesQuery = user.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-      return matchesDiscipline && matchesQuery && matchesRole;
+      const userCountry = (user as any).country || 'España';
+      const matchesCountry = countryFilter === 'all' || userCountry === countryFilter;
+      const matchesZone = zoneFilter === 'all' || user.province === zoneFilter;
+      return matchesDiscipline && matchesQuery && matchesRole && matchesCountry && matchesZone;
     }).sort((a, b) => b.score - a.score);
-  }, [discipline, searchQuery, roleFilter]);
+  }, [discipline, searchQuery, roleFilter, countryFilter, zoneFilter]);
+
+  const locationLabel = GET_LOCATION_LABEL(countryFilter);
+  const locationList = GET_LOCATION_LIST(countryFilter);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white">
@@ -68,9 +76,35 @@ export default function SearchPage() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" className="h-10 rounded-full bg-black border-white/20 text-white font-bold px-6 gap-2">
-              <MapPin className="w-4 h-4" /> Provincia
-            </Button>
+            <Select value={countryFilter} onValueChange={(v) => { setCountryFilter(v); setZoneFilter('all'); }}>
+              <SelectTrigger className="h-10 w-40 rounded-full bg-black border border-white/20 text-white font-bold px-6">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-primary" />
+                  <SelectValue placeholder="PAÍS" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-[#111827] border-white/10 text-white">
+                <SelectItem value="all">TODOS LOS PAÍSES</SelectItem>
+                {COUNTRIES.map(country => (
+                  <SelectItem key={country} value={country}>{country.toUpperCase()}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={zoneFilter} onValueChange={setZoneFilter}>
+              <SelectTrigger className="h-10 w-48 rounded-full bg-black border border-white/20 text-white font-bold px-6">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  <SelectValue placeholder={locationLabel} />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-[#111827] border-white/10 text-white max-h-[300px]">
+                <SelectItem value="all">TODAS LAS ZONAS</SelectItem>
+                {locationList.map(loc => (
+                  <SelectItem key={loc} value={loc}>{loc.toUpperCase()}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             
             <Button variant="outline" className="h-10 rounded-full bg-black border-white/20 text-white font-bold px-6 gap-2">
               <Filter className="w-4 h-4" /> Más Filtros

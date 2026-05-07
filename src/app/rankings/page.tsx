@@ -9,7 +9,8 @@ import {
   Zap,
   Calendar,
   Search,
-  Trophy
+  Trophy,
+  Globe
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,6 +28,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useDiscipline } from '@/context/discipline-context';
+import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL } from '@/lib/constants';
 
 export default function RankingsPage() {
   const { toast } = useToast();
@@ -35,7 +37,7 @@ export default function RankingsPage() {
   
   // Estados de filtrado
   const [roleFilter, setRoleFilter] = useState<'Player' | 'Coach' | 'all'>('Player');
-  const [positionFilter, setPositionFilter] = useState<string>('all');
+  const [countryFilter, setCountryFilter] = useState<string>('España');
   const [zoneFilter, setZoneFilter] = useState<string>('all');
   
   useEffect(() => {
@@ -60,29 +62,23 @@ export default function RankingsPage() {
     localStorage.setItem('sm_favorites', JSON.stringify(newFavs));
   };
 
-  // Lógica de filtrado y ordenación segmentada por DISCIPLINA
+  // Lógica de filtrado y ordenación segmentada
   const filteredAndSortedUsers = useMemo(() => {
     return [...MOCK_USERS]
       .filter(user => {
-        // Filtro CRÍTICO: Solo mostrar la disciplina activa
         const matchesDiscipline = user.discipline === discipline;
         const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-        const matchesPosition = positionFilter === 'all' || user.position === positionFilter;
+        // Si no tenemos el campo country en el mock, asumimos España para los que no lo tienen
+        const userCountry = (user as any).country || 'España';
+        const matchesCountry = userCountry === countryFilter;
         const matchesZone = zoneFilter === 'all' || user.province === zoneFilter;
-        return matchesDiscipline && matchesRole && matchesPosition && matchesZone;
+        return matchesDiscipline && matchesRole && matchesCountry && matchesZone;
       })
       .sort((a, b) => b.score - a.score);
-  }, [discipline, roleFilter, positionFilter, zoneFilter]);
+  }, [discipline, roleFilter, countryFilter, zoneFilter]);
 
-  const positions = useMemo(() => {
-    const base = MOCK_USERS.filter(u => u.discipline === discipline);
-    const filteredByRole = roleFilter === 'all' ? base : base.filter(u => u.role === roleFilter);
-    return Array.from(new Set(filteredByRole.map(u => u.position)));
-  }, [discipline, roleFilter]);
-
-  const zones = useMemo(() => {
-    return Array.from(new Set(MOCK_USERS.filter(u => u.discipline === discipline).map(u => u.province)));
-  }, [discipline]);
+  const locationLabel = GET_LOCATION_LABEL(countryFilter);
+  const locationList = GET_LOCATION_LIST(countryFilter);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">
@@ -129,26 +125,31 @@ export default function RankingsPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <Select value={positionFilter} onValueChange={setPositionFilter}>
-                <SelectTrigger className="h-12 w-48 rounded-2xl bg-[#030712] border-white/10 text-[10px] font-bold uppercase tracking-widest text-white">
-                  <SelectValue placeholder="POSICIÓN" />
+              <Select value={countryFilter} onValueChange={(v) => { setCountryFilter(v); setZoneFilter('all'); }}>
+                <SelectTrigger className="h-12 w-40 rounded-2xl bg-[#030712] border-white/10 text-[10px] font-bold uppercase tracking-widest text-white">
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-3 h-3 text-primary" />
+                    <SelectValue placeholder="PAÍS" />
+                  </div>
                 </SelectTrigger>
                 <SelectContent className="bg-[#111827] border-white/10 text-white">
-                  <SelectItem value="all">TODAS LAS POSICIONES</SelectItem>
-                  {positions.map(pos => (
-                    <SelectItem key={pos} value={pos}>{pos.toUpperCase()}</SelectItem>
+                  {COUNTRIES.map(country => (
+                    <SelectItem key={country} value={country}>{country.toUpperCase()}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
               <Select value={zoneFilter} onValueChange={setZoneFilter}>
-                <SelectTrigger className="h-12 w-40 rounded-2xl bg-[#030712] border-white/10 text-[10px] font-bold uppercase tracking-widest text-white">
-                  <SelectValue placeholder="ZONA" />
+                <SelectTrigger className="h-12 w-48 rounded-2xl bg-[#030712] border-white/10 text-[10px] font-bold uppercase tracking-widest text-white">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3 h-3 text-primary" />
+                    <SelectValue placeholder={locationLabel} />
+                  </div>
                 </SelectTrigger>
-                <SelectContent className="bg-[#111827] border-white/10 text-white">
+                <SelectContent className="bg-[#111827] border-white/10 text-white max-h-[300px]">
                   <SelectItem value="all">TODAS LAS ZONAS</SelectItem>
-                  {zones.map(zone => (
-                    <SelectItem key={zone} value={zone}>{zone.toUpperCase()}</SelectItem>
+                  {locationList.map(loc => (
+                    <SelectItem key={loc} value={loc}>{loc.toUpperCase()}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -162,7 +163,7 @@ export default function RankingsPage() {
         {filteredAndSortedUsers.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-white/5 rounded-[3rem]">
             <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No hay perfiles de {discipline === 'Football' ? 'Fútbol' : 'Futsal'} con estos criterios.</p>
+            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No hay perfiles de {discipline === 'Football' ? 'Fútbol' : 'Futsal'} en esta zona.</p>
           </div>
         ) : (
           filteredAndSortedUsers.map((userItem, idx) => {
