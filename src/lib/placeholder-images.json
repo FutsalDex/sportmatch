@@ -27,13 +27,13 @@
     {
       "id": "landing-football",
       "description": "Fútbol Fondo Inicio",
-      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/studio-2816733526-e6799.firebasestorage.app/o/RECURSOS%2FIMG%20WEB%2Ffutbol_inicio.jpg?alt=media",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/studio-2816733526-e6799.firebasestorage.app/o/RECURSOS%2Ffutbol_inicio.jpg?alt=media",
       "imageHint": "football player"
     },
     {
       "id": "landing-futsal",
       "description": "Fútbol Sala Fondo Inicio",
-      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/studio-2816733526-e6799.firebasestorage.app/o/RECURSOS%2FIMG%20WEB%2Ffutbol_sala_inicio.jpg?alt=media",
+      "imageUrl": "https://firebasestorage.googleapis.com/v0/b/studio-2816733526-e6799.firebasestorage.app/o/RECURSOS%2Ffutbol_sala_inicio.jpg?alt=media",
       "imageHint": "futsal match"
     }
   ]
