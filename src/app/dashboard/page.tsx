@@ -49,18 +49,18 @@ export default function DashboardPage() {
   const { data: userData, isLoading: isUserDataLoading } = useDoc(userDocRef);
 
   // Consulta de Ofertas Propias (Solo para Clubes)
-  // ✅ CORREGIDO: Añadido isUserLoading a la guarda
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user || userData?.role !== 'Club') return null;
     return query(collection(db, 'offers'), where('clubId', '==', user.uid), orderBy('createdAt', 'desc'));
-  }, [db, user?.uid, userData?.role, isUserLoading]); // ✅ Añadido isUserLoading
+  }, [db, user?.uid, userData?.role, isUserLoading]);
+  
+  const { data: myOffers } = useCollection(myOffersQuery);
 
   // Consulta global para el Admin
-  // ✅ CORREGIDO: Añadido isUserLoading a la guarda
   const allUsersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !isAdmin) return null;
     return collection(db, 'users');
-  }, [db, isAdmin, isUserLoading]); // ✅ Añadido isUserLoading
+  }, [db, isAdmin, isUserLoading]);
   const { data: allUsers } = useCollection(allUsersQuery);
 
   if (isUserLoading || isUserDataLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-primary font-bold animate-pulse uppercase tracking-[0.3em] text-xs">Cargando Terminal...</div>;
