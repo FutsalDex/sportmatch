@@ -53,17 +53,45 @@ export function useCollection<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
+  // Helper function to check if a path is a public collection
+  const isPublicCollection = (path: string): boolean => {
+    const publicCollections = ['offers', 'recursos', 'rankings', 'stats'];
+    return publicCollections.some(collection => path.includes(collection));
+  };
+
   useEffect(() => {
-    // CRITICAL: Do not execute query if user is not authenticated
-    if (!memoizedTargetRefOrQuery || !user) {
+    // Reset state when query changes
+    setData(null);
+    setError(null);
+    setIsLoading(true);
+
+    // CRITICAL: Return early if no query reference
+    if (!memoizedTargetRefOrQuery) {
       setData(null);
-      setIsLoading(!!memoizedTargetRefOrQuery); // Keep loading true if we are waiting for user
+      setIsLoading(false);
       setError(null);
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
+    // Get the path for error handling
+    let path = '';
+    try {
+      path = memoizedTargetRefOrQuery.type === 'collection'
+        ? (memoizedTargetRefOrQuery as CollectionReference).path
+        : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString();
+    } catch (e) {
+      path = 'unknown';
+    }
+
+    const isPublic = isPublicCollection(path);
+
+    // For non-public collections, wait for user authentication
+    if (!isPublic && !user) {
+      setData(null);
+      setIsLoading(false);
+      setError(null);
+      return;
+    }
 
     const unsubscribe = onSnapshot(
       memoizedTargetRefOrQuery,
@@ -77,16 +105,20 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
-        const path: string =
-          memoizedTargetRefOrQuery.type === 'collection'
-            ? (memoizedTargetRefOrQuery as CollectionReference).path
-            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
-
         // robust permission error check
         const isPermissionError = error.code === 'permission-denied' || 
                                  error.message?.includes('Missing or insufficient permissions');
 
-        // If it's a permission error and we don't have an auth'd user yet, ignore it
+        // For public collections, don't treat permission errors as fatal
+        if (isPermissionError && isPublic) {
+          console.warn(`Permission denied for public collection "${path}". Showing empty data. Check Firestore rules.`);
+          setData([]); // Empty array instead of null to avoid UI issues
+          setError(null); // No error for public collections
+          setIsLoading(false);
+          return;
+        }
+
+        // For non-public collections, check if it's due to missing auth
         if (isPermissionError && !user) {
           console.debug('Firestore permission denied while user not authenticated - deferring error');
           setData(null);
@@ -94,17 +126,20 @@ export function useCollection<T = any>(
           return;
         }
 
+        // Create contextual error for other cases
         const contextualError = new FirestorePermissionError({
           operation: 'list',
           path,
-        })
+        });
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
 
-        // trigger global error propagation
-        errorEmitter.emit('permission-error', contextualError);
+        // Only emit global error for non-public collections
+        if (!isPublic) {
+          errorEmitter.emit('permission-error', contextualError);
+        }
       }
     );
 

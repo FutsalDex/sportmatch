@@ -65,7 +65,7 @@ export default function NewOfferPage() {
     bonusObjectives: '',
     duration: '',
     onboardingDate: 'Inmediata',
-    teamRole: 'Titular inmediato',
+    teamRole: 'Sin determinar',
     teamCategory: '',
     location: '',
     requirements: '',
@@ -233,6 +233,7 @@ export default function NewOfferPage() {
                       <Select value={formData.teamRole} onValueChange={(v) => setFormData({...formData, teamRole: v})}>
                         <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6 font-bold"><SelectValue /></SelectTrigger>
                         <SelectContent className="bg-[#111827] border-white/10 text-white">
+                          <SelectItem value="Sin determinar">Sin determinar</SelectItem>
                           <SelectItem value="Titular inmediato">Titular inmediato</SelectItem>
                           <SelectItem value="Jugador de rotación">Jugador de rotación</SelectItem>
                           <SelectItem value="Apuesta de futuro">Apuesta de futuro</SelectItem>
