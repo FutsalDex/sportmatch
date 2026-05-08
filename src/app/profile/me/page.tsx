@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -240,13 +239,16 @@ export default function MyProfilePage() {
   const handleSave = () => {
     if (!user || !userRef || !profileRef) return;
 
+    // Sincronizar la titulación principal como 'position' para el ranking de entrenadores
+    const primaryCert = formData.certifications.find(c => !!c) || '';
+
     setDocumentNonBlocking(userRef, {
       name: formData.name,
       province: formData.province,
       country: formData.country,
       nationality: formData.nationality,
       age: parseInt(formData.age) || 0,
-      position: formData.position,
+      position: isCoach ? primaryCert : formData.position,
       instagram: formData.instagram,
       tiktok: formData.tiktok,
       twitter: formData.twitter,

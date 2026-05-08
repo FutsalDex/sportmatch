@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -182,6 +181,7 @@ export default function RankingsPage() {
           filteredAndSortedUsers.map((userItem, idx) => {
             const isFavorite = favorites.includes(userItem.id);
             const isTop3 = idx < 3;
+            const isCoach = userItem.role === 'Coach';
             
             return (
               <div key={userItem.id} className="group">
@@ -221,7 +221,7 @@ export default function RankingsPage() {
                           
                           <div className="hidden md:flex flex-col justify-center">
                             <span className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mb-1 flex items-center gap-1">
-                              Posición
+                              {isCoach ? 'Titulación' : 'Posición'}
                             </span>
                             <span className="text-[10px] font-bold text-white truncate">{userItem.position || '--'}</span>
                           </div>
