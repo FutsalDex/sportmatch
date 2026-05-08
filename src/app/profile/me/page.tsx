@@ -33,7 +33,8 @@ import {
   ChevronRight,
   Bot,
   GraduationCap,
-  Medal
+  Medal,
+  Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,6 +48,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { TopNav } from '@/components/navigation/top-nav';
@@ -424,7 +430,39 @@ export default function MyProfilePage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 text-primary">
                   <FileText className="w-6 h-6" />
-                  <h2 className="text-2xl font-bold font-headline uppercase italic">Biografía Profesional</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-bold font-headline uppercase italic">Biografía Profesional</h2>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full text-primary/60 hover:text-primary hover:bg-primary/10">
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 bg-[#111827] border-white/10 text-white p-6 rounded-2xl">
+                        <div className="space-y-4 text-xs">
+                          <h4 className="font-black text-primary uppercase tracking-widest border-b border-white/10 pb-2">Guía Táctica de Biografía</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <p className="font-bold text-primary/80 mb-1">1. Perfil y Filosofía</p>
+                              <p className="text-muted-foreground">Definición táctica (ej. juego asociativo, bloque bajo y contraataque) y tus principios innegociables en el campo.</p>
+                            </div>
+                            <div>
+                              <p className="font-bold text-primary/80 mb-1">2. Metodología de Trabajo</p>
+                              <p className="text-muted-foreground">Diseño de sesiones diarias y uso de tecnología (videoanálisis, datos y control de cargas).</p>
+                            </div>
+                            <div>
+                              <p className="font-bold text-primary/80 mb-1">3. Gestión de Talento</p>
+                              <p className="text-muted-foreground">Promoción de jóvenes (cantera) y estilo de liderazgo (autoritario, democrático, motivador).</p>
+                            </div>
+                            <div>
+                              <p className="font-bold text-primary/80 mb-1">4. Staff y Estructura</p>
+                              <p className="text-muted-foreground">Reparto de tareas con asistentes y coordinación con la dirección deportiva del club.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Badge variant="outline" className="border-primary/20 text-primary text-[8px] font-black">
