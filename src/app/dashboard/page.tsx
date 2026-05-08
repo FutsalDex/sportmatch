@@ -24,7 +24,9 @@ import {
   UserCheck,
   Download,
   ShieldCheck,
-  Trophy
+  Trophy,
+  Briefcase,
+  Send
 } from 'lucide-react';
 import { doc, collection, query, where } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
@@ -43,13 +45,21 @@ export default function DashboardPage() {
 
   const { data: userData, isLoading: isUserLoading } = useDoc(userDocRef);
 
-  // Consulta de Matches
+  // Consulta de Matches (Para todos los usuarios)
   const matchesQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(collection(db, 'matches'), where(`members.${user.uid}`, '==', true));
   }, [db, user?.uid]);
 
   const { data: matchesData, isLoading: isMatchesLoading } = useCollection(matchesQuery);
+
+  // Consulta de Ofertas Enviadas (Solo para Clubes)
+  const sentOffersQuery = useMemoFirebase(() => {
+    if (!user || userData?.role !== 'Club') return null;
+    return query(collection(db, 'offers'), where('clubId', '==', user.uid));
+  }, [db, user?.uid, userData?.role]);
+
+  const { data: sentOffers } = useCollection(sentOffersQuery);
 
   // Consulta global para el Admin
   const allUsersQuery = useMemoFirebase(() => {
@@ -65,6 +75,9 @@ export default function DashboardPage() {
   const activeMatches = matchesData?.filter(m => m.status === 'accepted') || [];
   const pendingMatches = matchesData?.filter(m => m.status === 'pending') || [];
 
+  const isClub = userData?.role === 'Club';
+
+  // Métricas Admin
   const topUsersCount = allUsers?.filter(u => u.plan === 'top').length || 0;
   const proUsersCount = allUsers?.filter(u => u.plan === 'pro').length || 0;
   const verifiedUsersCount = allUsers?.filter(u => u.plan === 'verified' || u.verificationStatus === 'verified').length || 0;
@@ -84,7 +97,7 @@ export default function DashboardPage() {
               {isAdmin ? 'Terminal de Control Maestro' : 'Mi Panel'}
             </Badge>
             <h1 className="text-2xl md:text-4xl font-bold font-headline tracking-tighter">
-              {isAdmin ? 'Modo Dios:' : 'Hola,'} {userData?.name?.split(' ')[0] || 'Admin'}
+              {isAdmin ? 'Modo Dios:' : 'Hola,'} {userData?.name?.split(' ')[0] || 'Usuario'}
             </h1>
             <p className="text-[10px] md:text-base text-muted-foreground font-medium">
               {isAdmin ? 'Supervisión total de la red y gestión de identidades.' : 'Gestiona tu carrera y analiza tu impacto.'}
@@ -206,7 +219,7 @@ export default function DashboardPage() {
             </Card>
           </div>
         ) : (
-          /* DASHBOARD USER ESTÁNDAR */
+          /* DASHBOARD USER ESTÁNDAR / CLUB */
           <div className="flex md:grid md:grid-cols-4 gap-4 overflow-x-auto no-scrollbar snap-x-mandatory pb-4">
             <Card className="min-w-[85vw] md:min-w-0 card-elite rounded-[2rem] md:rounded-[2.5rem] relative overflow-hidden group snap-center">
               <CardContent className="p-6 md:p-8 space-y-4">
@@ -255,14 +268,16 @@ export default function DashboardPage() {
             <Card className="min-w-[85vw] md:min-w-0 card-elite rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-primary/20 to-transparent border-primary/20 snap-center">
               <CardContent className="p-6 md:p-8 space-y-4 flex flex-col justify-between h-full">
                 <div className="space-y-1">
-                  <p className="font-bold text-base md:text-lg font-headline">Hazte Pro</p>
-                  <p className="text-[10px] md:text-xs text-muted-foreground font-medium">Análisis avanzado e insignias élite.</p>
+                  <p className="font-bold text-base md:text-lg font-headline">{isClub ? 'Panel Club' : 'Hazte Pro'}</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground font-medium">
+                    {isClub ? 'Gestiona tus ofertas y scouting.' : 'Análisis avanzado e insignias élite.'}
+                  </p>
                 </div>
                 <Link 
-                  href="/pricing" 
+                  href={isClub ? "/search" : "/pricing"} 
                   className="w-full h-10 md:h-12 bg-primary text-background font-black uppercase text-[9px] md:text-[10px] tracking-widest rounded-xl md:rounded-2xl hover:bg-primary/90 flex items-center justify-center"
                 >
-                  MEJORAR AHORA <ArrowUpRight className="ml-2 w-4 h-4" />
+                  {isClub ? 'BUSCAR TALENTO' : 'MEJORAR AHORA'} <ArrowUpRight className="ml-2 w-4 h-4" />
                 </Link>
               </CardContent>
             </Card>
@@ -272,9 +287,9 @@ export default function DashboardPage() {
         <section className="space-y-6">
           <div className="flex items-center justify-between border-b border-white/5 pb-3">
             <h2 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-muted-foreground flex items-center">
-              <LayoutDashboard className="w-4 h-4 mr-2" /> {isAdmin ? 'Gestión de Sistema' : 'Pipeline de Scouting'}
+              <LayoutDashboard className="w-4 h-4 mr-2" /> {isAdmin ? 'Gestión de Sistema' : (isClub ? 'Pipeline de Reclutamiento' : 'Pipeline de Scouting')}
             </h2>
-            <Link href={isAdmin ? "/admin/users" : "/matches"} className="text-primary text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:underline flex items-center">
+            <Link href={isAdmin ? "/admin/users" : (isClub ? "/search" : "/matches")} className="text-primary text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:underline flex items-center">
               Ver todos <ChevronRight className="ml-1 w-3 h-3" />
             </Link>
           </div>
@@ -316,35 +331,65 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : (
-              /* SECCIÓN USER: PIPELINE ESTÁNDAR */
+              /* SECCIÓN USER/CLUB: PIPELINE */
               <>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-2">
-                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">Interesados ({activeMatches.length})</span>
+                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      {isClub ? `Ofertas Enviadas (${sentOffers?.length || 0})` : `Interesados (${activeMatches.length})`}
+                    </span>
                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                   </div>
                   <div className="space-y-3">
-                    {activeMatches.length === 0 ? (
-                      <div className="h-20 border border-dashed border-white/5 rounded-2xl flex items-center justify-center opacity-30">
-                        <p className="text-[8px] font-bold uppercase tracking-widest">Sin contactos</p>
-                      </div>
+                    {isClub ? (
+                      sentOffers && sentOffers.length > 0 ? (
+                        sentOffers.slice(0, 3).map((offer, i) => (
+                          <Card key={i} className="bg-[#111827] border-white/5 rounded-2xl md:rounded-3xl hover:border-primary/20 transition-all">
+                            <CardContent className="p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                              <div className="bg-primary/10 p-2 rounded-xl">
+                                <Send className="w-4 h-4 text-primary" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-xs md:text-sm truncate">{offer.position}</p>
+                                <p className="text-[8px] md:text-[10px] text-muted-foreground font-medium uppercase">{offer.status}</p>
+                              </div>
+                              <Badge variant="outline" className="border-primary/20 text-primary text-[7px] md:text-[8px] font-black">INFO</Badge>
+                            </CardContent>
+                          </Card>
+                        ))
+                      ) : (
+                        <div className="h-20 border border-dashed border-white/5 rounded-2xl flex items-center justify-center opacity-30">
+                          <p className="text-[8px] font-bold uppercase tracking-widest">Sin ofertas enviadas</p>
+                        </div>
+                      )
                     ) : (
-                      activeMatches.slice(0, 3).map((match, i) => (
-                        <Card key={i} className="bg-[#111827] border-white/5 rounded-2xl md:rounded-3xl hover:border-primary/20 transition-all cursor-pointer">
-                          <CardContent className="p-3 md:p-4 flex items-center gap-3 md:gap-4">
-                            <Avatar className="w-10 h-10 rounded-xl">
-                              <AvatarFallback className="text-xs">ID</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-bold text-xs md:text-sm truncate">Match #{match.id.substring(0,4)}</p>
-                              <p className="text-[8px] md:text-[10px] text-muted-foreground font-medium">Conexión Activa</p>
-                            </div>
-                            <Badge variant="outline" className="border-primary/20 text-primary text-[7px] md:text-[8px] font-black">OK</Badge>
-                          </CardContent>
-                        </Card>
-                      ))
+                      activeMatches.length === 0 ? (
+                        <div className="h-20 border border-dashed border-white/5 rounded-2xl flex items-center justify-center opacity-30">
+                          <p className="text-[8px] font-bold uppercase tracking-widest">Sin contactos</p>
+                        </div>
+                      ) : (
+                        activeMatches.slice(0, 3).map((match, i) => (
+                          <Card key={i} className="bg-[#111827] border-white/5 rounded-2xl md:rounded-3xl hover:border-primary/20 transition-all cursor-pointer">
+                            <CardContent className="p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                              <Avatar className="w-10 h-10 rounded-xl">
+                                <AvatarFallback className="text-xs">ID</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-xs md:text-sm truncate">Match #{match.id.substring(0,4)}</p>
+                                <p className="text-[8px] md:text-[10px] text-muted-foreground font-medium">Conexión Activa</p>
+                              </div>
+                              <Badge variant="outline" className="border-primary/20 text-primary text-[7px] md:text-[8px] font-black">OK</Badge>
+                            </CardContent>
+                          </Card>
+                        ))
+                      )
                     )}
                   </div>
+                  {isClub && (
+                    <p className="text-[8px] text-muted-foreground italic px-2">
+                      * El Generador de Ofertas se encuentra dentro del perfil de cada talento.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-4">
@@ -401,15 +446,15 @@ export default function DashboardPage() {
               <h2 className="text-xl md:text-3xl font-bold font-headline tracking-tighter uppercase italic">Predicción IA de Mercado</h2>
               <p className="font-bold text-sm md:text-lg leading-tight text-background">
                 {userData?.score && userData.score > 70 
-                  ? "Tu perfil tiene un alto impacto. Los clubes buscan perfiles con tu versatilidad técnica ahora mismo." 
+                  ? (isClub ? "Tu entidad tiene una alta capacidad de atracción. El sistema detecta perfiles compatibles con tu ADN deportivo." : "Tu perfil tiene un alto impacto. Los clubes buscan perfiles con tu versatilidad técnica ahora mismo.")
                   : "Optimiza tu biografía y sube fotos de calidad para aumentar tu Score y visibilidad en la red."}
               </p>
             </div>
             <Link 
-              href="/profile/me" 
+              href={isClub ? "/search" : "/profile/me"} 
               className="w-full md:w-auto h-12 md:h-16 rounded-2xl md:rounded-3xl bg-[#030712] text-white hover:bg-black border border-white/10 flex items-center justify-center font-black px-8 text-[10px] md:text-sm uppercase tracking-widest shadow-xl transition-all"
             >
-              ACTUALIZAR MI PERFIL
+              {isClub ? 'ENCONTRAR TALENTO' : 'ACTUALIZAR MI PERFIL'}
             </Link>
           </section>
         )}
