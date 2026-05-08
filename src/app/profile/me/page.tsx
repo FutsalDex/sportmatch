@@ -47,6 +47,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel
 } from "@/components/ui/select";
 import {
   Popover,
@@ -511,16 +513,42 @@ export default function MyProfilePage() {
                   {formData.certifications.map((cert, i) => (
                     <div key={i} className="space-y-2">
                       <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Titulación {i + 1}</Label>
-                      <Input 
-                        placeholder="Ej: UEFA Pro" 
+                      <Select 
                         value={cert} 
-                        onChange={e => {
+                        onValueChange={v => {
                           const updated = [...formData.certifications];
-                          updated[i] = e.target.value;
+                          updated[i] = v;
                           setFormData({...formData, certifications: updated});
-                        }} 
-                        className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6" 
-                      />
+                        }}
+                      >
+                        <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6">
+                          <SelectValue placeholder="Selecciona titulación" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#111827] border-white/10 text-white">
+                          <SelectGroup>
+                            <SelectLabel>Licencias Federativas (Ruta UEFA)</SelectLabel>
+                            <SelectItem value="UEFA C">UEFA C</SelectItem>
+                            <SelectItem value="UEFA B">UEFA B</SelectItem>
+                            <SelectItem value="UEFA A">UEFA A</SelectItem>
+                            <SelectItem value="UEFA PRO">UEFA PRO</SelectItem>
+                          </SelectGroup>
+                          <SelectGroup>
+                            <SelectLabel>Títulos Académicos Oficiales</SelectLabel>
+                            <SelectItem value="Técnico Deportivo Grado Medio (Ciclo Inicial)">Técnico Deportivo Grado Medio (Ciclo Inicial)</SelectItem>
+                            <SelectItem value="Técnico Deportivo Grado Medio (Ciclo Final)">Técnico Deportivo Grado Medio (Ciclo Final)</SelectItem>
+                            <SelectItem value="Técnico Deportivo Superior en Fútbol">Técnico Deportivo Superior en Fútbol</SelectItem>
+                          </SelectGroup>
+                          <SelectGroup>
+                            <SelectLabel>Especializaciones Técnicas</SelectLabel>
+                            <SelectItem value="UEFA Elite Youth A">UEFA Elite Youth A</SelectItem>
+                            <SelectItem value="UEFA Goalkeeper B">UEFA Goalkeeper B</SelectItem>
+                            <SelectItem value="UEFA Goalkeeper A">UEFA Goalkeeper A</SelectItem>
+                            <SelectItem value="Certificación en Videoanálisis y Scouting">Certificación en Videoanálisis y Scouting</SelectItem>
+                            <SelectItem value="Especialista en Dirección de Metodología">Especialista en Dirección de Metodología</SelectItem>
+                            <SelectItem value="Grado en Ciencias de la Actividad Física y del Deporte (CAFYD)">Grado en Ciencias de la Actividad Física y del Deporte (CAFYD)</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                     </div>
                   ))}
                 </div>
