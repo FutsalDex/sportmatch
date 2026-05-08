@@ -21,7 +21,8 @@ import {
   TrendingUp,
   MessageCircle,
   Play,
-  Lock
+  Lock,
+  Crown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -49,15 +50,15 @@ const PLAYER_PLANS = [
     subtitle: "Pago Único",
     badge: "ELITE VERIFICADO ✓",
     features: [
+      { text: "Lo incluido en el Plan Free", included: true, icon: Check },
       { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Insignia de perfil oficial", included: true, icon: ShieldCheck },
       { text: "Desbloquea Book Multimedia", included: true, icon: Play },
       { text: "Biografía optimizada IA", included: true, icon: Star },
       { text: "Prioridad en búsqueda", included: true, icon: TrendingUp },
-      { text: "Análisis IA SportMatch", included: false, icon: Award },
     ],
     buttonText: "SOLICITAR VERIFICACIÓN",
-    highlight: true
+    highlight: false
   },
   {
     name: "ELITE PRO",
@@ -66,14 +67,31 @@ const PLAYER_PLANS = [
     badge: "ELITE PRO ✓",
     features: [
       { text: "Lo incluido en el Plan Verificado", included: true, icon: Check },
-      { text: "Análisis IA SportMatch", included: true, icon: Award },
       { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
+      { text: "Análisis IA SportMatch", included: true, icon: Award },
       { text: "Informe PDF para clubes", included: true, icon: FileText },
-      { text: "Asesor deportivo SportMatch", included: true, icon: Users },
+      { text: "Asesor deportivo", included: false, icon: Users },
     ],
     buttonText: "SUSCRIBIRSE A ELITE PRO",
-    highlight: false,
+    highlight: true,
     dark: true
+  },
+  {
+    name: "ELITE TOP",
+    price: "199,90 €",
+    subtitle: "Máximo Rendimiento",
+    badge: "ELITE TOP ✓",
+    features: [
+      { text: "Lo incluido en el Plan Pro", included: true, icon: Check },
+      { text: "Asesor deportivo SportMatch", included: true, icon: Users },
+      { text: "Informes Técnico Detallado", included: true, icon: FileText },
+      { text: "Videanálisis de Alto Nivel", included: true, icon: Play },
+      { text: "Gestión de Pruebas y Showcases", included: true, icon: Target },
+      { text: "Contacto con secretarías técnicas", included: true, icon: MessageCircle },
+    ],
+    buttonText: "ACCEDER A ELITE TOP",
+    highlight: false,
+    gold: true
   }
 ];
 
@@ -136,77 +154,81 @@ export default function PricingPage() {
           </Tabs>
         </header>
 
-        {/* PRICING SCROLL ON MOBILE */}
-        <div className="flex md:grid md:grid-cols-3 gap-6 md:gap-8 items-stretch pt-4 overflow-x-auto no-scrollbar snap-x-mandatory px-4 pb-8">
+        {/* PRICING SCROLL ON MOBILE, 4 COLS ON DESKTOP */}
+        <div className="flex lg:grid lg:grid-cols-4 gap-4 md:gap-6 items-stretch pt-4 overflow-x-auto no-scrollbar snap-x-mandatory px-4 pb-8">
           {currentPlans.map((plan, i) => (
             <Card 
               key={i} 
               className={cn(
-                "min-w-[85vw] md:min-w-0 card-elite rounded-[2rem] md:rounded-[3rem] border-white/5 flex flex-col transition-all duration-500 relative overflow-hidden snap-center",
-                plan.highlight && "border-primary/40 shadow-[0_0_60px_rgba(234,179,8,0.15)] md:scale-105 z-10",
-                plan.dark && "bg-[#090e1a] border-primary/20"
+                "min-w-[85vw] lg:min-w-0 card-elite rounded-[2rem] md:rounded-[2.5rem] border-white/5 flex flex-col transition-all duration-500 relative overflow-hidden snap-center",
+                plan.highlight && "border-primary/40 shadow-[0_0_60px_rgba(234,179,8,0.15)] lg:scale-105 z-10",
+                plan.dark && "bg-[#090e1a] border-primary/20",
+                plan.gold && "bg-[#0c0c0c] border-yellow-500/30 shadow-[0_0_50px_rgba(234,179,8,0.1)]"
               )}
             >
               {plan.highlight && (
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
               )}
-              {plan.dark && (
+              {plan.gold && (
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent" />
+              )}
+              {(plan.dark || plan.gold) && (
                 <div className="absolute -top-12 -right-12 bg-primary/10 w-32 h-32 md:w-40 md:h-40 blur-[60px] md:blur-[80px] rounded-full" />
               )}
               
-              <CardHeader className="p-8 md:p-10 pb-4 md:pb-6 text-center space-y-3 md:space-y-4 relative z-10">
+              <CardHeader className="p-6 md:p-8 pb-4 md:pb-6 text-center space-y-3 md:space-y-4 relative z-10">
                 <div className="flex justify-center">
                   {plan.badge ? (
                     <Badge className={cn(
-                      "border-none px-3 md:px-4 py-1 text-[8px] md:text-[10px] font-black tracking-widest uppercase",
-                      plan.dark ? "bg-white/10 text-white" : "bg-primary text-background"
+                      "border-none px-3 md:px-4 py-1 text-[8px] md:text-[9px] font-black tracking-widest uppercase",
+                      plan.dark ? "bg-white/10 text-white" : plan.gold ? "bg-yellow-500 text-black" : "bg-primary text-background"
                     )}>
                       {plan.badge}
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="border-white/10 text-muted-foreground px-3 md:px-4 py-1 text-[8px] md:text-[10px] font-black tracking-widest uppercase">
+                    <Badge variant="outline" className="border-white/10 text-muted-foreground px-3 md:px-4 py-1 text-[8px] md:text-[9px] font-black tracking-widest uppercase">
                       {plan.name}
                     </Badge>
                   )}
                 </div>
                 
                 <div className="space-y-1">
-                  <p className="text-4xl md:text-5xl font-black font-headline tracking-tighter">
+                  <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">
                     {plan.price}
                   </p>
-                  <p className="text-[9px] md:text-[10px] text-muted-foreground font-bold uppercase tracking-widest pt-1 md:pt-2">
+                  <p className="text-[8px] md:text-[9px] text-muted-foreground font-bold uppercase tracking-widest pt-1">
                     {plan.subtitle}
                   </p>
                 </div>
               </CardHeader>
 
-              <CardContent className="p-8 md:p-10 pt-0 flex-1 flex flex-col relative z-10">
+              <CardContent className="p-6 md:p-8 pt-0 flex-1 flex flex-col relative z-10">
                 <div className="space-y-3 md:space-y-4 flex-1">
                   {plan.features.map((feature, idx) => {
                     const FeatureIcon = feature.icon;
                     return (
                       <div key={idx} className={cn(
-                        "flex items-start gap-3 text-xs md:text-sm font-medium",
+                        "flex items-start gap-3 text-[11px] md:text-xs font-medium",
                         !feature.included && "text-muted-foreground/40"
                       )}>
                         <div className={cn(
                           "mt-0.5 p-1 rounded-md",
                           feature.included 
-                            ? (plan.dark ? "bg-white/5" : "bg-primary/5") 
+                            ? (plan.dark || plan.gold ? "bg-white/5" : "bg-primary/5") 
                             : "opacity-20"
                         )}>
                           <FeatureIcon className={cn(
-                            "w-3 h-3 md:w-3.5 md:h-3.5", 
+                            "w-3 h-3", 
                             feature.included 
-                              ? (plan.dark ? "text-white" : "text-primary") 
+                              ? (plan.dark || plan.gold ? "text-primary" : "text-primary") 
                               : "text-muted-foreground"
                           )} />
                         </div>
                         <span className="pt-0.5">{feature.text}</span>
                         {feature.included ? (
-                          <Check className="w-3 h-3 ml-auto opacity-40" />
+                          <Check className="w-2.5 h-2.5 ml-auto opacity-40" />
                         ) : (
-                          <Lock className="w-3 h-3 ml-auto opacity-10" />
+                          <Lock className="w-2.5 h-2.5 ml-auto opacity-10" />
                         )}
                       </div>
                     );
@@ -216,9 +238,11 @@ export default function PricingPage() {
                 <div className="pt-8 md:pt-10">
                   <Button 
                     className={cn(
-                      "w-full h-14 md:h-16 rounded-xl md:rounded-2xl font-black uppercase text-[9px] md:text-[10px] tracking-[0.1em] md:tracking-[0.2em] transition-all",
+                      "w-full h-12 md:h-14 rounded-xl font-black uppercase text-[8px] md:text-[10px] tracking-[0.1em] transition-all",
                       plan.highlight 
                         ? "bg-primary text-background hover:bg-primary/90 shadow-[0_0_30px_rgba(234,179,8,0.2)]" 
+                        : plan.gold
+                        ? "bg-yellow-500 text-black hover:bg-yellow-600 shadow-[0_0_30px_rgba(234,179,8,0.3)]"
                         : plan.dark
                         ? "bg-white text-black hover:bg-white/90"
                         : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
@@ -234,7 +258,7 @@ export default function PricingPage() {
 
         <footer className="text-center space-y-4 md:space-y-6 max-w-4xl mx-auto opacity-60 px-6">
           <div className="h-px bg-white/10 w-full" />
-          <p className="text-[8px] md:text-[10px] text-muted-foreground font-medium leading-relaxed uppercase tracking-widest">
+          <p className="text-[8px] md:text-[9px] text-muted-foreground font-medium leading-relaxed uppercase tracking-widest">
             Planes diseñados para ecosistemas profesionales · Verificación a 9,99€ (Pago único) · Sin renovación automática. <br />
             Los 100 puntos de Score IA se logran combinando Perfil Técnico (85 pts) y el Análisis IA de SportMatch (15 pts). <br />
             El plan Free está limitado a 45 pts totales y 1 temporada en trayectoria.
