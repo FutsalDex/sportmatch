@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -26,16 +25,13 @@ import {
   ArrowLeft, 
   Send, 
   Briefcase, 
-  Info, 
-  AlertTriangle, 
   Sparkles, 
   Coins, 
   Truck, 
-  ShieldCheck, 
   Users, 
-  FileText,
-  Clock,
-  Target
+  Target,
+  AlertTriangle,
+  Trophy
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -86,8 +82,8 @@ export default function NewOfferPage() {
   const isFootball = clubData?.discipline === 'Football';
 
   const handleSubmit = () => {
-    if (!user || !formData.position) {
-      toast({ variant: "destructive", title: "Faltan Datos", description: "Debes seleccionar al menos la posición buscada." });
+    if (!user || !formData.position || !formData.teamCategory) {
+      toast({ variant: "destructive", title: "Faltan Datos", description: "Debes completar la posición y la categoría del equipo." });
       return;
     }
 
@@ -111,7 +107,7 @@ export default function NewOfferPage() {
       duration: formData.duration,
       onboardingDate: formData.onboardingDate,
       teamRole: formData.teamRole,
-      teamCategory: formData.teamCategory || clubData?.position || '',
+      teamCategory: formData.teamCategory,
       location: clubData?.province || '',
       requirements: formData.requirements,
       description: formData.description,
@@ -226,6 +222,18 @@ export default function NewOfferPage() {
                       ) : (
                         <Input placeholder="Ej: Analista Táctico" className="h-14 bg-white/5 border-none rounded-2xl px-6" value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})} />
                       )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-black text-muted-foreground ml-2 flex items-center gap-2">
+                        <Trophy className="w-3 h-3 text-primary" /> Categoría del Equipo
+                      </Label>
+                      <Input 
+                        placeholder="Ej: 3ª RFEF, Honor, Pro..." 
+                        className="h-14 bg-white/5 border-none rounded-2xl px-6" 
+                        value={formData.teamCategory} 
+                        onChange={e => setFormData({...formData, teamCategory: e.target.value})} 
+                      />
                     </div>
 
                     <div className="space-y-2">

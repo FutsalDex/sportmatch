@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, use } from 'react';
@@ -31,7 +30,8 @@ import {
   Truck, 
   Users, 
   Target,
-  Loader2
+  Loader2,
+  Trophy
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -104,12 +104,11 @@ export default function EditOfferPage({ params }: { params: Promise<{ id: string
   const isFootball = clubData?.discipline === 'Football';
 
   const handleUpdate = () => {
-    if (!user || !formData.position) {
-      toast({ variant: "destructive", title: "Faltan Datos", description: "Debes seleccionar al menos la posición buscada." });
+    if (!user || !formData.position || !formData.teamCategory) {
+      toast({ variant: "destructive", title: "Faltan Datos", description: "Debes completar la posición y la categoría del equipo." });
       return;
     }
 
-    // Seguridad: verificar que el club sea el dueño de la oferta
     if (offerData && offerData.clubId !== user.uid && user.email !== 'admin01@gmail.com') {
       toast({ variant: "destructive", title: "Error de Autoridad", description: "No tienes permisos para editar esta vacante." });
       return;
@@ -218,6 +217,18 @@ export default function EditOfferPage({ params }: { params: Promise<{ id: string
                       ) : (
                         <Input placeholder="Ej: Analista Táctico" className="h-14 bg-white/5 border-none rounded-2xl px-6" value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})} />
                       )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-black text-muted-foreground ml-2 flex items-center gap-2">
+                        <Trophy className="w-3 h-3 text-primary" /> Categoría del Equipo
+                      </Label>
+                      <Input 
+                        placeholder="Ej: 3ª RFEF, Honor, Pro..." 
+                        className="h-14 bg-white/5 border-none rounded-2xl px-6" 
+                        value={formData.teamCategory} 
+                        onChange={e => setFormData({...formData, teamCategory: e.target.value})} 
+                      />
                     </div>
 
                     <div className="space-y-2">
