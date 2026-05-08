@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Trophy, Target, Zap, ArrowRight } from 'lucide-react';
@@ -99,12 +100,12 @@ export default function Home() {
             Encuentra jugadores, entrenadores y clubes de {discipline === 'Football' ? 'Fútbol' : 'Fútbol Sala'}.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-4 w-full max-w-md md:max-w-none px-4">
+          <div className="flex flex-col sm:flex-row gap-4 pt-4 w-full max-w-md md:max-w-none px-4 justify-center items-center">
             <Button asChild className="h-14 md:h-16 px-10 rounded-2xl bg-primary text-background font-black text-base md:text-lg uppercase tracking-widest hover:bg-primary/90 shadow-[0_0_40px_rgba(234,179,8,0.3)]">
-              <Link href="/onboarding">Crear cuenta</Link>
+              <Link href="/onboarding">CREAR CUENTA</Link>
             </Button>
             <Button asChild variant="outline" className="h-14 md:h-16 px-10 rounded-2xl border-white/10 bg-white/5 font-black text-base md:text-lg uppercase tracking-widest hover:bg-white/10">
-              <Link href="/login">Acceso cuenta</Link>
+              <Link href="/login">ACCESO CUENTA</Link>
             </Button>
           </div>
 
