@@ -29,16 +29,11 @@ service cloud.firestore {
     }
 
     // --- OFFERS ---
-    // FIX: separamos get y list de forma explícita.
-    // "allow read" debería cubrir ambos, pero al coexistir con la
-    // regla wildcard /{allPaths=**} Firestore puede comportarse de
-    // forma inesperada. Ser explícito elimina toda ambigüedad.
     match /offers/{offerId} {
-      allow get:    if isSignedIn();
-      allow list:   if isSignedIn();
+      allow read:   if isSignedIn();
       allow create: if isSignedIn();
       allow update, delete: if isAdmin()
-        || (isSignedIn() && resource != null && isOwner(resource.data.clubId));
+        || (isSignedIn() && (resource == null || resource.data.clubId == request.auth.uid));
     }
 
     // --- PRIVATE PROFILES ---
@@ -68,11 +63,6 @@ service cloud.firestore {
     }
 
     // --- REGLA GLOBAL ADMIN ---
-    // Cubre cualquier colección futura para el admin.
-    // IMPORTANTE: esta regla se evalúa en combinación con las
-    // anteriores — Firestore concede acceso si CUALQUIER regla
-    // lo permite, por eso las reglas específicas de arriba
-    // tenemos prioridad práctica para usuarios normales.
     match /{allPaths=**} {
       allow read, write: if isAdmin();
     }

@@ -50,7 +50,7 @@ export default function DashboardPage() {
 
   // Consulta de Ofertas Propias (Solo para Clubes)
   const myOffersQuery = useMemoFirebase(() => {
-    if (!db || isUserLoading || !user || userData?.role !== 'Club') return null;
+    if (!db || isUserLoading || !user || !userData || userData.role !== 'Club') return null;
     return query(collection(db, 'offers'), where('clubId', '==', user.uid), orderBy('createdAt', 'desc'));
   }, [db, user?.uid, userData?.role, isUserLoading]);
   
