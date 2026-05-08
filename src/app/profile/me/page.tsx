@@ -572,7 +572,7 @@ export default function MyProfilePage() {
                     <div key={i} className="space-y-2">
                       <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Titulación {i + 1}</Label>
                       <Select 
-                        value={cert} 
+                        value={cert || ""} 
                         onValueChange={v => {
                           const updated = [...formData.certifications];
                           updated[i] = v;
@@ -623,7 +623,7 @@ export default function MyProfilePage() {
                   ))}
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Pierna</Label>
-                    <Select value={formData.strongFoot || ''} onValueChange={v => setFormData({...formData, strongFoot: v})}>
+                    <Select value={formData.strongFoot || ""} onValueChange={v => setFormData({...formData, strongFoot: v})}>
                       <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6"><SelectValue placeholder="Pierna" /></SelectTrigger>
                       <SelectContent className="bg-[#111827] border-white/10 text-white">
                         <SelectItem value="Derecha">Derecha</SelectItem>
@@ -740,23 +740,23 @@ export default function MyProfilePage() {
                     <>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Temporada</Label>
-                        <Input placeholder="24/25" value={formData.newSeason.season} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
+                        <Input placeholder="24/25" value={formData.newSeason.season || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Club</Label>
-                        <Input placeholder="Club" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
+                        <Input placeholder="Club" value={formData.newSeason.club || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Campeonato</Label>
-                        <Input placeholder="Liga" value={formData.newSeason.league} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, league: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
+                        <Input placeholder="Liga" value={formData.newSeason.league || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, league: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Pos.</Label>
-                        <Input placeholder="1º" value={formData.newSeason.leaguePosition} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, leaguePosition: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
+                        <Input placeholder="1º" value={formData.newSeason.leaguePosition || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, leaguePosition: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Asc.</Label>
-                        <Select value={formData.newSeason.promotion} onValueChange={v => setFormData({...formData, newSeason: {...formData.newSeason, promotion: v}})}>
+                        <Select value={formData.newSeason.promotion || "No"} onValueChange={v => setFormData({...formData, newSeason: {...formData.newSeason, promotion: v}})}>
                           <SelectTrigger className="bg-[#030712] border-none rounded-xl h-10 px-4"><SelectValue /></SelectTrigger>
                           <SelectContent className="bg-[#111827] border-white/10 text-white">
                             <SelectItem value="Sí">Sí</SelectItem>
@@ -766,38 +766,38 @@ export default function MyProfilePage() {
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">PG</Label>
-                        <Input type="number" value={formData.newSeason.wins} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, wins: parseInt(e.target.value)}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
+                        <Input type="number" value={formData.newSeason.wins ?? 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, wins: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">PE</Label>
-                        <Input type="number" value={formData.newSeason.draws} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, draws: parseInt(e.target.value)}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
+                        <Input type="number" value={formData.newSeason.draws ?? 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, draws: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">PP</Label>
-                        <Input type="number" value={formData.newSeason.losses} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, losses: parseInt(e.target.value)}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
+                        <Input type="number" value={formData.newSeason.losses ?? 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, losses: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
                       </div>
                     </>
                   ) : (
                     <>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Temporada</Label>
-                        <Input placeholder="24/25" value={formData.newSeason.season} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
+                        <Input placeholder="24/25" value={formData.newSeason.season || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Club</Label>
-                        <Input placeholder="Real Madrid" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
+                        <Input placeholder="Real Madrid" value={formData.newSeason.club || ''} onChange={e => setFormData({...formData, newSeason: { ...formData.newSeason, club: e.target.value }})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Posición</Label>
-                        <Input placeholder="Extremo" value={formData.newSeason.position} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, position: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
+                        <Input placeholder="Extremo" value={formData.newSeason.position || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, position: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">PJ</Label>
-                        <Input type="number" value={formData.newSeason.matches} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value)}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
+                        <Input type="number" value={formData.newSeason.matches ?? 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">GOLES</Label>
-                        <Input type="number" value={formData.newSeason.goals} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value)}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
+                        <Input type="number" value={formData.newSeason.goals ?? 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                     </>
                   )}
