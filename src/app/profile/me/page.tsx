@@ -112,7 +112,7 @@ export default function MyProfilePage() {
     stadium: '',
     foundationYear: '',
     facilities: '',
-    // Nuevos campos Club
+    // Campos Club
     tacticalSystem: '',
     philosophy: '',
     averageAge: '',
@@ -382,7 +382,7 @@ export default function MyProfilePage() {
               <div className="flex items-center space-x-3 text-primary">
                 {isAdmin ? <Server className="w-6 h-6 text-red-500" /> : <UserIcon className="w-6 h-6" />}
                 <h2 className={cn("text-2xl font-bold font-headline uppercase italic", isAdmin && "text-red-500")}>
-                  {isAdmin && !isEditingOther ? 'Identidad de Sistema' : 'Datos del Sujeto'}
+                  {isAdmin && !isEditingOther ? 'Identidad de Sistema' : (isTargetClub ? 'Datos del Club' : 'Datos del Sujeto')}
                 </h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -407,17 +407,6 @@ export default function MyProfilePage() {
                     <Input type="number" value={formData.age || ''} onChange={e => setFormData({...formData, age: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" />
                   </div>
                 )}
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Movilidad</Label>
-                  <Select value={formData.mobility || 'Nacional'} onValueChange={v => setFormData({...formData, mobility: v})}>
-                    <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6"><SelectValue placeholder="Movilidad" /></SelectTrigger>
-                    <SelectContent className="bg-[#111827] border-white/10 text-white">
-                      <SelectItem value="Local">Local</SelectItem>
-                      <SelectItem value="Nacional">Nacional</SelectItem>
-                      <SelectItem value="Internacional">Internacional</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -813,4 +802,3 @@ export default function MyProfilePage() {
     </div>
   );
 }
-
