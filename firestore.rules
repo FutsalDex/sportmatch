@@ -3,49 +3,76 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- HELPER FUNCTIONS ---
+    // --- HELPERS ---
     function isSignedIn() { return request.auth != null; }
     function isAdmin() { return isSignedIn() && request.auth.token.email == "admin01@gmail.com"; }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
     function isMemberInMap(map) { return isSignedIn() && map != null && map[request.auth.uid] == true; }
 
-    // --- COLLECTION RULES ---
-
-    // Recursos públicos (Provincias, etc)
+    // --- RECURSOS PÚBLICOS ---
     match /recursos/{document=**} {
-      allow read: if true; 
+      allow read: if true;
     }
 
+    // --- USERS ---
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin() || isOwner(userId);
+      allow get:    if isSignedIn();
+      allow list:   if isSignedIn();
+      allow write:  if isAdmin() || isOwner(userId);
     }
 
+    // --- USER PROFILES ---
     match /userProfiles/{userId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin() || isOwner(userId);
+      allow get:    if isSignedIn();
+      allow list:   if isSignedIn();
+      allow write:  if isAdmin() || isOwner(userId);
     }
 
+    // --- OFFERS ---
+    // FIX: separamos get y list de forma explícita.
+    // "allow read" debería cubrir ambos, pero al coexistir con la
+    // regla wildcard /{allPaths=**} Firestore puede comportarse de
+    // forma inesperada. Ser explícito elimina toda ambigüedad.
     match /offers/{offerId} {
-      // Permitir lectura a cualquier usuario registrado para el Tablero de Ofertas
-      allow read: if isSignedIn();
-      // Permitir creación si está identificado
+      allow get:    if isSignedIn();
+      allow list:   if isSignedIn();
       allow create: if isSignedIn();
-      // Solo el club emisor o el admin pueden editar/borrar
-      allow update, delete: if isAdmin() || (isSignedIn() && resource != null && isOwner(resource.data.clubId));
+      allow update, delete: if isAdmin()
+        || (isSignedIn() && resource != null && isOwner(resource.data.clubId));
     }
 
+    // --- PRIVATE PROFILES ---
     match /privateProfiles/{userId} {
-      allow get: if isAdmin() || isOwner(userId) || (resource != null && isMemberInMap(resource.data.allowedReaders));
+      allow get:  if isAdmin() || isOwner(userId)
+        || (resource != null && isMemberInMap(resource.data.allowedReaders));
       allow list: if isAdmin() || isOwner(userId);
       allow write: if isAdmin() || isOwner(userId);
     }
 
+    // --- MATCHES ---
     match /matches/{matchId} {
-      allow read, write: if isAdmin() || (isSignedIn() && (resource == null || isMemberInMap(resource.data.members)));
+      allow read, write: if isAdmin()
+        || (isSignedIn() && (resource == null || isMemberInMap(resource.data.members)));
     }
-    
-    // Regla global para el admin en cualquier otro documento futuro
+
+    // --- RANKINGS (públicos) ---
+    match /rankings/{role}/provinces/{provinceId}/entries/{userId} {
+      allow get:  if true;
+      allow list: if true;
+    }
+
+    // --- STATS (públicos, solo get) ---
+    match /stats/{docId} {
+      allow get:  if true;
+      allow list: if false;
+    }
+
+    // --- REGLA GLOBAL ADMIN ---
+    // Cubre cualquier colección futura para el admin.
+    // IMPORTANTE: esta regla se evalúa en combinación con las
+    // anteriores — Firestore concede acceso si CUALQUIER regla
+    // lo permite, por eso las reglas específicas de arriba
+    // tenemos prioridad práctica para usuarios normales.
     match /{allPaths=**} {
       allow read, write: if isAdmin();
     }
