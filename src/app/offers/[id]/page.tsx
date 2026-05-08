@@ -1,162 +1,281 @@
+'use client';
 
-"use client";
-
-import { use, useMemo } from 'react';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import { TopNav } from '@/components/navigation/top-nav';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { doc, getDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   ArrowLeft, 
   Building2, 
-  MapPin, 
+  Calendar, 
   Wallet, 
-  Clock, 
-  Target, 
-  ShieldCheck, 
+  Home, 
   Truck, 
-  Coins, 
-  Users, 
+  ShieldCheck, 
+  Clock, 
+  AlertCircle,
+  Target,
   FileText,
-  Calendar,
-  Globe2,
-  Award,
-  Send
+  Users
 } from 'lucide-react';
-import Link from 'next/link';
+import { TopNav } from '@/components/navigation/top-nav';
 
-export default function OfferDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+interface OfferData {
+  id: string;
+  position: string;
+  clubId: string;
+  clubName?: string;
+  clubLogo?: string;
+  description: string;
+  salaryRange: string;
+  bonusObjectives?: string;
+  location: string;
+  accommodation?: string;
+  transport?: string;
+  healthInsurance?: string;
+  requirements?: string;
+  onboardingDate: string;
+  duration: string;
+  role: string;
+  teamRole: string;
+  teamCategory: string;
+  createdAt: string;
+  status: string;
+}
+
+const InfoCard = ({ title, items, icon: Icon }: { title: string; icon: any; items: Array<{ label: string; value: string; highlight?: boolean }> }) => {
+  return (
+    <Card className="card-elite rounded-[2rem] bg-[#111827]/40 border-white/5 overflow-hidden">
+      <CardHeader className="border-b border-white/5 bg-white/[0.02] p-6">
+        <CardTitle className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+          <Icon className="w-4 h-4" /> {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {items.map((item, i) => (
+            <div key={i} className="space-y-1">
+              <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">{item.label}</p>
+              <p className={cn("text-sm font-bold", item.highlight ? "text-primary" : "text-white")}>
+                {item.value || 'Consultar'}
+              </p>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default function OfferDetailPage() {
+  const params = useParams();
+  const router = useRouter();
   const db = useFirestore();
-  const offerRef = useMemoFirebase(() => doc(db, 'offers', id), [db, id]);
-  const { data: offer, isLoading } = useDoc(offerRef);
+  const { user, isUserLoading } = useUser();
+  const [offer, setOffer] = useState<OfferData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (isLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Sincronizando Protocolo de Vacante...</div>;
-  if (!offer) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-white font-bold">Oferta no encontrada.</div>;
+  const offerId = params?.id as string;
+
+  const loadOffer = useCallback(async () => {
+    if (!db || !offerId) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const offerRef = doc(db, 'offers', offerId);
+      const offerSnap = await getDoc(offerRef);
+
+      if (offerSnap.exists()) {
+        const data = offerSnap.data();
+        setOffer({
+          id: offerSnap.id,
+          position: data.position || 'Sin título',
+          clubId: data.clubId || '',
+          clubName: data.clubName,
+          clubLogo: data.clubLogo,
+          description: data.description || '',
+          salaryRange: data.salaryRange || 'A convenir',
+          bonusObjectives: data.bonusObjectives,
+          location: data.location || 'No especificada',
+          accommodation: data.accommodation,
+          transport: data.transport,
+          healthInsurance: data.healthInsurance,
+          requirements: data.requirements,
+          onboardingDate: data.onboardingDate || 'Inmediata',
+          duration: data.duration || '--',
+          role: data.role || 'Player',
+          teamRole: data.teamRole || '--',
+          teamCategory: data.teamCategory || '--',
+          createdAt: data.createdAt,
+          status: data.status || 'active',
+        } as OfferData);
+      } else {
+        setError('La vacante solicitada no existe o ha sido retirada del mercado.');
+      }
+    } catch (err: any) {
+      console.error('Error fetching offer:', err);
+      setError('Error en la terminal de datos. Inténtalo de nuevo.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [db, offerId]);
+
+  useEffect(() => {
+    if (db && offerId) {
+      loadOffer();
+    }
+  }, [db, offerId, loadOffer]);
+
+  if (isLoading || isUserLoading) {
+    return (
+      <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center text-primary font-black space-y-4">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="uppercase tracking-[0.3em] text-[10px]">Sincronizando Expediente...</p>
+      </div>
+    );
+  }
+
+  if (error || !offer) {
+    return (
+      <div className="min-h-screen bg-[#030712] text-white">
+        <TopNav />
+        <main className="max-w-xl mx-auto px-6 py-20 text-center space-y-6">
+          <div className="bg-red-500/10 p-6 rounded-[2.5rem] border border-red-500/20 space-y-4">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
+            <p className="text-sm font-bold text-red-500 uppercase tracking-widest">{error || 'Expediente no encontrado'}</p>
+          </div>
+          <Button onClick={() => router.push('/offers')} variant="ghost" className="text-primary font-black uppercase text-[10px] tracking-widest">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Volver al Mercado
+          </Button>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#030712] text-white pb-20">
       <TopNav />
       
-      <div className="relative pt-16 pb-12 px-6 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] md:w-[800px] h-[300px] md:h-[400px] bg-primary/10 blur-[80px] -z-10 rounded-full" />
-        
-        <div className="max-w-4xl mx-auto space-y-8">
-          <Link href="/offers" className="flex items-center text-primary hover:underline text-[10px] font-black uppercase tracking-[0.2em] gap-2 mb-8">
-            <ArrowLeft className="w-4 h-4" /> VOLVER AL TABLERO
-          </Link>
-
-          <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
-            <Avatar className="w-32 h-32 rounded-[2rem] border-4 border-primary/20 shadow-2xl">
-              <AvatarImage src={offer.clubLogo} className="object-cover" />
-              <AvatarFallback className="bg-primary/10 text-primary text-4xl font-black">{offer.clubName?.[0]}</AvatarFallback>
-            </Avatar>
-            <div className="space-y-4 flex-1">
-              <div className="space-y-1">
-                <Badge className="bg-primary text-background font-black text-[10px] px-4 py-1 mb-2">{offer.teamCategory || 'PROFESIONAL'}</Badge>
-                <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tighter uppercase italic">{offer.position}</h1>
-                <p className="text-xl text-muted-foreground font-bold flex items-center justify-center md:justify-start gap-3">
-                  <Building2 className="w-5 h-5 text-primary" /> {offer.clubName}
-                </p>
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-16 space-y-12">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <div className="space-y-6">
+            <button 
+              onClick={() => router.back()}
+              className="flex items-center text-primary hover:text-primary/80 text-[10px] font-black uppercase tracking-[0.2em] gap-2 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" /> VOLVER
+            </button>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                  VACANTE {offer.role === 'Player' ? 'JUGADOR' : 'ENTRENADOR'}
+                </Badge>
+                <Badge className="bg-green-500/10 text-green-500 border-none px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                  {offer.status === 'active' ? 'ACTIVA' : 'CERRADA'}
+                </Badge>
               </div>
-              <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                <Badge variant="outline" className="border-white/10 text-white px-4 py-1.5 font-black uppercase text-[10px]">{offer.role}</Badge>
-                <Badge variant="outline" className="border-white/10 text-white px-4 py-1.5 font-black uppercase text-[10px]">{offer.onboardingDate}</Badge>
+              <h1 className="text-4xl md:text-7xl font-bold font-headline tracking-tighter uppercase italic leading-none">{offer.position}</h1>
+              <div className="flex flex-wrap items-center gap-6 text-muted-foreground font-bold uppercase tracking-widest text-[10px]">
+                <span className="flex items-center gap-2"><Building2 className="w-4 h-4 text-primary" /> {offer.clubName}</span>
+                <span className="flex items-center gap-2"><Target className="w-4 h-4 text-primary" /> {offer.teamCategory}</span>
+                <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> Publicada: {new Date(offer.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <main className="max-w-4xl mx-auto px-6 space-y-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InfoCard icon={Coins} title="Económico" items={[
-            { label: 'Rango Salarial', value: offer.salaryRange, highlight: true },
-            { label: 'Bonus/Objetivos', value: offer.bonusObjectives || 'No especificado' },
-            { label: 'Duración', value: offer.duration }
-          ]} />
-          
-          <InfoCard icon={Truck} title="Logística" items={[
-            { label: 'Alojamiento', value: offer.accommodation },
-            { label: 'Transporte', value: offer.transport },
-            { label: 'Seguro Médico', value: offer.healthInsurance }
-          ]} />
+          <div className="bg-[#111827] p-8 rounded-[2.5rem] border border-white/5 text-center space-y-2 min-w-[240px]">
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Incorporación</p>
+            <p className="text-2xl font-black font-headline text-primary uppercase italic">{offer.onboardingDate}</p>
+          </div>
+        </header>
 
-          <InfoCard icon={Users} title="ADN y Rol" items={[
-            { label: 'Rol en plantilla', value: offer.teamRole },
-            { label: 'División', value: offer.teamCategory },
-            { label: 'Plan de Carrera', value: offer.careerPlan }
-          ]} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <InfoCard
+                title="Módulo Económico"
+                icon={Wallet}
+                items={[
+                  { label: 'Salario Anual (Bruto)', value: offer.salaryRange, highlight: true },
+                  { label: 'Duración Contrato', value: offer.duration },
+                  { label: 'Bonus por Objetivos', value: offer.bonusObjectives || 'No especificados' },
+                ]}
+              />
 
-          <InfoCard icon={Award} title="Requisitos" items={[
-            { label: 'Pasaporte', value: offer.nationalityRequirement },
-            { label: 'Edad Buscada', value: offer.preferredAgeRange || 'Indiferente' },
-            { label: 'Idiomas', value: offer.languageLevel }
-          ]} />
-        </div>
+              <InfoCard
+                title="Módulo Logístico"
+                icon={Truck}
+                items={[
+                  { label: 'Ubicación', value: offer.location },
+                  { label: 'Alojamiento', value: offer.accommodation || 'Consultar' },
+                  { label: 'Transporte', value: offer.transport || 'Consultar' },
+                  { label: 'Seguro Médico', value: offer.healthInsurance || 'Básico' },
+                ]}
+              />
+            </div>
 
-        <div className="space-y-6">
-           <SectionTitle icon={FileText} text="Descripción del Proyecto" />
-           <Card className="card-elite rounded-[2.5rem] bg-[#111827]/40 border-white/5 p-8 md:p-12">
-              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed whitespace-pre-wrap font-medium">
-                {offer.description || 'Sin descripción detallada.'}
-              </p>
-           </Card>
-        </div>
-
-        <div className="space-y-6">
-           <SectionTitle icon={ShieldCheck} text="Documentación y Requisitos Técnicos" />
-           <Card className="card-elite rounded-[2.5rem] bg-[#111827]/40 border-white/5 p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                 <div className="space-y-4">
-                    <p className="text-[10px] font-black uppercase text-primary tracking-widest">Requerimientos Técnicos</p>
-                    <p className="text-sm text-muted-foreground font-medium">{offer.requirements || 'Contactar para más detalles.'}</p>
-                 </div>
-                 <div className="space-y-4">
-                    <p className="text-[10px] font-black uppercase text-primary tracking-widest">Documentación Obligatoria</p>
-                    <p className="text-sm text-muted-foreground font-medium">{offer.mandatoryDocs || 'Currículum y Vídeos actualizados.'}</p>
-                 </div>
+            <Card className="card-elite rounded-[2.5rem] bg-[#111827]/40 border-white/5 p-10 space-y-6">
+              <div className="flex items-center gap-3 text-primary border-b border-white/5 pb-4">
+                <FileText className="w-6 h-6" />
+                <h2 className="text-xl font-bold font-headline uppercase italic">Proyecto Deportivo</h2>
               </div>
-           </Card>
-        </div>
+              <p className="text-muted-foreground text-lg leading-relaxed font-medium">
+                {offer.description || "Sin descripción adicional proporcionada por el club."}
+              </p>
+            </Card>
 
-        <div className="pt-10">
-           <Button className="w-full h-20 rounded-[2.5rem] bg-primary text-background font-black uppercase tracking-[0.3em] text-sm shadow-[0_0_50px_rgba(234,179,8,0.2)] hover:scale-[1.01] transition-transform">
-              POSTULARME A ESTA VACANTE <Send className="ml-3 w-6 h-6" />
-           </Button>
+            {offer.requirements && (
+              <Card className="card-elite rounded-[2.5rem] bg-[#111827]/40 border-white/5 p-10 space-y-6">
+                <div className="flex items-center gap-3 text-primary border-b border-white/5 pb-4">
+                  <ShieldCheck className="w-6 h-6" />
+                  <h2 className="text-xl font-bold font-headline uppercase italic">Requisitos Técnicos</h2>
+                </div>
+                <p className="text-muted-foreground text-lg leading-relaxed font-medium">
+                  {offer.requirements}
+                </p>
+              </Card>
+            )}
+          </div>
+
+          <aside className="space-y-8">
+            <Card className="card-elite rounded-[2.5rem] bg-primary text-background p-10 space-y-8 shadow-[0_0_50px_rgba(234,179,8,0.2)]">
+               <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-6 h-6" />
+                    <h3 className="font-black uppercase italic tracking-tighter text-xl leading-none">Postulación Directa</h3>
+                  </div>
+                  <p className="font-bold text-xs leading-relaxed">Al postularte, tu perfil técnico completo y tu Score IA serán enviados a la secretaría técnica del club.</p>
+               </div>
+               
+               <Button 
+                onClick={() => alert("Función de postulación en fase de despliegue.")}
+                className="w-full h-16 rounded-2xl bg-background text-primary font-black uppercase text-[10px] tracking-[0.2em] hover:bg-black transition-colors"
+               >
+                 ENVIAR MI PERFIL
+               </Button>
+
+               <div className="pt-4 border-t border-background/20">
+                 <p className="text-[8px] font-black uppercase tracking-widest opacity-60">Protocolo SportMatch v2.4</p>
+               </div>
+            </Card>
+
+            <Card className="card-elite rounded-[2.5rem] bg-[#111827]/40 border-white/5 p-8 text-center space-y-4">
+               <Clock className="w-8 h-8 text-muted-foreground mx-auto" />
+               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
+                 Esta oferta está sujeta a la disponibilidad del presupuesto institucional del club.
+               </p>
+            </Card>
+          </aside>
         </div>
       </main>
-    </div>
-  );
-}
-
-function InfoCard({ icon: Icon, title, items }: { icon: any, title: string, items: { label: string, value: string, highlight?: boolean }[] }) {
-  return (
-    <Card className="card-elite rounded-[2rem] bg-[#111827]/40 border-white/5 p-8 space-y-6 hover:border-primary/30 transition-all">
-      <div className="flex items-center gap-3 text-primary">
-        <Icon className="w-5 h-5" />
-        <h3 className="font-black text-xs uppercase tracking-widest">{title}</h3>
-      </div>
-      <div className="space-y-4">
-        {items.map((item, i) => (
-          <div key={i} className="space-y-1">
-            <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">{item.label}</p>
-            <p className={cn("text-sm font-bold", item.highlight ? "text-primary" : "text-white")}>{item.value || 'Consultar'}</p>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
-function SectionTitle({ icon: Icon, text }: { icon: any, text: string }) {
-  return (
-    <div className="flex items-center gap-3 border-b border-white/5 pb-3">
-      <Icon className="w-5 h-5 text-primary" />
-      <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">{text}</h2>
     </div>
   );
 }
