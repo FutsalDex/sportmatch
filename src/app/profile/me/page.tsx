@@ -34,7 +34,8 @@ import {
   Bot,
   GraduationCap,
   Medal,
-  Info
+  Info,
+  Map
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,6 +107,7 @@ export default function MyProfilePage() {
     nationality: '',
     age: '',
     position: '',
+    mobility: 'Nacional',
     bio: '',
     isAiBio: false,
     height: '',
@@ -148,6 +150,7 @@ export default function MyProfilePage() {
         nationality: userData.nationality || '',
         age: userData.age?.toString() || '',
         position: userData.position || '',
+        mobility: userData.mobility || 'Nacional',
         instagram: userData.instagram || '',
         tiktok: userData.tiktok || '',
         twitter: userData.twitter || '',
@@ -250,6 +253,7 @@ export default function MyProfilePage() {
       nationality: formData.nationality,
       age: parseInt(formData.age) || 0,
       position: isCoach ? primaryCert : formData.position,
+      mobility: formData.mobility,
       instagram: formData.instagram,
       tiktok: formData.tiktok,
       twitter: formData.twitter,
@@ -421,6 +425,50 @@ export default function MyProfilePage() {
                     <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6"><SelectValue placeholder="Zona" /></SelectTrigger>
                     <SelectContent className="bg-[#111827] border-white/10 text-white max-h-60">
                       {GET_LOCATION_LIST(formData.country).map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 ml-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Movilidad</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-4 w-4 rounded-full text-primary/60 hover:text-primary hover:bg-primary/10">
+                          <Info className="h-3.5 w-3.5" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72 bg-[#111827] border-white/10 text-white p-6 rounded-2xl shadow-2xl">
+                        <div className="space-y-4 text-xs">
+                          <h4 className="font-black text-primary uppercase tracking-widest border-b border-white/10 pb-2">Guía de Movilidad</h4>
+                          <div className="space-y-3">
+                            <div>
+                              <p className="font-bold text-primary/80 mb-1">Local</p>
+                              <p className="text-muted-foreground">Disponibilidad para proyectos en tu provincia o residencia actual.</p>
+                            </div>
+                            <div>
+                              <p className="font-bold text-primary/80 mb-1">Nacional</p>
+                              <p className="text-muted-foreground">Voluntad de desplazarte a cualquier punto del país.</p>
+                            </div>
+                            <div>
+                              <p className="font-bold text-primary/80 mb-1">Internacional</p>
+                              <p className="text-muted-foreground">Apertura total a proyectos en ligas extranjeras.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <Select value={formData.mobility || 'Nacional'} onValueChange={v => setFormData({...formData, mobility: v})}>
+                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6">
+                      <div className="flex items-center gap-2">
+                        <Map className="w-4 h-4 text-muted-foreground" />
+                        <SelectValue placeholder="Selecciona movilidad" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#111827] border-white/10 text-white">
+                      <SelectItem value="Local">Local</SelectItem>
+                      <SelectItem value="Nacional">Nacional</SelectItem>
+                      <SelectItem value="Internacional">Internacional</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

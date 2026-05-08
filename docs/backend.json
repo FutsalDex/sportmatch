@@ -66,6 +66,11 @@
         "position": {
           "type": "string"
         },
+        "mobility": {
+          "type": "string",
+          "enum": ["Local", "Nacional", "Internacional"],
+          "description": "Disponibilidad geográfica para nuevos proyectos."
+        },
         "profileImageUrl": {
           "type": "string"
         },
