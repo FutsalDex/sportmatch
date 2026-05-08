@@ -22,32 +22,32 @@ export default function Home() {
   if (!discipline) {
     return (
       <div className="flex flex-col min-h-screen bg-black text-white items-center justify-center p-4">
-        <div className="text-center space-y-4 mb-10 md:mb-16">
+        <div className="text-center space-y-4 mb-10 md:mb-12">
           <div className="flex justify-center mb-2">
             <Trophy className="w-10 h-10 md:w-12 md:h-12 text-primary" />
           </div>
           <h1 className="text-4xl md:text-6xl font-black font-headline tracking-tighter uppercase">SportMatch</h1>
-          <p className="text-muted-foreground text-[10px] md:text-sm font-medium tracking-[0.2em] uppercase">Terminal de Inteligencia Deportiva</p>
+          <p className="text-muted-foreground text-[10px] md:text-xs font-medium tracking-[0.2em] uppercase">Encuentra el talento</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-5xl w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl w-full">
           <button 
             onClick={() => handleSelect('Football')}
-            className="group relative h-[300px] md:h-[450px] rounded-[2rem] md:rounded-[3rem] overflow-hidden border-none transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            className="group relative h-[225px] md:h-[338px] rounded-[2rem] md:rounded-[3rem] overflow-hidden border-none transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
             <Image 
-              src="https://picsum.photos/seed/football-landing/800/600" 
+              src="https://firebasestorage.googleapis.com/v0/b/studio-2816733526-e6799.firebasestorage.app/o/RECURSOS%2FIMG%20WEB%2Ffutbol_inicio.jpg?alt=media" 
               alt="Fútbol"
               fill
-              className="object-cover opacity-40 group-hover:opacity-50 transition-opacity"
-              data-ai-hint="football stadium"
+              className="object-cover opacity-50 group-hover:opacity-60 transition-opacity"
+              data-ai-hint="football match"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent p-8 md:p-12 flex flex-col justify-end text-left">
-              <div className="bg-primary w-10 h-10 md:w-14 md:h-14 rounded-xl flex items-center justify-center mb-4 md:mb-6 shadow-[0_0_30px_rgba(234,179,8,0.4)]">
-                <Target className="w-6 h-6 md:w-8 md:h-8 text-black" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent p-6 md:p-8 flex flex-col justify-end text-left">
+              <div className="bg-primary w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-3 md:mb-4 shadow-[0_0_30px_rgba(234,179,8,0.4)]">
+                <Target className="w-6 h-6 md:w-7 md:h-7 text-black" />
               </div>
-              <h2 className="text-2xl md:text-4xl font-bold font-headline mb-2 md:mb-3 uppercase tracking-tighter">Fútbol</h2>
-              <p className="text-muted-foreground text-sm md:text-lg leading-relaxed max-w-[280px]">
+              <h2 className="text-xl md:text-3xl font-bold font-headline mb-1 md:mb-2 uppercase tracking-tighter">Fútbol</h2>
+              <p className="text-muted-foreground text-xs md:text-sm leading-tight max-w-[240px]">
                 Scouting, fichajes y rankings profesionales de 11.
               </p>
             </div>
@@ -55,21 +55,21 @@ export default function Home() {
 
           <button 
             onClick={() => handleSelect('Futsal')}
-            className="group relative h-[300px] md:h-[450px] rounded-[2rem] md:rounded-[3rem] overflow-hidden border-none transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            className="group relative h-[225px] md:h-[338px] rounded-[2rem] md:rounded-[3rem] overflow-hidden border-none transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
             <Image 
-              src="https://picsum.photos/seed/futsal-landing/800/600" 
+              src="https://firebasestorage.googleapis.com/v0/b/studio-2816733526-e6799.firebasestorage.app/o/RECURSOS%2FIMG%20WEB%2Ffutbol_sala_inicio.jpg?alt=media" 
               alt="Fútbol Sala"
               fill
-              className="object-cover opacity-40 group-hover:opacity-50 transition-opacity"
-              data-ai-hint="futsal player"
+              className="object-cover opacity-50 group-hover:opacity-60 transition-opacity"
+              data-ai-hint="futsal court"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent p-8 md:p-12 flex flex-col justify-end text-left">
-              <div className="bg-primary w-10 h-10 md:w-14 md:h-14 rounded-xl flex items-center justify-center mb-4 md:mb-6 shadow-[0_0_30px_rgba(234,179,8,0.4)]">
-                <Zap className="w-6 h-6 md:w-8 md:h-8 text-black" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent p-6 md:p-8 flex flex-col justify-end text-left">
+              <div className="bg-primary w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center mb-3 md:mb-4 shadow-[0_0_30px_rgba(234,179,8,0.4)]">
+                <Zap className="w-6 h-6 md:w-7 md:h-7 text-black" />
               </div>
-              <h2 className="text-2xl md:text-4xl font-bold font-headline mb-2 md:mb-3 uppercase tracking-tighter">Fútbol Sala</h2>
-              <p className="text-muted-foreground text-sm md:text-lg leading-relaxed max-w-[280px]">
+              <h2 className="text-xl md:text-3xl font-bold font-headline mb-1 md:mb-2 uppercase tracking-tighter">Fútbol Sala</h2>
+              <p className="text-muted-foreground text-xs md:text-sm leading-tight max-w-[240px]">
                 La élite del 40x20. Perfiles y scouting futsal.
               </p>
             </div>
