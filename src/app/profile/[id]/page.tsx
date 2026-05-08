@@ -1,7 +1,7 @@
 
 "use client";
 
-import { use, useState } from 'react';
+import { use, useState, useMemo } from 'react';
 import { 
   ArrowLeft, 
   MapPin, 
@@ -18,7 +18,10 @@ import {
   Ruler, 
   Weight as WeightIcon, 
   Footprints,
-  Map
+  Map,
+  BarChart3,
+  TrendingUp,
+  Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +46,27 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
   const { data: profileData, isLoading: isProfileLoading } = useDoc(profileDocRef);
 
   const isLoading = isUserLoading || isProfileLoading;
+
+  const isCoach = userData?.role === 'Coach';
+  const isVerified = userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro';
+
+  // Cálculo de totales de carrera
+  const careerTotals = useMemo(() => {
+    if (!profileData?.teamHistory) return null;
+    return profileData.teamHistory.reduce((acc: any, curr: any) => {
+      if (isCoach) {
+        acc.wins += (Number(curr.wins) || 0);
+        acc.draws += (Number(curr.draws) || 0);
+        acc.losses += (Number(curr.losses) || 0);
+        acc.matches += (Number(curr.wins) || 0) + (Number(curr.draws) || 0) + (Number(curr.losses) || 0);
+      } else {
+        acc.matches += (Number(curr.matches) || 0);
+        acc.goals += (Number(curr.goals) || 0);
+        acc.assists += (Number(curr.assists) || 0);
+      }
+      return acc;
+    }, isCoach ? { wins: 0, draws: 0, losses: 0, matches: 0 } : { matches: 0, goals: 0, assists: 0 });
+  }, [profileData?.teamHistory, isCoach]);
 
   if (isLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Sincronizando Terminal...</div>;
 
@@ -74,8 +98,6 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
     (profileData?.videoUrls?.some((u: string) => !!u)) || 
     (profileData?.socialVideoUrls?.some((u: string) => !!u)) || 
     (profileData?.bookImageUrls?.some((u: string) => !!u));
-
-  const isCoach = userData.role === 'Coach';
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">
@@ -176,7 +198,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
               {isCoach ? 'Títulos' : 'Técnica'}
             </TabsTrigger>
             <TabsTrigger value="history" className="rounded-xl md:rounded-2xl font-black text-[7px] md:text-[10px] uppercase tracking-wider md:tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Historial</TabsTrigger>
-            <TabsTrigger value="ai" className="rounded-xl md:rounded-2xl font-black text-[7px] md:text-[10px] uppercase tracking-wider md:tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">IA Analytics</TabsTrigger>
+            <TabsTrigger value="ai" className="rounded-xl md:rounded-2xl font-black text-[7px] md:text-[10px] uppercase tracking-wider md:tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Análisis SportMatch</TabsTrigger>
           </TabsList>
           
           <TabsContent value="stats" className="mt-6 md:mt-8 space-y-6 md:space-y-8">
@@ -250,22 +272,100 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             )}
           </TabsContent>
 
-          <TabsContent value="ai" className="mt-6 md:mt-8">
-            <div className="p-8 md:p-12 rounded-[2rem] md:rounded-[3rem] bg-primary text-primary-foreground shadow-[0_0_60px_rgba(234,179,8,0.3)] relative overflow-hidden">
-              <Zap className="absolute -top-6 md:-top-10 -right-6 md:-right-10 w-32 md:w-40 h-32 md:h-40 opacity-10 rotate-12" />
-              <div className="relative z-10 space-y-4 md:space-y-6">
-                <div className="flex items-center gap-2 md:gap-3">
-                  <Award className="w-6 h-6 md:w-8 md:h-8 fill-primary-foreground" />
-                  <h3 className="text-xl md:text-3xl font-black uppercase italic tracking-tighter">Análisis IA SportMatch</h3>
-                </div>
-                <p className="font-bold text-lg md:text-3xl italic leading-tight tracking-tight">
-                  "{profileData?.summary || "Perfil en fase de análisis avanzado. El sistema está evaluando las métricas de rendimiento."}"
-                </p>
-                <div className="flex flex-wrap gap-2 md:gap-3">
-                  <Badge variant="outline" className="bg-black/20 text-primary-foreground border-black/30 font-black text-[7px] md:text-[10px]">TENDENCIA POSITIVA</Badge>
-                  <Badge variant="outline" className="bg-black/20 text-primary-foreground border-black/30 font-black text-[7px] md:text-[10px]">ALTA VISIBILIDAD</Badge>
-                </div>
-              </div>
+          <TabsContent value="ai" className="mt-6 md:mt-8 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Tarjeta 1: Análisis de Métricas Totales */}
+              <Card className="card-elite rounded-[2rem] md:rounded-[2.5rem] bg-[#111827]/60 border-white/5 overflow-hidden">
+                <CardContent className="p-8 md:p-10 space-y-6">
+                  <div className="flex items-center gap-3 text-primary">
+                    <BarChart3 className="w-5 h-5 md:w-6 md:h-6" />
+                    <h3 className="font-black text-[10px] md:text-xs uppercase tracking-widest">Impacto Total de Carrera</h3>
+                  </div>
+                  
+                  {careerTotals ? (
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-1">
+                        <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Partidos Totales</p>
+                        <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-white">{careerTotals.matches}</p>
+                      </div>
+                      {isCoach ? (
+                        <>
+                          <div className="space-y-1">
+                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Victorias (PG)</p>
+                            <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-green-400">{careerTotals.wins}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Empates (PE)</p>
+                            <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-yellow-400">{careerTotals.draws}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Derrotas (PP)</p>
+                            <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-red-400">{careerTotals.losses}</p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="space-y-1">
+                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Goles Totales</p>
+                            <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-primary">{careerTotals.goals}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Asistencias</p>
+                            <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-blue-400">{careerTotals.assists}</p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Ratio Gol/PJ</p>
+                            <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-white">
+                              {careerTotals.matches > 0 ? (careerTotals.goals / careerTotals.matches).toFixed(2) : '0.00'}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-xs italic">No hay suficientes datos para procesar métricas globales.</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Tarjeta 2: Análisis IA SportMatch (Solo Verificado/Pro) */}
+              <Card className={cn(
+                "rounded-[2rem] md:rounded-[2.5rem] relative overflow-hidden flex flex-col justify-center",
+                isVerified 
+                  ? "bg-primary text-primary-foreground shadow-[0_0_60px_rgba(234,179,8,0.3)] border-none" 
+                  : "bg-[#111827]/40 border-white/5 border border-dashed"
+              )}>
+                {isVerified && <Zap className="absolute -top-6 md:-top-10 -right-6 md:-right-10 w-32 md:w-40 h-32 md:h-40 opacity-10 rotate-12" />}
+                <CardContent className="p-8 md:p-10 space-y-4 md:space-y-6 relative z-10">
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <Award className={cn("w-6 h-6 md:w-8 md:h-8", isVerified ? "fill-primary-foreground" : "text-muted-foreground")} />
+                    <h3 className={cn("text-xl md:text-2xl font-black uppercase italic tracking-tighter", isVerified ? "text-primary-foreground" : "text-muted-foreground")}>
+                      Resumen SportMatch IA
+                    </h3>
+                  </div>
+
+                  {isVerified ? (
+                    <>
+                      <p className="font-bold text-lg md:text-2xl italic leading-tight tracking-tight">
+                        "{profileData?.summary || "Perfil en fase de análisis avanzado. El sistema está evaluando las métricas de rendimiento."}"
+                      </p>
+                      <div className="flex flex-wrap gap-2 md:gap-3 pt-2">
+                        <Badge variant="outline" className="bg-black/20 text-primary-foreground border-black/30 font-black text-[7px] md:text-[10px]">TENDENCIA POSITIVA</Badge>
+                        <Badge variant="outline" className="bg-black/20 text-primary-foreground border-black/30 font-black text-[7px] md:text-[10px]">ALTA VISIBILIDAD</Badge>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-4">
+                      <p className="text-muted-foreground text-sm font-medium leading-relaxed">
+                        El análisis de rendimiento mediante IA requiere una cuenta **Elite Verificado** o **Pro**. Activa tu verificación para desbloquear la síntesis táctica avanzada.
+                      </p>
+                      <Button asChild variant="outline" className="h-12 border-primary/40 text-primary hover:bg-primary/10 rounded-xl font-black uppercase text-[10px] tracking-widest w-full">
+                        <Link href="/pricing">MEJORAR CUENTA</Link>
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>
