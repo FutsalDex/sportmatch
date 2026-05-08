@@ -91,21 +91,23 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Offer",
       "type": "object",
-      "description": "A recruitment offer sent from a Club to a Player or Coach.",
+      "description": "A recruitment offer or public job vacancy from a Club.",
       "properties": {
         "id": { "type": "string" },
         "clubId": { "type": "string" },
         "clubName": { "type": "string" },
-        "targetUserId": { "type": "string" },
+        "targetUserId": { "type": "string", "description": "Optional: targeted user for direct offers." },
         "position": { "type": "string" },
         "salaryRange": { "type": "string" },
         "duration": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "accepted", "rejected", "withdrawn"] },
+        "status": { "type": "string", "enum": ["active", "pending", "accepted", "rejected", "withdrawn"] },
         "description": { "type": "string" },
         "requirements": { "type": "string" },
+        "role": { "type": "string", "description": "Target role for the offer (e.g. Player, Coach)." },
+        "location": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "clubId", "targetUserId", "status"]
+      "required": ["id", "clubId", "status", "position"]
     },
     "Match": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -211,7 +213,7 @@
         "definition": {
           "entityName": "Offer",
           "schema": { "$ref": "#/backend/entities/Offer" },
-          "description": "Direct recruitment offers."
+          "description": "Public job vacancies or direct recruitment offers."
         }
       },
       {

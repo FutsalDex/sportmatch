@@ -27,9 +27,12 @@ service cloud.firestore {
     }
 
     match /offers/{offerId} {
-      allow read: if isSignedIn() && (isOwner(resource.data.clubId) || isOwner(resource.data.targetUserId));
-      allow create: if isSignedIn(); // We should ideally check if they are a Club role, but simple check for now
-      allow update, delete: if isAdmin() || (isSignedIn() && isOwner(resource.data.clubId));
+      // Permitir lectura a cualquier usuario registrado para el Tablero de Ofertas
+      allow read: if isSignedIn();
+      // Permitir creación si está identificado
+      allow create: if isSignedIn();
+      // Solo el club emisor o el admin pueden editar/borrar
+      allow update, delete: if isAdmin() || (isSignedIn() && resource != null && isOwner(resource.data.clubId));
     }
 
     match /privateProfiles/{userId} {
