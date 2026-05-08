@@ -35,6 +35,10 @@
           "type": "number",
           "description": "Relevance score for rankings."
         },
+        "views": {
+          "type": "number",
+          "description": "Total profile views."
+        },
         "province": {
           "type": "string",
           "description": "The geographic province from the official resources list."
@@ -88,16 +92,24 @@
         "verificationStatus"
       ]
     },
-    "Province": {
+    "Match": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Province",
+      "title": "Match",
       "type": "object",
-      "description": "Official province entry for location normalization.",
+      "description": "Represents a connection between two users.",
       "properties": {
         "id": { "type": "string" },
-        "name": { "type": "string" }
+        "members": { 
+          "type": "object",
+          "description": "Map of user IDs involved in the match."
+        },
+        "status": { 
+          "type": "string", 
+          "enum": ["pending", "accepted", "rejected"] 
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "name"]
+      "required": ["id", "members", "status"]
     },
     "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -161,6 +173,14 @@
           "entityName": "UserProfile",
           "schema": { "$ref": "#/backend/entities/UserProfile" },
           "description": "Rich public profile content."
+        }
+      },
+      {
+        "path": "/matches/{matchId}",
+        "definition": {
+          "entityName": "Match",
+          "schema": { "$ref": "#/backend/entities/Match" },
+          "description": "Connections between users."
         }
       }
     ]

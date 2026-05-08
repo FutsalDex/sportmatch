@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { TopNav } from '@/components/navigation/top-nav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,9 +16,9 @@ import {
   LayoutDashboard,
   ArrowUpRight
 } from 'lucide-react';
-import { doc } from 'firebase/firestore';
+import { doc, collection, query, where } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -29,11 +29,22 @@ export default function DashboardPage() {
     return user ? doc(db, 'users', user.uid) : null;
   }, [db, user?.uid]);
 
-  const { data: userData, isLoading } = useDoc(userDocRef);
+  const { data: userData, isLoading: isUserLoading } = useDoc(userDocRef);
 
-  if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-primary font-bold animate-pulse uppercase tracking-[0.3em] text-xs p-10 text-center">Cargando Terminal de Inteligencia...</div>;
+  // Consulta de Matches Reales
+  const matchesQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(db, 'matches'), where(`members.${user.uid}`, '==', true));
+  }, [db, user?.uid]);
+
+  const { data: matchesData, isLoading: isMatchesLoading } = useCollection(matchesQuery);
+
+  if (isUserLoading || isMatchesLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-primary font-bold animate-pulse uppercase tracking-[0.3em] text-xs p-10 text-center">Cargando Terminal de Inteligencia...</div>;
 
   const planLabel = userData?.plan === 'pro' ? 'Elite Pro' : userData?.plan === 'verified' ? 'Elite Verificado' : 'Elite Free';
+  
+  const activeMatches = matchesData?.filter(m => m.status === 'accepted') || [];
+  const pendingMatches = matchesData?.filter(m => m.status === 'pending') || [];
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
@@ -84,11 +95,11 @@ export default function DashboardPage() {
                 <Eye className="w-5 h-5 md:w-6 md:h-6 text-blue-400" />
               </div>
               <div className="space-y-1">
-                <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">1,284</p>
+                <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">{userData?.views || 0}</p>
                 <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Vistas de Perfil</p>
               </div>
               <p className="text-[9px] md:text-[10px] text-green-400 font-bold flex items-center">
-                <TrendingUp className="w-3 h-3 mr-1" /> +12% esta semana
+                <TrendingUp className="w-3 h-3 mr-1" /> Análisis Activo
               </p>
             </CardContent>
           </Card>
@@ -99,10 +110,10 @@ export default function DashboardPage() {
                 <Users className="w-5 h-5 md:w-6 md:h-6 text-purple-400" />
               </div>
               <div className="space-y-1">
-                <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">12</p>
+                <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">{activeMatches.length}</p>
                 <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Matches Activos</p>
               </div>
-              <p className="text-[9px] md:text-[10px] text-muted-foreground font-bold">3 pendientes de revisión</p>
+              <p className="text-[9px] md:text-[10px] text-muted-foreground font-bold">{pendingMatches.length} pendientes de revisión</p>
             </CardContent>
           </Card>
 
@@ -116,7 +127,7 @@ export default function DashboardPage() {
                 href="/pricing" 
                 className="w-full h-10 md:h-12 bg-primary text-background font-black uppercase text-[9px] md:text-[10px] tracking-widest rounded-xl md:rounded-2xl hover:bg-primary/90 flex items-center justify-center"
               >
-                Mejorar Ahora <ArrowUpRight className="ml-2 w-4 h-4" />
+                MEJORAR AHORA <ArrowUpRight className="ml-2 w-4 h-4" />
               </Link>
             </CardContent>
           </Card>
@@ -135,52 +146,61 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between px-2">
-                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">Interesados (2)</span>
+                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">Interesados ({activeMatches.length})</span>
                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
               </div>
               <div className="space-y-3">
-                {[
-                  { name: 'Leganés C.F.', role: 'Club', score: 72 },
-                  { name: 'Agente FIFA J.M.', role: 'Scout', score: 88 }
-                ].map((item, i) => (
-                  <Link key={i} href="/search">
-                    <Card className="bg-[#111827] border-white/5 rounded-2xl md:rounded-3xl hover:border-primary/20 transition-all cursor-pointer mb-3">
+                {activeMatches.length === 0 ? (
+                  <div className="h-20 border border-dashed border-white/5 rounded-2xl flex items-center justify-center opacity-30">
+                    <p className="text-[8px] font-bold uppercase tracking-widest">Sin contactos</p>
+                  </div>
+                ) : (
+                  activeMatches.slice(0, 3).map((match, i) => (
+                    <Card key={i} className="bg-[#111827] border-white/5 rounded-2xl md:rounded-3xl hover:border-primary/20 transition-all cursor-pointer">
                       <CardContent className="p-3 md:p-4 flex items-center gap-3 md:gap-4">
                         <Avatar className="w-10 h-10 rounded-xl">
-                          <AvatarFallback className="text-xs">{item.name[0]}</AvatarFallback>
+                          <AvatarFallback className="text-xs">ID</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-xs md:text-sm truncate">{item.name}</p>
-                          <p className="text-[8px] md:text-[10px] text-muted-foreground font-medium">{item.role}</p>
+                          <p className="font-bold text-xs md:text-sm truncate">Match #{match.id.substring(0,4)}</p>
+                          <p className="text-[8px] md:text-[10px] text-muted-foreground font-medium">Conexión Activa</p>
                         </div>
-                        <Badge variant="outline" className="border-primary/20 text-primary text-[7px] md:text-[8px] font-black">{item.score}</Badge>
+                        <Badge variant="outline" className="border-primary/20 text-primary text-[7px] md:text-[8px] font-black">OK</Badge>
                       </CardContent>
                     </Card>
-                  </Link>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between px-2">
-                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">En Revisión (1)</span>
+                <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground">En Revisión ({pendingMatches.length})</span>
                 <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
               </div>
               <div className="space-y-3">
-                <Card className="bg-[#111827] border-white/5 rounded-2xl md:rounded-3xl border-l-2 border-l-yellow-500">
-                  <CardContent className="p-3 md:p-4 flex items-center gap-3 md:gap-4">
-                    <Avatar className="w-10 h-10 rounded-xl">
-                      <AvatarFallback className="text-xs">RM</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-xs md:text-sm truncate">Rayo Majadahonda</p>
-                      <p className="text-[8px] md:text-[10px] text-muted-foreground font-medium">Club • Análisis IA</p>
-                    </div>
-                    <div className="bg-yellow-500/10 p-1.5 rounded-lg">
-                      <Zap className="w-3 h-3 text-yellow-500" />
-                    </div>
-                  </CardContent>
-                </Card>
+                {pendingMatches.length === 0 ? (
+                   <div className="h-20 border border-dashed border-white/5 rounded-2xl flex items-center justify-center opacity-30">
+                    <p className="text-[8px] font-bold uppercase tracking-widest">Sin revisiones</p>
+                  </div>
+                ) : (
+                  pendingMatches.slice(0, 3).map((match, i) => (
+                    <Card key={i} className="bg-[#111827] border-white/5 rounded-2xl md:rounded-3xl border-l-2 border-l-yellow-500">
+                      <CardContent className="p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                        <Avatar className="w-10 h-10 rounded-xl">
+                          <AvatarFallback className="text-xs">RE</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-xs md:text-sm truncate">Pendiente #{match.id.substring(0,4)}</p>
+                          <p className="text-[8px] md:text-[10px] text-muted-foreground font-medium">Análisis IA</p>
+                        </div>
+                        <div className="bg-yellow-500/10 p-1.5 rounded-lg">
+                          <Zap className="w-3 h-3 text-yellow-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </div>
 
@@ -203,11 +223,13 @@ export default function DashboardPage() {
           <div className="space-y-2 md:space-y-4 flex-1 text-center md:text-left">
             <h2 className="text-xl md:text-3xl font-bold font-headline tracking-tighter uppercase italic">Predicción IA de Mercado</h2>
             <p className="font-bold text-sm md:text-lg leading-tight text-background">
-              "Tu Score ha subido puntos tras actualizar tu biografía. El 80% de los clubes buscan perfiles con tu versatilidad táctica."
+              {userData?.score && userData.score > 70 
+                ? "Tu perfil tiene un alto impacto. Los clubes buscan perfiles con tu versatilidad técnica ahora mismo." 
+                : "Optimiza tu biografía y sube fotos de calidad para aumentar tu Score y visibilidad en la red."}
             </p>
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
-              <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[8px] md:text-[10px]">TENDENCIA ASCENDENTE</Badge>
-              <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[8px] md:text-[10px]">ALTA VISIBILIDAD</Badge>
+              <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[8px] md:text-[10px]">TENDENCIA REAL</Badge>
+              <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[8px] md:text-[10px]">DATOS ACTIVOS</Badge>
             </div>
           </div>
           <Link 
