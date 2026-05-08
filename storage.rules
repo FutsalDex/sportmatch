@@ -3,14 +3,16 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
+    // Acceso público de solo lectura para recursos corporativos
+    match /RECURSOS/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Acceso restringido para usuarios (solo dueño puede escribir)
     match /USUARIOS/{userId}/{allPaths=**} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    match /RECURSOS/{allPaths=**} {
-      allow read: if true;
-      allow write: if false; // Solo lectura pública para recursos corporativos
     }
 
     match /{allPaths=**} {
