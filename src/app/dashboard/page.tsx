@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
@@ -30,7 +29,8 @@ import {
   Send,
   Plus,
   AlertCircle,
-  Loader2
+  Loader2,
+  Target
 } from 'lucide-react';
 import { doc, collection, query, where } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
