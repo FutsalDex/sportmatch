@@ -785,7 +785,7 @@ export default function MyProfilePage() {
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Club</Label>
-                        <Input placeholder="Real Madrid" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason, club: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
+                        <Input placeholder="Real Madrid" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Posición</Label>
