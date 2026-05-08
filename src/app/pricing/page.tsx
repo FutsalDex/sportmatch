@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -257,14 +256,14 @@ export default function PricingPage() {
         </header>
 
         <div className={cn(
-          "flex overflow-x-auto no-scrollbar snap-x-mandatory px-4 pb-8",
-          activeRole === 'Club' ? "justify-center gap-6" : "lg:grid lg:grid-cols-4 gap-4 md:gap-6 items-stretch pt-4"
+          "flex overflow-x-auto no-scrollbar snap-x-mandatory px-4 pb-12 pt-16",
+          activeRole === 'Club' ? "justify-center gap-6" : "lg:grid lg:grid-cols-4 gap-4 md:gap-6 items-stretch"
         )}>
           {currentPlans.map((plan, i) => (
             <Card 
               key={i} 
               className={cn(
-                "min-w-[85vw] lg:min-w-0 card-elite rounded-[2rem] md:rounded-[2.5rem] border-white/5 flex flex-col transition-all duration-500 relative overflow-hidden snap-center",
+                "min-w-[85vw] lg:min-w-0 card-elite rounded-[2rem] md:rounded-[2.5rem] border-white/5 flex flex-col transition-all duration-500 relative overflow-visible snap-center",
                 (activeRole === 'Club') && "lg:min-w-[400px]",
                 plan.highlight && "border-primary/40 shadow-[0_0_60px_rgba(234,179,8,0.15)] lg:scale-105 z-10",
                 (plan as any).dark && "bg-[#090e1a] border-primary/20",
@@ -272,15 +271,15 @@ export default function PricingPage() {
               )}
             >
               {plan.highlight && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-primary text-background px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest z-20">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-background px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest z-30 shadow-xl border-2 border-[#030712]">
                   MÁS POPULAR
                 </div>
               )}
               {plan.highlight && (
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent rounded-t-full" />
               )}
               {(plan as any).gold && (
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent" />
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent rounded-t-full" />
               )}
               
               <CardHeader className="p-6 md:p-8 pb-4 md:pb-6 text-center space-y-3 md:space-y-4 relative z-10">

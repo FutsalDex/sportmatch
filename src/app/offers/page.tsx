@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -42,7 +41,7 @@ export default function OffersPage() {
     // para evitar errores de permisos "Missing or insufficient permissions" al inicio.
     if (!user) return null;
     return query(collection(db, 'offers'), orderBy('createdAt', 'desc'));
-  }, [db, user]);
+  }, [db, user?.uid]);
 
   const { data: offers, isLoading } = useCollection(offersQuery);
 
