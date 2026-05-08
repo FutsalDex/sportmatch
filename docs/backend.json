@@ -61,7 +61,7 @@
         },
         "plan": {
           "type": "string",
-          "enum": ["free", "verified", "pro"],
+          "enum": ["free", "verified", "pro", "top"],
           "description": "The subscription plan of the user."
         },
         "age": {
@@ -152,7 +152,20 @@
         "certifications": { "type": "array", "items": { "type": "string" } },
         "stadium": { "type": "string" },
         "foundationYear": { "type": "string" },
-        "facilities": { "type": "string" }
+        "facilities": { "type": "string" },
+        "tacticalSystem": { "type": "string" },
+        "philosophy": { "type": "array", "items": { "type": "string" } },
+        "averageAge": { "type": "number" },
+        "academyUsage": { "type": "number" },
+        "salaryRange": { "type": "string" },
+        "contractPrefs": { "type": "array", "items": { "type": "string" } },
+        "foreignerSpots": { "type": "string" },
+        "preferredMarkets": { "type": "array", "items": { "type": "string" } },
+        "scoutingResponsible": { "type": "string" },
+        "contactChannel": { "type": "string" },
+        "urgencyLevel": { "type": "string" },
+        "requiredLanguages": { "type": "array", "items": { "type": "string" } },
+        "psychologicalProfile": { "type": "array", "items": { "type": "string" } }
       },
       "required": ["id", "userId", "bio"]
     }

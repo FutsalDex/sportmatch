@@ -26,7 +26,14 @@ import {
   User as UserIcon,
   ChevronLeft,
   Bot,
-  Building2
+  Building2,
+  Target,
+  Users,
+  Wallet,
+  MessagesSquare,
+  Globe2,
+  BrainCircuit,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -105,6 +112,21 @@ export default function MyProfilePage() {
     stadium: '',
     foundationYear: '',
     facilities: '',
+    // Nuevos campos Club
+    tacticalSystem: '',
+    philosophy: '',
+    averageAge: '',
+    academyUsage: '',
+    salaryRange: '',
+    contractPrefs: '',
+    foreignerSpots: 'No',
+    preferredMarkets: '',
+    scoutingResponsible: '',
+    contactChannel: '',
+    urgencyLevel: 'Seguimiento',
+    requiredLanguages: '',
+    psychologicalProfile: '',
+    
     instagram: '',
     tiktok: '',
     twitter: '',
@@ -158,6 +180,19 @@ export default function MyProfilePage() {
         stadium: profileData.stadium || '',
         foundationYear: profileData.foundationYear || '',
         facilities: profileData.facilities || '',
+        tacticalSystem: profileData.tacticalSystem || '',
+        philosophy: profileData.philosophy?.join(', ') || '',
+        averageAge: profileData.averageAge?.toString() || '',
+        academyUsage: profileData.academyUsage?.toString() || '',
+        salaryRange: profileData.salaryRange || '',
+        contractPrefs: profileData.contractPrefs?.join(', ') || '',
+        foreignerSpots: profileData.foreignerSpots || 'No',
+        preferredMarkets: profileData.preferredMarkets?.join(', ') || '',
+        scoutingResponsible: profileData.scoutingResponsible || '',
+        contactChannel: profileData.contactChannel || '',
+        urgencyLevel: profileData.urgencyLevel || 'Seguimiento',
+        requiredLanguages: profileData.requiredLanguages?.join(', ') || '',
+        psychologicalProfile: profileData.psychologicalProfile?.join(', ') || '',
         bookImageUrls: profileData.bookImageUrls?.length ? [...profileData.bookImageUrls, '', '', ''].slice(0, 3) : ['', '', ''],
         videoUrls: profileData.videoUrls?.length ? [...profileData.videoUrls, '', ''].slice(0, 2) : ['', ''],
         socialVideoUrls: profileData.socialVideoUrls?.length ? [...profileData.socialVideoUrls, '', ''].slice(0, 2) : ['', ''],
@@ -172,7 +207,7 @@ export default function MyProfilePage() {
     }
   }, [user, isAuthLoading, router]);
 
-  const isElite = isAdmin || userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro';
+  const isElite = isAdmin || userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro' || userData?.plan === 'top';
   const isTargetCoach = userData?.role === 'Coach';
   const isTargetClub = userData?.role === 'Club';
 
@@ -188,9 +223,10 @@ export default function MyProfilePage() {
 
     let moduleScore = 0;
     if (isTargetClub) {
-      if (formData.stadium) moduleScore += 3;
-      if (formData.foundationYear) moduleScore += 3;
-      if (formData.position) moduleScore += 4;
+      if (formData.stadium) moduleScore += 2;
+      if (formData.tacticalSystem) moduleScore += 3;
+      if (formData.philosophy) moduleScore += 3;
+      if (formData.scoutingResponsible) moduleScore += 2;
     } else if (isTargetCoach) {
       formData.certifications.forEach(c => { if (c) moduleScore += 3.4; });
     } else {
@@ -211,7 +247,8 @@ export default function MyProfilePage() {
 
     if (formData.bio && formData.bio.length > 20) score += 5;
     if (formData.teamHistory.length > 0) score += 10;
-    if (userData?.plan === 'pro') score += 20;
+    if (userData?.plan === 'top') score += 30;
+    else if (userData?.plan === 'pro') score += 20;
     else if (userData?.plan === 'verified' || userData?.verificationStatus === 'verified') score += 10;
 
     return Math.min(Math.round(score), 100);
@@ -251,6 +288,19 @@ export default function MyProfilePage() {
       stadium: formData.stadium,
       foundationYear: formData.foundationYear,
       facilities: formData.facilities,
+      tacticalSystem: formData.tacticalSystem,
+      philosophy: formData.philosophy.split(',').map(s => s.trim()).filter(s => !!s),
+      averageAge: parseFloat(formData.averageAge) || 0,
+      academyUsage: parseFloat(formData.academyUsage) || 0,
+      salaryRange: formData.salaryRange,
+      contractPrefs: formData.contractPrefs.split(',').map(s => s.trim()).filter(s => !!s),
+      foreignerSpots: formData.foreignerSpots,
+      preferredMarkets: formData.preferredMarkets.split(',').map(s => s.trim()).filter(s => !!s),
+      scoutingResponsible: formData.scoutingResponsible,
+      contactChannel: formData.contactChannel,
+      urgencyLevel: formData.urgencyLevel,
+      requiredLanguages: formData.requiredLanguages.split(',').map(s => s.trim()).filter(s => !!s),
+      psychologicalProfile: formData.psychologicalProfile.split(',').map(s => s.trim()).filter(s => !!s),
       bookImageUrls: formData.bookImageUrls.filter(u => !!u),
       videoUrls: formData.videoUrls.filter(v => !!v),
       socialVideoUrls: formData.socialVideoUrls.filter(v => !!v),
@@ -371,6 +421,107 @@ export default function MyProfilePage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* ADN DEPORTIVO (SOLO CLUB) */}
+          {isTargetClub && (
+            <Card className="card-elite rounded-[2.5rem]">
+              <CardContent className="p-10 space-y-8">
+                <div className="flex items-center space-x-3 text-primary">
+                  <Target className="w-6 h-6" />
+                  <h2 className="text-2xl font-bold font-headline uppercase italic">ADN Deportivo</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Sistema Preferido</Label>
+                    <Input value={formData.tacticalSystem} onChange={e => setFormData({...formData, tacticalSystem: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Ej: 1-4-3-3" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Edad Media Plantilla</Label>
+                    <Input type="number" step="0.1" value={formData.averageAge} onChange={e => setFormData({...formData, averageAge: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">% Uso Cantera</Label>
+                    <Input type="number" value={formData.academyUsage} onChange={e => setFormData({...formData, academyUsage: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="0-100" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Urgencia Mercado</Label>
+                    <Select value={formData.urgencyLevel} onValueChange={v => setFormData({...formData, urgencyLevel: v})}>
+                      <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-[#111827] border-white/10 text-white">
+                        <SelectItem value="Inmediata">Inmediata</SelectItem>
+                        <SelectItem value="Próximo mercado">Próximo mercado</SelectItem>
+                        <SelectItem value="Seguimiento">Seguimiento</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Filosofía de Juego (Separa con comas)</Label>
+                    <Input value={formData.philosophy} onChange={e => setFormData({...formData, philosophy: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Posesión, Presión alta..." />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Perfil Psicológico Buscado</Label>
+                    <Input value={formData.psychologicalProfile} onChange={e => setFormData({...formData, psychologicalProfile: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Liderazgo, Sacrificio..." />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* PARÁMETROS DE FICHAJE (SOLO CLUB) */}
+          {isTargetClub && (
+            <Card className="card-elite rounded-[2.5rem]">
+              <CardContent className="p-10 space-y-8">
+                <div className="flex items-center space-x-3 text-primary">
+                  <Wallet className="w-6 h-6" />
+                  <h2 className="text-2xl font-bold font-headline uppercase italic">Parámetros de Fichaje</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Rango Salarial Máx.</Label>
+                    <Input value={formData.salaryRange} onChange={e => setFormData({...formData, salaryRange: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Ej: 20k - 40k €" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Cupos Extranjeros</Label>
+                    <Input value={formData.foreignerSpots} onChange={e => setFormData({...formData, foreignerSpots: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Disponibilidad..." />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Preferencia Contractual</Label>
+                    <Input value={formData.contractPrefs} onChange={e => setFormData({...formData, contractPrefs: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Libres, Cesiones..." />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Mercados de Preferencia</Label>
+                    <Input value={formData.preferredMarkets} onChange={e => setFormData({...formData, preferredMarkets: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="España, Portugal, Ligas LATAM..." />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Idiomas Requeridos</Label>
+                    <Input value={formData.requiredLanguages} onChange={e => setFormData({...formData, requiredLanguages: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Español, Inglés..." />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* GESTIÓN Y CONTACTO (SOLO CLUB) */}
+          {isTargetClub && (
+            <Card className="card-elite rounded-[2.5rem]">
+              <CardContent className="p-10 space-y-8">
+                <div className="flex items-center space-x-3 text-primary">
+                  <MessagesSquare className="w-6 h-6" />
+                  <h2 className="text-2xl font-bold font-headline uppercase italic">Gestión y Contacto</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Responsable Scouting / Dir. Deportivo</Label>
+                    <Input value={formData.scoutingResponsible} onChange={e => setFormData({...formData, scoutingResponsible: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Nombre y Cargo" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Canal de Comunicación Oficial</Label>
+                    <Input value={formData.contactChannel} onChange={e => setFormData({...formData, contactChannel: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Email corporativo o Web" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* PROTOCOLO / BIO */}
           <Card className={cn("rounded-[2.5rem]", isAdmin ? "bg-[#1a0a0a] border-red-500/10" : "card-elite")}>
@@ -662,3 +813,4 @@ export default function MyProfilePage() {
     </div>
   );
 }
+
