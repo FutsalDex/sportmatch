@@ -43,7 +43,7 @@ export default function DashboardPage() {
             <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 px-4 py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">
               Centro de Mando Activo
             </Badge>
-            <h1 className="text-2xl md:text-5xl font-bold font-headline tracking-tighter">Hola, {userData?.name?.split(' ')[0] || 'Scout'}</h1>
+            <h1 className="text-2xl md:text-4xl font-bold font-headline tracking-tighter">Hola, {userData?.name?.split(' ')[0] || 'Scout'}</h1>
             <p className="text-[10px] md:text-base text-muted-foreground font-medium">Gestiona tu carrera y analiza tu impacto.</p>
           </div>
           <div className="flex gap-4">
@@ -111,8 +111,10 @@ export default function DashboardPage() {
                 <p className="font-bold text-base md:text-lg font-headline">Hazte Pro</p>
                 <p className="text-[10px] md:text-xs text-muted-foreground font-medium">Análisis avanzado e insignias élite.</p>
               </div>
-              <Button className="w-full h-10 md:h-12 bg-primary text-background font-black uppercase text-[9px] md:text-[10px] tracking-widest rounded-xl md:rounded-2xl hover:bg-primary/90">
-                Mejorar Ahora <ArrowUpRight className="ml-2 w-4 h-4" />
+              <Button asChild className="w-full h-10 md:h-12 bg-primary text-background font-black uppercase text-[9px] md:text-[10px] tracking-widest rounded-xl md:rounded-2xl hover:bg-primary/90">
+                <Link href="/pricing" className="flex items-center justify-center">
+                  Mejorar Ahora <ArrowUpRight className="ml-2 w-4 h-4" />
+                </Link>
               </Button>
             </CardContent>
           </Card>
@@ -204,7 +206,7 @@ export default function DashboardPage() {
               <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[8px] md:text-[10px]">ALTA VISIBILIDAD</Badge>
             </div>
           </div>
-          <Button variant="outline" className="w-full md:w-auto h-12 md:h-16 rounded-2xl md:rounded-3xl border-background text-background hover:bg-background hover:text-primary font-black px-8 text-[10px] md:text-sm">
+          <Button variant="outline" className="w-full md:w-auto h-12 md:h-16 rounded-2xl md:rounded-3xl border-background bg-background text-white hover:bg-background/90 hover:text-primary font-black px-8 text-[10px] md:text-sm">
             VER ANÁLISIS DETALLADO
           </Button>
         </section>
