@@ -28,7 +28,8 @@ import {
   Trophy,
   Briefcase,
   Send,
-  Plus
+  Plus,
+  AlertCircle
 } from 'lucide-react';
 import { doc, collection, query, where, orderBy } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
@@ -67,6 +68,10 @@ export default function DashboardPage() {
   const isClub = userData?.role === 'Club';
   const planLabel = isAdmin ? 'Super Administrador' : (userData?.plan === 'pro' ? 'Elite Pro' : userData?.plan === 'top' ? 'Elite Top' : (userData?.plan === 'verified' ? 'Elite Verificado' : 'Elite Free'));
 
+  const offersCount = myOffers?.length || 0;
+  const isFreeClub = isClub && (!userData?.plan || userData?.plan === 'free');
+  const isOfferLimitReached = isFreeClub && offersCount >= 3;
+
   return (
     <div className="min-h-screen bg-[#030712] text-white">
       <TopNav />
@@ -87,11 +92,19 @@ export default function DashboardPage() {
               {isAdmin ? 'Supervisión total de la red.' : (isClub ? 'Gestión de reclutamiento institucional.' : 'Gestiona tu carrera deportiva.')}
             </p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             {isClub && (
-              <Button asChild className="h-12 px-6 rounded-2xl bg-primary text-background font-black uppercase text-[10px] tracking-widest shadow-xl">
-                <Link href="/offers/new"><Plus className="w-4 h-4 mr-2" /> PUBLICAR OFERTA</Link>
-              </Button>
+              <>
+                {isOfferLimitReached ? (
+                  <Button asChild variant="outline" className="h-12 px-6 rounded-2xl border-red-500/30 bg-red-500/5 text-red-500 font-black uppercase text-[10px] tracking-widest">
+                    <Link href="/pricing"><AlertCircle className="w-4 h-4 mr-2" /> LÍMITE DE OFERTAS ALCANZADO</Link>
+                  </Button>
+                ) : (
+                  <Button asChild className="h-12 px-6 rounded-2xl bg-primary text-background font-black uppercase text-[10px] tracking-widest shadow-xl">
+                    <Link href="/offers/new"><Plus className="w-4 h-4 mr-2" /> PUBLICAR OFERTA</Link>
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </header>
@@ -103,7 +116,13 @@ export default function DashboardPage() {
               <p className="text-4xl font-black font-headline">{allUsers?.length || 0}</p>
               <p className="text-[10px] font-bold text-muted-foreground uppercase">Total Usuarios</p>
             </Card>
-            {/* Otros contadores admin... */}
+            
+            <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+               <AdminStatMini label="Elite Top" count={allUsers?.filter(u => u.plan === 'top').length || 0} color="text-yellow-500" />
+               <AdminStatMini label="Elite Pro" count={allUsers?.filter(u => u.plan === 'pro').length || 0} color="text-primary" />
+               <AdminStatMini label="Verificados" count={allUsers?.filter(u => u.verificationStatus === 'verified').length || 0} color="text-blue-500" />
+               <AdminStatMini label="Elite Free" count={allUsers?.filter(u => !u.plan || u.plan === 'free').length || 0} color="text-muted-foreground" />
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -121,8 +140,15 @@ export default function DashboardPage() {
 
             {isClub && (
               <Card className="card-elite rounded-[2rem] p-8 space-y-4 col-span-1 md:col-span-2 bg-gradient-to-br from-primary/10 to-transparent">
-                <Briefcase className="w-6 h-6 text-primary" />
-                <p className="text-4xl font-black font-headline">{myOffers?.length || 0}</p>
+                <div className="flex justify-between items-start">
+                  <Briefcase className="w-6 h-6 text-primary" />
+                  {isFreeClub && (
+                    <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-primary/20">
+                      {offersCount}/3 OFERTAS FREE
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-4xl font-black font-headline">{offersCount}</p>
                 <p className="text-[10px] font-bold text-muted-foreground uppercase">Mis Ofertas Activas</p>
               </Card>
             )}
@@ -159,5 +185,14 @@ export default function DashboardPage() {
         )}
       </main>
     </div>
+  );
+}
+
+function AdminStatMini({ label, count, color }: { label: string, count: number, color: string }) {
+  return (
+    <Card className="card-elite rounded-2xl bg-white/[0.02] border-white/5 p-4 flex flex-col justify-center">
+      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
+      <p className={cn("text-xl font-black font-headline", color)}>{count}</p>
+    </Card>
   );
 }
