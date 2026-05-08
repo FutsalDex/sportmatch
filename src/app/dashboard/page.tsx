@@ -5,7 +5,6 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { TopNav } from '@/components/navigation/top-nav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { 
   Zap, 
   TrendingUp, 
@@ -62,7 +61,6 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* METRICS SCROLL ON MOBILE */}
         <div className="flex md:grid md:grid-cols-4 gap-4 overflow-x-auto no-scrollbar snap-x-mandatory pb-4">
           <Card className="min-w-[85vw] md:min-w-0 card-elite rounded-[2rem] md:rounded-[2.5rem] relative overflow-hidden group snap-center">
             <CardContent className="p-6 md:p-8 space-y-4">
@@ -114,11 +112,12 @@ export default function DashboardPage() {
                 <p className="font-bold text-base md:text-lg font-headline">Hazte Pro</p>
                 <p className="text-[10px] md:text-xs text-muted-foreground font-medium">Análisis avanzado e insignias élite.</p>
               </div>
-              <Button asChild className="w-full h-10 md:h-12 bg-primary text-background font-black uppercase text-[9px] md:text-[10px] tracking-widest rounded-xl md:rounded-2xl hover:bg-primary/90">
-                <Link href="/pricing" className="flex items-center justify-center text-white">
-                  Mejorar Ahora <ArrowUpRight className="ml-2 w-4 h-4" />
-                </Link>
-              </Button>
+              <Link 
+                href="/pricing" 
+                className="w-full h-10 md:h-12 bg-primary text-background font-black uppercase text-[9px] md:text-[10px] tracking-widest rounded-xl md:rounded-2xl hover:bg-primary/90 flex items-center justify-center"
+              >
+                Mejorar Ahora <ArrowUpRight className="ml-2 w-4 h-4" />
+              </Link>
             </CardContent>
           </Card>
         </div>
@@ -144,18 +143,20 @@ export default function DashboardPage() {
                   { name: 'Leganés C.F.', role: 'Club', score: 72 },
                   { name: 'Agente FIFA J.M.', role: 'Scout', score: 88 }
                 ].map((item, i) => (
-                  <Card key={i} className="bg-[#111827] border-white/5 rounded-2xl md:rounded-3xl hover:border-primary/20 transition-all cursor-pointer">
-                    <CardContent className="p-3 md:p-4 flex items-center gap-3 md:gap-4">
-                      <Avatar className="w-10 h-10 rounded-xl">
-                        <AvatarFallback className="text-xs">{item.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-xs md:text-sm truncate">{item.name}</p>
-                        <p className="text-[8px] md:text-[10px] text-muted-foreground font-medium">{item.role}</p>
-                      </div>
-                      <Badge variant="outline" className="border-primary/20 text-primary text-[7px] md:text-[8px] font-black">{item.score}</Badge>
-                    </CardContent>
-                  </Card>
+                  <Link key={i} href="/search">
+                    <Card className="bg-[#111827] border-white/5 rounded-2xl md:rounded-3xl hover:border-primary/20 transition-all cursor-pointer mb-3">
+                      <CardContent className="p-3 md:p-4 flex items-center gap-3 md:gap-4">
+                        <Avatar className="w-10 h-10 rounded-xl">
+                          <AvatarFallback className="text-xs">{item.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-xs md:text-sm truncate">{item.name}</p>
+                          <p className="text-[8px] md:text-[10px] text-muted-foreground font-medium">{item.role}</p>
+                        </div>
+                        <Badge variant="outline" className="border-primary/20 text-primary text-[7px] md:text-[8px] font-black">{item.score}</Badge>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -209,9 +210,12 @@ export default function DashboardPage() {
               <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[8px] md:text-[10px]">ALTA VISIBILIDAD</Badge>
             </div>
           </div>
-          <Button variant="outline" asChild className="w-full md:w-auto h-12 md:h-16 rounded-2xl md:rounded-3xl border-background bg-background text-white hover:bg-background/90 hover:text-primary font-black px-8 text-[10px] md:text-sm">
-            <Link href="/profile/me">VER ANÁLISIS DETALLADO</Link>
-          </Button>
+          <Link 
+            href="/profile/me" 
+            className="w-full md:w-auto h-12 md:h-16 rounded-2xl md:rounded-3xl bg-[#030712] text-white hover:bg-black border border-white/10 flex items-center justify-center font-black px-8 text-[10px] md:text-sm uppercase tracking-widest shadow-xl transition-all"
+          >
+            VER ANÁLISIS DETALLADO
+          </Link>
         </section>
       </main>
     </div>
