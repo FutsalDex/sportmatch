@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -23,7 +24,9 @@ import {
   Play,
   Lock,
   Sparkles,
-  GraduationCap
+  GraduationCap,
+  Building2,
+  Briefcase
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -48,11 +51,9 @@ const PLAYER_PLANS = [
     subtitle: "Pago Único",
     badge: "ELITE VERIFICADO ✓",
     features: [
-      { text: "Todo lo del plan Free", included: true, icon: Check },
+      { text: "Lo incluido en el Plan Free", included: true, icon: Check },
       { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Insignia de perfil oficial", included: true, icon: ShieldCheck },
-      { text: "Book Multimedia", included: true, icon: Play },
-      { text: "Biografía optimizada IA", included: true, icon: Star },
     ],
     buttonText: "SOLICITAR VERIFICACIÓN",
     highlight: false
@@ -63,7 +64,7 @@ const PLAYER_PLANS = [
     subtitle: "Scouting Profesional",
     badge: "ELITE PRO ✓",
     features: [
-      { text: "Todo lo del plan Verificado", included: true, icon: Check },
+      { text: "Lo incluido en el Plan Verificado", included: true, icon: Check },
       { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Análisis IA SportMatch", included: true, icon: Award },
       { text: "Informe PDF para clubes", included: true, icon: FileText },
@@ -80,7 +81,7 @@ const PLAYER_PLANS = [
     subtitle: "Máximo Rendimiento",
     badge: "ELITE TOP ✓",
     features: [
-      { text: "Todo lo del plan Pro", included: true, icon: Check },
+      { text: "Lo incluido en el Plan Pro", included: true, icon: Check },
       { text: "Asesor deportivo personal SportMatch", included: true, icon: Users },
       { text: "Informes Técnicos Detallados", included: true, icon: FileText },
       { text: "Videoanálisis de Alto Nivel", included: true, icon: Play },
@@ -114,7 +115,7 @@ const COACH_PLANS = [
     subtitle: "Pago Único",
     badge: "COACH VERIFICADO ✓",
     features: [
-      { text: "Todo lo del plan Free", included: true, icon: Check },
+      { text: "Lo incluido en el Plan Free", included: true, icon: Check },
       { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Insignia de perfil oficial", included: true, icon: ShieldCheck },
       { text: "Validación titulación UEFA / RFEF", included: true, icon: GraduationCap },
@@ -128,7 +129,7 @@ const COACH_PLANS = [
     subtitle: "Scouting Profesional",
     badge: "COACH PRO ✓",
     features: [
-      { text: "Todo lo del plan Verificado", included: true, icon: Check },
+      { text: "Lo incluido en el Plan Verificado", included: true, icon: Check },
       { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Análisis táctico IA SportMatch", included: true, icon: Award },
       { text: "Informe PDF para clubes interesados", included: true, icon: FileText },
@@ -145,7 +146,7 @@ const COACH_PLANS = [
     subtitle: "Máximo Rendimiento",
     badge: "COACH TOP ✓",
     features: [
-      { text: "Todo lo del plan Pro", included: true, icon: Check },
+      { text: "Lo incluido en el Plan Pro", included: true, icon: Check },
       { text: "Asesor deportivo personal SportMatch", included: true, icon: Users },
       { text: "Estrategia de contenido y visibilidad", included: true, icon: Sparkles },
       { text: "Contacto directo con secretarías técnicas", included: true, icon: MessageCircle },
@@ -154,6 +155,38 @@ const COACH_PLANS = [
     ],
     buttonText: "ACCEDER A COACH TOP",
     highlight: false,
+    gold: true
+  }
+];
+
+const CLUB_PLANS = [
+  {
+    name: "CLUB FREE",
+    price: "0 €",
+    subtitle: "Presencia Institucional",
+    features: [
+      { text: "Perfil institucional completo", included: true, icon: Building2 },
+      { text: "Visualización de Tablero de Ofertas", included: true, icon: Briefcase },
+      { text: "Acceso al Ranking de Talento", included: true, icon: Star },
+    ],
+    buttonText: "REGISTRAR CLUB GRATIS",
+    highlight: false
+  },
+  {
+    name: "CLUB TOP",
+    price: "199,90 €",
+    subtitle: "Scouting y Reclutamiento",
+    badge: "ELITE CLUB TOP ✓",
+    features: [
+      { text: "Publicación ilimitada de ofertas", included: true, icon: Zap },
+      { text: "IA Scouting Pro", included: true, icon: Award },
+      { text: "Informes PDF de talentos", included: true, icon: FileText },
+      { text: "Acceso a datos de contacto directos", included: true, icon: MessageCircle },
+      { text: "Asesor deportivo personal", included: true, icon: Users },
+      { text: "Filtros avanzados de búsqueda", included: true, icon: Search },
+    ],
+    buttonText: "MEJORAR A CLUB TOP",
+    highlight: true,
     gold: true
   }
 ];
@@ -167,15 +200,15 @@ export default function PricingPage() {
   }, [db, user?.uid]);
 
   const { data: userData } = useDoc(userDocRef);
-  const [activeRole, setActiveRole] = useState<'Player' | 'Coach'>('Player');
+  const [activeRole, setActiveRole] = useState<'Player' | 'Coach' | 'Club'>('Player');
 
   useEffect(() => {
-    if (userData?.role === 'Player' || userData?.role === 'Coach') {
-      setActiveRole(userData.role);
+    if (userData?.role === 'Player' || userData?.role === 'Coach' || userData?.role === 'Club') {
+      setActiveRole(userData.role as any);
     }
   }, [userData?.role]);
 
-  const currentPlans = activeRole === 'Player' ? PLAYER_PLANS : COACH_PLANS;
+  const currentPlans = activeRole === 'Player' ? PLAYER_PLANS : (activeRole === 'Coach' ? COACH_PLANS : CLUB_PLANS);
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
@@ -197,36 +230,45 @@ export default function PricingPage() {
 
           <Tabs 
             value={activeRole} 
-            onValueChange={(v) => setActiveRole(v as 'Player' | 'Coach')} 
-            className="w-full max-w-[280px] md:max-w-md mx-auto"
+            onValueChange={(v) => setActiveRole(v as any)} 
+            className="w-full max-w-[320px] md:max-w-xl mx-auto"
           >
-            <TabsList className="grid w-full grid-cols-2 bg-[#111827] border border-white/5 rounded-xl md:rounded-2xl h-10 md:h-14 p-1">
+            <TabsList className="grid w-full grid-cols-3 bg-[#111827] border border-white/5 rounded-xl md:rounded-2xl h-10 md:h-14 p-1">
               <TabsTrigger 
                 value="Player" 
-                className="rounded-lg md:rounded-xl font-bold text-[9px] md:text-xs uppercase tracking-[0.1em] md:tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-background"
+                className="rounded-lg md:rounded-xl font-bold text-[8px] md:text-xs uppercase tracking-[0.1em] data-[state=active]:bg-primary data-[state=active]:text-background"
               >
-                <Target className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> Jugador
+                Jugador
               </TabsTrigger>
               <TabsTrigger 
                 value="Coach" 
-                className="rounded-lg md:rounded-xl font-bold text-[9px] md:text-xs uppercase tracking-[0.1em] md:tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-background"
+                className="rounded-lg md:rounded-xl font-bold text-[8px] md:text-xs uppercase tracking-[0.1em] data-[state=active]:bg-primary data-[state=active]:text-background"
               >
-                <Trophy className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" /> Entrenador
+                Entrenador
+              </TabsTrigger>
+              <TabsTrigger 
+                value="Club" 
+                className="rounded-lg md:rounded-xl font-bold text-[8px] md:text-xs uppercase tracking-[0.1em] data-[state=active]:bg-primary data-[state=active]:text-background"
+              >
+                Club
               </TabsTrigger>
             </TabsList>
           </Tabs>
         </header>
 
-        {/* PRICING SCROLL ON MOBILE, 4 COLS ON DESKTOP */}
-        <div className="flex lg:grid lg:grid-cols-4 gap-4 md:gap-6 items-stretch pt-4 overflow-x-auto no-scrollbar snap-x-mandatory px-4 pb-8">
+        <div className={cn(
+          "flex overflow-x-auto no-scrollbar snap-x-mandatory px-4 pb-8",
+          activeRole === 'Club' ? "justify-center gap-6" : "lg:grid lg:grid-cols-4 gap-4 md:gap-6 items-stretch pt-4"
+        )}>
           {currentPlans.map((plan, i) => (
             <Card 
               key={i} 
               className={cn(
                 "min-w-[85vw] lg:min-w-0 card-elite rounded-[2rem] md:rounded-[2.5rem] border-white/5 flex flex-col transition-all duration-500 relative overflow-hidden snap-center",
+                (activeRole === 'Club') && "lg:min-w-[400px]",
                 plan.highlight && "border-primary/40 shadow-[0_0_60px_rgba(234,179,8,0.15)] lg:scale-105 z-10",
-                plan.dark && "bg-[#090e1a] border-primary/20",
-                plan.gold && "bg-[#0c0c0c] border-yellow-500/30 shadow-[0_0_50px_rgba(234,179,8,0.1)]"
+                (plan as any).dark && "bg-[#090e1a] border-primary/20",
+                (plan as any).gold && "bg-[#0c0c0c] border-yellow-500/30 shadow-[0_0_50px_rgba(234,179,8,0.1)]"
               )}
             >
               {plan.highlight && (
@@ -237,21 +279,18 @@ export default function PricingPage() {
               {plan.highlight && (
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
               )}
-              {plan.gold && (
+              {(plan as any).gold && (
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-yellow-500 to-transparent" />
-              )}
-              {(plan.dark || plan.gold) && (
-                <div className="absolute -top-12 -right-12 bg-primary/10 w-32 h-32 md:w-40 md:h-40 blur-[60px] md:blur-[80px] rounded-full" />
               )}
               
               <CardHeader className="p-6 md:p-8 pb-4 md:pb-6 text-center space-y-3 md:space-y-4 relative z-10">
                 <div className="flex justify-center">
-                  {plan.badge ? (
+                  {(plan as any).badge ? (
                     <Badge className={cn(
                       "border-none px-3 md:px-4 py-1 text-[8px] md:text-[9px] font-black tracking-widest uppercase",
-                      plan.dark ? "bg-white/10 text-white" : plan.gold ? "bg-yellow-500 text-black" : "bg-primary text-background"
+                      (plan as any).dark ? "bg-white/10 text-white" : (plan as any).gold ? "bg-yellow-500 text-black" : "bg-primary text-background"
                     )}>
-                      {plan.badge}
+                      {(plan as any).badge}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="border-white/10 text-muted-foreground px-3 md:px-4 py-1 text-[8px] md:text-[9px] font-black tracking-widest uppercase">
@@ -282,7 +321,7 @@ export default function PricingPage() {
                         <div className={cn(
                           "mt-0.5 p-1 rounded-md",
                           feature.included 
-                            ? (plan.dark || plan.gold ? "bg-white/5" : "bg-primary/5") 
+                            ? ((plan as any).dark || (plan as any).gold ? "bg-white/5" : "bg-primary/5") 
                             : "opacity-20"
                         )}>
                           <FeatureIcon className={cn(
@@ -309,9 +348,9 @@ export default function PricingPage() {
                       "w-full h-12 md:h-14 rounded-xl font-black uppercase text-[8px] md:text-[10px] tracking-[0.1em] transition-all",
                       plan.highlight 
                         ? "bg-primary text-background hover:bg-primary/90 shadow-[0_0_30px_rgba(234,179,8,0.2)]" 
-                        : plan.gold
+                        : (plan as any).gold
                         ? "bg-yellow-500 text-black hover:bg-yellow-600 shadow-[0_0_30px_rgba(234,179,8,0.3)]"
-                        : plan.dark
+                        : (plan as any).dark
                         ? "bg-white text-black hover:bg-white/90"
                         : "bg-white/5 text-white border border-white/10 hover:bg-white/10"
                     )}
@@ -328,8 +367,7 @@ export default function PricingPage() {
           <div className="h-px bg-white/10 w-full" />
           <p className="text-[8px] md:text-[9px] text-muted-foreground font-medium leading-relaxed uppercase tracking-widest">
             Todos los planes incluyen acceso a la plataforma SportMatch. Precios sin IVA. <br />
-            Los 100 puntos de Score IA se logran combinando Perfil Técnico (85 pts) y el Análisis IA de SportMatch (15 pts). <br />
-            El plan Free está limitado a 45 pts totales y 1 temporada en trayectoria.
+            Los clubes TOP disponen de publicación ilimitada de vacantes y acceso a la base de datos completa.
           </p>
         </footer>
       </main>

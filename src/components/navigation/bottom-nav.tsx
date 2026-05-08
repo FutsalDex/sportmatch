@@ -3,14 +3,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search, Star, User, Home, BarChart3, LayoutDashboard } from 'lucide-react';
+import { Search, Star, User, Home, BarChart3, LayoutDashboard, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { icon: Home, label: 'Inicio', href: '/' },
+  { icon: Briefcase, label: 'Ofertas', href: '/offers' },
   { icon: Search, label: 'Scout', href: '/search' },
   { icon: BarChart3, label: 'Rankings', href: '/rankings' },
-  { icon: Star, label: 'Favs', href: '/favorites' },
   { icon: LayoutDashboard, label: 'Mi Panel', href: '/dashboard' },
   { icon: User, label: 'Perfil', href: '/profile/me' },
 ];
