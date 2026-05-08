@@ -6,6 +6,7 @@ service firebase.storage {
     // Acceso público de solo lectura para recursos de la web (landing, logos, etc)
     match /RECURSOS/{allPaths=**} {
       allow read: if true;
+      allow write: if false;
     }
 
     // Acceso para archivos de usuario (solo el dueño puede escribir)
