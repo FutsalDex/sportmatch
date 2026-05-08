@@ -22,8 +22,8 @@ import {
   MessageCircle,
   Play,
   Lock,
-  Crown,
-  Sparkles
+  Sparkles,
+  GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -48,10 +48,10 @@ const PLAYER_PLANS = [
     subtitle: "Pago Único",
     badge: "ELITE VERIFICADO ✓",
     features: [
-      { text: "Lo incluido en el Plan Free", included: true, icon: Check },
+      { text: "Todo lo del plan Free", included: true, icon: Check },
       { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Insignia de perfil oficial", included: true, icon: ShieldCheck },
-      { text: "Desbloquea Book Multimedia", included: true, icon: Play },
+      { text: "Book Multimedia", included: true, icon: Play },
       { text: "Biografía optimizada IA", included: true, icon: Star },
     ],
     buttonText: "SOLICITAR VERIFICACIÓN",
@@ -63,7 +63,7 @@ const PLAYER_PLANS = [
     subtitle: "Scouting Profesional",
     badge: "ELITE PRO ✓",
     features: [
-      { text: "Lo incluido en el Plan Verificado", included: true, icon: Check },
+      { text: "Todo lo del plan Verificado", included: true, icon: Check },
       { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Análisis IA SportMatch", included: true, icon: Award },
       { text: "Informe PDF para clubes", included: true, icon: FileText },
@@ -78,15 +78,82 @@ const PLAYER_PLANS = [
     subtitle: "Máximo Rendimiento",
     badge: "ELITE TOP ✓",
     features: [
-      { text: "Lo incluido en el Plan Pro", included: true, icon: Check },
-      { text: "Asesor deportivo SportMatch", included: true, icon: Users },
-      { text: "Informes Técnico Detallado", included: true, icon: FileText },
-      { text: "Videanálisis de Alto Nivel", included: true, icon: Play },
+      { text: "Todo lo del plan Pro", included: true, icon: Check },
+      { text: "Asesor deportivo personal SportMatch", included: true, icon: Users },
+      { text: "Informes Técnicos Detallados", included: true, icon: FileText },
+      { text: "Videoanálisis de Alto Nivel", included: true, icon: Play },
       { text: "Estrategia de Contenidos", included: true, icon: Sparkles },
       { text: "Gestión de Pruebas y Showcases", included: true, icon: Target },
       { text: "Contacto con secretarías técnicas", included: true, icon: MessageCircle },
     ],
     buttonText: "ACCEDER A ELITE TOP",
+    highlight: false,
+    gold: true
+  }
+];
+
+const COACH_PLANS = [
+  {
+    name: "COACH FREE",
+    price: "0 €",
+    subtitle: "Siempre gratis",
+    features: [
+      { text: "Perfil técnico básico", included: true, icon: User },
+      { text: "Búsqueda de ofertas de club", included: true, icon: Search },
+      { text: "Acceso al ranking de entrenadores", included: true, icon: Zap },
+      { text: "Historial de equipos dirigidos", included: true, icon: Trophy },
+    ],
+    buttonText: "COMENZAR GRATIS",
+    highlight: false
+  },
+  {
+    name: "COACH VERIFICADO",
+    price: "9,99 €",
+    subtitle: "Pago Único",
+    badge: "COACH VERIFICADO ✓",
+    features: [
+      { text: "Todo lo del plan Free", included: true, icon: Check },
+      { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
+      { text: "Insignia de perfil oficial", included: true, icon: ShieldCheck },
+      { text: "Validación titulación UEFA / RFEF", included: true, icon: GraduationCap },
+      { text: "Book metodológico multimedia", included: true, icon: Play },
+      { text: "Filosofía de juego optimizada por IA", included: true, icon: Star },
+    ],
+    buttonText: "SOLICITAR VERIFICACIÓN",
+    highlight: false
+  },
+  {
+    name: "COACH PRO",
+    price: "49,90 €",
+    subtitle: "Scouting Profesional",
+    badge: "COACH PRO ✓",
+    features: [
+      { text: "Todo lo del plan Verificado", included: true, icon: Check },
+      { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
+      { text: "Análisis táctico IA SportMatch", included: true, icon: Award },
+      { text: "Informe PDF para clubes interesados", included: true, icon: FileText },
+      { text: "Acceso a ofertas de clubes premium", included: true, icon: Target },
+      { text: "Estadísticas de visitas al perfil", included: true, icon: TrendingUp },
+    ],
+    buttonText: "SUSCRIBIRSE A COACH PRO",
+    highlight: true,
+    dark: true
+  },
+  {
+    name: "COACH TOP",
+    price: "199,90 €",
+    subtitle: "Máximo Rendimiento",
+    badge: "COACH TOP ✓",
+    features: [
+      { text: "Todo lo del plan Pro", included: true, icon: Check },
+      { text: "Asesor deportivo personal SportMatch", included: true, icon: Users },
+      { text: "Informes de plantilla detallados", included: true, icon: FileText },
+      { text: "Videoanálisis táctico de alto nivel", included: true, icon: Play },
+      { text: "Estrategia de contenido y visibilidad", included: true, icon: Sparkles },
+      { text: "Gestión de pruebas y showcases", included: true, icon: Target },
+      { text: "Contacto directo con secretarías técnicas", included: true, icon: MessageCircle },
+    ],
+    buttonText: "ACCEDER A COACH TOP",
     highlight: false,
     gold: true
   }
@@ -109,7 +176,7 @@ export default function PricingPage() {
     }
   }, [userData?.role]);
 
-  const currentPlans = activeRole === 'Player' ? PLAYER_PLANS : PLAYER_PLANS;
+  const currentPlans = activeRole === 'Player' ? PLAYER_PLANS : COACH_PLANS;
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
@@ -163,6 +230,11 @@ export default function PricingPage() {
                 plan.gold && "bg-[#0c0c0c] border-yellow-500/30 shadow-[0_0_50px_rgba(234,179,8,0.1)]"
               )}
             >
+              {plan.highlight && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-primary text-background px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest z-20">
+                  MÁS POPULAR
+                </div>
+              )}
               {plan.highlight && (
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
               )}
@@ -256,7 +328,7 @@ export default function PricingPage() {
         <footer className="text-center space-y-4 md:space-y-6 max-w-4xl mx-auto opacity-60 px-6">
           <div className="h-px bg-white/10 w-full" />
           <p className="text-[8px] md:text-[9px] text-muted-foreground font-medium leading-relaxed uppercase tracking-widest">
-            Planes diseñados para ecosistemas profesionales · Verificación a 9,99€ (Pago único) · Sin renovación automática. <br />
+            Todos los planes incluyen acceso a la plataforma SportMatch. Precios sin IVA. <br />
             Los 100 puntos de Score IA se logran combinando Perfil Técnico (85 pts) y el Análisis IA de SportMatch (15 pts). <br />
             El plan Free está limitado a 45 pts totales y 1 temporada en trayectoria.
           </p>
