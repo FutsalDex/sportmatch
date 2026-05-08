@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -255,8 +256,9 @@ export default function PricingPage() {
           </Tabs>
         </header>
 
+        {/* Añadido py-20 para dar espacio al escalado de las tarjetas y los badges flotantes */}
         <div className={cn(
-          "flex overflow-x-auto no-scrollbar snap-x-mandatory px-4 pb-12 pt-16",
+          "flex overflow-x-auto no-scrollbar snap-x-mandatory px-4 py-20",
           activeRole === 'Club' ? "justify-center gap-6" : "lg:grid lg:grid-cols-4 gap-4 md:gap-6 items-stretch"
         )}>
           {currentPlans.map((plan, i) => (
