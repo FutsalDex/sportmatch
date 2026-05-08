@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
@@ -23,7 +22,9 @@ import {
   CreditCard,
   FileText,
   UserCheck,
-  Download
+  Download,
+  ShieldCheck,
+  Trophy
 } from 'lucide-react';
 import { doc, collection, query, where } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
@@ -64,8 +65,10 @@ export default function DashboardPage() {
   const activeMatches = matchesData?.filter(m => m.status === 'accepted') || [];
   const pendingMatches = matchesData?.filter(m => m.status === 'pending') || [];
 
-  const premiumUsersCount = allUsers?.filter(u => u.plan === 'pro' || u.plan === 'verified').length || 0;
-  const freeUsersCount = (allUsers?.length || 0) - premiumUsersCount;
+  const topUsersCount = allUsers?.filter(u => u.plan === 'top').length || 0;
+  const proUsersCount = allUsers?.filter(u => u.plan === 'pro').length || 0;
+  const verifiedUsersCount = allUsers?.filter(u => u.plan === 'verified' || u.verificationStatus === 'verified').length || 0;
+  const freeUsersCount = (allUsers?.length || 0) - (topUsersCount + proUsersCount + verifiedUsersCount);
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
@@ -113,7 +116,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">{allUsers?.length || 0}</p>
-                  <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Gestión de Usuarios</p>
+                  <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Usuarios</p>
                 </div>
                 <div className="flex items-center text-red-500 text-[8px] font-black uppercase tracking-widest">
                   ABRIR BASE DE DATOS <ChevronRight className="ml-1 w-3 h-3" />
@@ -121,40 +124,62 @@ export default function DashboardPage() {
               </Link>
             </Card>
 
-            <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
-              <Card className="card-elite rounded-[2.5rem] border-blue-500/20">
-                <CardContent className="p-6 md:p-8 space-y-2">
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="card-elite rounded-[2.5rem] border-yellow-500/20 bg-yellow-500/5">
+                <CardContent className="p-5 md:p-6 space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="bg-blue-500/10 p-2 rounded-xl">
-                      <CreditCard className="w-4 h-4 text-blue-400" />
-                    </div>
-                    <Badge className="bg-blue-500/20 text-blue-400 border-none text-[7px] font-black">ELITE</Badge>
+                    <Trophy className="w-4 h-4 text-yellow-500" />
+                    <Badge className="bg-yellow-500/20 text-yellow-500 border-none text-[6px] font-black">TOP</Badge>
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-2xl md:text-3xl font-black font-headline tracking-tighter">{premiumUsersCount}</p>
-                    <p className="text-[8px] md:text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Cuentas Premium</p>
+                    <p className="text-xl md:text-2xl font-black font-headline">{topUsersCount}</p>
+                    <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Elite Top</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="card-elite rounded-[2.5rem] border-primary/20 bg-primary/5">
+                <CardContent className="p-5 md:p-6 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Star className="w-4 h-4 text-primary" />
+                    <Badge className="bg-primary/20 text-primary border-none text-[6px] font-black">PRO</Badge>
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-xl md:text-2xl font-black font-headline">{proUsersCount}</p>
+                    <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Elite Pro</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="card-elite rounded-[2.5rem] border-blue-500/20 bg-blue-500/5">
+                <CardContent className="p-5 md:p-6 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <ShieldCheck className="w-4 h-4 text-blue-400" />
+                    <Badge className="bg-blue-500/20 text-blue-400 border-none text-[6px] font-black">VERIF</Badge>
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-xl md:text-2xl font-black font-headline">{verifiedUsersCount}</p>
+                    <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Verificados</p>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="card-elite rounded-[2.5rem] border-white/5">
-                <CardContent className="p-6 md:p-8 space-y-2">
+                <CardContent className="p-5 md:p-6 space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="bg-white/5 p-2 rounded-xl">
-                      <UserCheck className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                    <Badge className="bg-white/5 text-muted-foreground border-none text-[7px] font-black">STANDARD</Badge>
+                    <UserCheck className="w-4 h-4 text-muted-foreground" />
+                    <Badge className="bg-white/5 text-muted-foreground border-none text-[6px] font-black">FREE</Badge>
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-2xl md:text-3xl font-black font-headline tracking-tighter">{freeUsersCount}</p>
-                    <p className="text-[8px] md:text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Cuentas Free</p>
+                    <p className="text-xl md:text-2xl font-black font-headline">{freeUsersCount}</p>
+                    <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Cuentas Free</p>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
             <Card className="card-elite rounded-[2.5rem] border-purple-500/20">
-              <CardContent className="p-6 md:p-8 space-y-4">
+              <CardContent className="p-6 md:p-8 space-y-4 flex flex-col justify-center">
                 <div className="bg-purple-500/10 p-3 rounded-2xl w-fit">
                   <Activity className="w-6 h-6 text-purple-400" />
                 </div>
