@@ -16,20 +16,33 @@ import {
   Plus,
   ArrowUpRight,
   Loader2,
-  Filter
+  Filter,
+  Building2
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 export default function OffersPage() {
-  const { user } = useUser();
+  const router = useRouter();
+  const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const [roleFilter, setRoleFilter] = useState<'all' | 'Player' | 'Coach'>('all');
 
+  // Redirección si no hay usuario una vez terminada la carga de sesión
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
+
   const offersQuery = useMemoFirebase(() => {
+    // Es crítico no ejecutar la consulta hasta que el usuario esté identificado
+    // para evitar errores de permisos "Missing or insufficient permissions" al inicio.
+    if (!user) return null;
     return query(collection(db, 'offers'), orderBy('createdAt', 'desc'));
-  }, [db]);
+  }, [db, user]);
 
   const { data: offers, isLoading } = useCollection(offersQuery);
 
@@ -39,7 +52,7 @@ export default function OffersPage() {
     return offers.filter(o => o.role === roleFilter);
   }, [offers, roleFilter]);
 
-  const isClub = user?.photoURL === 'Club'; // Usamos photoURL temporalmente para el rol en el mock si no hay doc de user
+  if (isUserLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Sincronizando Mercado...</div>;
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
