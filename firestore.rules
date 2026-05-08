@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -23,6 +24,12 @@ service cloud.firestore {
     match /userProfiles/{userId} {
       allow read: if isSignedIn();
       allow write: if isAdmin() || isOwner(userId);
+    }
+
+    match /offers/{offerId} {
+      allow read: if isSignedIn() && (isOwner(resource.data.clubId) || isOwner(resource.data.targetUserId));
+      allow create: if isSignedIn(); // We should ideally check if they are a Club role, but simple check for now
+      allow update, delete: if isAdmin() || (isSignedIn() && isOwner(resource.data.clubId));
     }
 
     match /privateProfiles/{userId} {

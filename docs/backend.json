@@ -70,11 +70,6 @@
         "position": {
           "type": "string"
         },
-        "mobility": {
-          "type": "string",
-          "enum": ["Local", "Nacional", "Internacional"],
-          "description": "Disponibilidad geográfica para nuevos proyectos."
-        },
         "profileImageUrl": {
           "type": "string"
         },
@@ -91,6 +86,26 @@
         "score",
         "verificationStatus"
       ]
+    },
+    "Offer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Offer",
+      "type": "object",
+      "description": "A recruitment offer sent from a Club to a Player or Coach.",
+      "properties": {
+        "id": { "type": "string" },
+        "clubId": { "type": "string" },
+        "clubName": { "type": "string" },
+        "targetUserId": { "type": "string" },
+        "position": { "type": "string" },
+        "salaryRange": { "type": "string" },
+        "duration": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "rejected", "withdrawn"] },
+        "description": { "type": "string" },
+        "requirements": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "clubId", "targetUserId", "status"]
     },
     "Match": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -189,6 +204,14 @@
           "entityName": "UserProfile",
           "schema": { "$ref": "#/backend/entities/UserProfile" },
           "description": "Rich public profile content."
+        }
+      },
+      {
+        "path": "/offers/{offerId}",
+        "definition": {
+          "entityName": "Offer",
+          "schema": { "$ref": "#/backend/entities/Offer" },
+          "description": "Direct recruitment offers."
         }
       },
       {

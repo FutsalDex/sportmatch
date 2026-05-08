@@ -32,30 +32,58 @@ import {
   BrainCircuit,
   Globe2,
   MessagesSquare,
-  Clock
+  Clock,
+  Briefcase,
+  Send,
+  FileCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useFirestore, useDoc, useMemoFirebase, useUser, setDocumentNonBlocking } from '@/firebase';
+import { doc, collection } from 'firebase/firestore';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { TopNav } from '@/components/navigation/top-nav';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const db = useFirestore();
   const { user: viewer } = useUser();
+  const { toast } = useToast();
 
   const userDocRef = useMemoFirebase(() => doc(db, 'users', id), [db, id]);
   const profileDocRef = useMemoFirebase(() => doc(db, 'userProfiles', id), [db, id]);
+  const viewerDocRef = useMemoFirebase(() => viewer ? doc(db, 'users', viewer.uid) : null, [db, viewer?.uid]);
 
   const { data: userData, isLoading: isUserLoading } = useDoc(userDocRef);
   const { data: profileData, isLoading: isProfileLoading } = useDoc(profileDocRef);
+  const { data: viewerData } = useDoc(viewerDocRef);
+
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [offerForm, setOfferForm] = useState({
+    position: '',
+    salaryRange: '',
+    duration: '',
+    requirements: '',
+    description: ''
+  });
 
   const isLoading = isUserLoading || isProfileLoading;
   const isViewerAdmin = viewer?.email === 'admin01@gmail.com';
@@ -63,6 +91,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
   const isCoach = userData?.role === 'Coach';
   const isClub = userData?.role === 'Club';
+  const isViewerClub = viewerData?.role === 'Club';
   
   const isVerified = isViewerAdmin || userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro' || userData?.plan === 'top';
   const hasAiAccess = isViewerAdmin || userData?.plan === 'pro' || userData?.plan === 'top';
@@ -84,6 +113,34 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
       return acc;
     }, (isCoach || isClub) ? { wins: 0, draws: 0, losses: 0, matches: 0, promotions: 0 } : { matches: 0, goals: 0, assists: 0 });
   }, [profileData?.teamHistory, isCoach, isClub]);
+
+  const handleSendOffer = () => {
+    if (!viewer || !id) return;
+    
+    const offerId = `off_${Date.now()}`;
+    const offerRef = doc(db, 'offers', offerId);
+    
+    setDocumentNonBlocking(offerRef, {
+      id: offerId,
+      clubId: viewer.uid,
+      clubName: viewerData?.name || 'Club Institucional',
+      targetUserId: id,
+      position: offerForm.position,
+      salaryRange: offerForm.salaryRange,
+      duration: offerForm.duration,
+      requirements: offerForm.requirements,
+      description: offerForm.description,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    }, { merge: true });
+
+    toast({
+      title: "Oferta Enviada",
+      description: `Se ha notificado a ${userData?.name} sobre tu propuesta de contratación.`
+    });
+    
+    setIsOfferModalOpen(false);
+  };
 
   if (isLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Sincronizando Terminal...</div>;
 
@@ -185,6 +242,100 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       <main className="max-w-5xl mx-auto w-full px-4 md:px-6 space-y-8 md:space-y-12">
+        {/* RECRUITMENT TERMINAL FOR CLUBS */}
+        {isViewerClub && !isClub && !isOwnProfile && (
+          <section className="animate-in fade-in slide-in-from-top-4 duration-700">
+             <Card className="rounded-[2.5rem] bg-primary text-background p-8 md:p-12 relative overflow-hidden border-none shadow-[0_0_60px_rgba(234,179,8,0.2)]">
+                <Briefcase className="absolute -top-6 -right-6 w-32 h-32 opacity-10 rotate-12" />
+                <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                  <div className="bg-background/20 p-4 md:p-6 rounded-[2rem] backdrop-blur-md">
+                    <Send className="w-10 h-10 text-background" />
+                  </div>
+                  <div className="flex-1 text-center md:text-left space-y-2">
+                    <h2 className="text-2xl md:text-3xl font-black uppercase italic tracking-tighter">Terminal de Reclutamiento</h2>
+                    <p className="font-bold text-sm md:text-lg leading-tight">Genera una oferta formal de contratación para incorporar a {userData.name} a tu entidad.</p>
+                  </div>
+                  
+                  <Dialog open={isOfferModalOpen} onOpenChange={setIsOfferModalOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="h-16 px-10 rounded-2xl bg-background text-primary hover:bg-background/90 font-black uppercase tracking-widest text-sm shadow-xl">
+                        GENERAR OFERTA
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-[#030712] border-white/10 text-white max-w-2xl rounded-[2.5rem] p-8 md:p-12 overflow-y-auto max-h-[90vh]">
+                      <DialogHeader className="space-y-4 mb-8">
+                        <div className="flex items-center gap-3 text-primary">
+                          <FileCheck className="w-8 h-8" />
+                          <DialogTitle className="text-3xl font-black uppercase italic tracking-tighter">Nueva Propuesta</DialogTitle>
+                        </div>
+                        <DialogDescription className="text-muted-foreground text-sm font-medium uppercase tracking-widest">
+                          Define los parámetros del contrato para el sujeto: {userData.name}
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-black text-muted-foreground ml-2">Puesto / Rol Específico</Label>
+                          <Input 
+                            placeholder="Ej: Delantero Centro / Analista" 
+                            className="h-14 bg-white/5 border-none rounded-2xl px-6"
+                            value={offerForm.position}
+                            onChange={e => setOfferForm({...offerForm, position: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] uppercase font-black text-muted-foreground ml-2">Duración (Temporadas)</Label>
+                          <Input 
+                            placeholder="Ej: 1 Temp. + Variable" 
+                            className="h-14 bg-white/5 border-none rounded-2xl px-6"
+                            value={offerForm.duration}
+                            onChange={e => setOfferForm({...offerForm, duration: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label className="text-[10px] uppercase font-black text-muted-foreground ml-2">Rango Salarial (Opcional)</Label>
+                          <Input 
+                            placeholder="Ej: 18.000€ - 22.000€ brutos/año" 
+                            className="h-14 bg-white/5 border-none rounded-2xl px-6 text-green-400 font-bold"
+                            value={offerForm.salaryRange}
+                            onChange={e => setOfferForm({...offerForm, salaryRange: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label className="text-[10px] uppercase font-black text-muted-foreground ml-2">Requerimientos Técnicos</Label>
+                          <Textarea 
+                            placeholder="¿Qué esperas del perfil a nivel profesional?" 
+                            className="min-h-[100px] bg-white/5 border-none rounded-[1.5rem] p-6"
+                            value={offerForm.requirements}
+                            onChange={e => setOfferForm({...offerForm, requirements: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label className="text-[10px] uppercase font-black text-muted-foreground ml-2">Mensaje Personalizado de la Entidad</Label>
+                          <Textarea 
+                            placeholder="Presenta el proyecto del club y los beneficios adicionales..." 
+                            className="min-h-[120px] bg-white/5 border-none rounded-[1.5rem] p-6"
+                            value={offerForm.description}
+                            onChange={e => setOfferForm({...offerForm, description: e.target.value})}
+                          />
+                        </div>
+                      </div>
+
+                      <DialogFooter className="mt-10">
+                        <Button 
+                          onClick={handleSendOffer}
+                          className="w-full h-16 rounded-[2rem] bg-primary text-background font-black uppercase tracking-[0.2em] text-sm hover:bg-primary/90 shadow-2xl"
+                        >
+                          ENVIAR PROPUESTA FORMAL <Send className="ml-2 w-4 h-4" />
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+             </Card>
+          </section>
+        )}
+
         {hasMultimedia && (
           <section className="space-y-6 md:space-y-8 animate-in fade-in duration-700">
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
@@ -249,7 +400,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 </>
               ) : isCoach ? (
                 <>
-                  <StatCard icon={Map} label="Movilidad" value={userData.mobility || 'Nacional'} />
+                  <StatCard icon={Globe2} label="Nacionalidad" value={userData.nationality || '----'} />
                   {profileData?.certifications?.length > 0 ? (
                     profileData.certifications.slice(0, 3).map((cert: string, i: number) => (
                       <StatCard key={i} icon={GraduationCap} label={`Titulación ${i+1}`} value={cert} />
@@ -260,7 +411,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 </>
               ) : (
                 <>
-                  <StatCard icon={Map} label="Movilidad" value={userData.mobility || 'Nacional'} />
+                  <StatCard icon={Globe2} label="Nacionalidad" value={userData.nationality || '----'} />
                   <StatCard icon={Ruler} label="Altura" value={`${profileData?.height || '--'} cm`} />
                   <StatCard icon={WeightIcon} label="Peso" value={`${profileData?.weight || '--'} kg`} />
                   <StatCard icon={Footprints} label="Pierna" value={profileData?.strongFoot || '--'} />
@@ -283,7 +434,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             </Card>
           </TabsContent>
 
-          {/* NUEVO TABS CONTENT: SCOUTING (SOLO CLUB) */}
+          {/* SCOUTING (SOLO CLUB) */}
           <TabsContent value="scouting" className="mt-6 md:mt-8 space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <Card className="card-elite rounded-[2rem] bg-[#111827]/40 border-white/5 p-8 space-y-6">
