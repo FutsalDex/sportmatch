@@ -38,9 +38,6 @@ const PLAYER_PLANS = [
       { text: "Perfil técnico básico", included: true, icon: User },
       { text: "Búsqueda de ofertas", included: true, icon: Search },
       { text: "Acceso al ranking", included: true, icon: Zap },
-      { text: "Sin análisis de IA", included: false, icon: Award },
-      { text: "Book multimedia", included: false, icon: Play },
-      { text: "Mensajes directos", included: false, icon: MessageCircle },
     ],
     buttonText: "COMENZAR GRATIS",
     highlight: false
@@ -56,7 +53,6 @@ const PLAYER_PLANS = [
       { text: "Insignia de perfil oficial", included: true, icon: ShieldCheck },
       { text: "Desbloquea Book Multimedia", included: true, icon: Play },
       { text: "Biografía optimizada IA", included: true, icon: Star },
-      { text: "Prioridad en búsqueda", included: true, icon: TrendingUp },
     ],
     buttonText: "SOLICITAR VERIFICACIÓN",
     highlight: false
@@ -71,7 +67,6 @@ const PLAYER_PLANS = [
       { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Análisis IA SportMatch", included: true, icon: Award },
       { text: "Informe PDF para clubes", included: true, icon: FileText },
-      { text: "Asesor deportivo", included: false, icon: Users },
     ],
     buttonText: "SUSCRIBIRSE A ELITE PRO",
     highlight: true,
