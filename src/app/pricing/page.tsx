@@ -166,6 +166,7 @@ const CLUB_PLANS = [
     subtitle: "Presencia Institucional",
     features: [
       { text: "Perfil institucional completo", included: true, icon: Building2 },
+      { text: "Publicación de hasta 3 ofertas", included: true, icon: Zap },
       { text: "Visualización de Tablero de Ofertas", included: true, icon: Briefcase },
       { text: "Acceso al Ranking de Talento", included: true, icon: Star },
     ],
@@ -174,7 +175,7 @@ const CLUB_PLANS = [
   },
   {
     name: "CLUB TOP",
-    price: "199,90 €",
+    price: "49,90 €",
     subtitle: "Scouting y Reclutamiento",
     badge: "ELITE CLUB TOP ✓",
     features: [
@@ -182,7 +183,6 @@ const CLUB_PLANS = [
       { text: "IA Scouting Pro", included: true, icon: Award },
       { text: "Informes PDF de talentos", included: true, icon: FileText },
       { text: "Acceso a datos de contacto directos", included: true, icon: MessageCircle },
-      { text: "Asesor deportivo personal", included: true, icon: Users },
       { text: "Filtros avanzados de búsqueda", included: true, icon: Search },
     ],
     buttonText: "MEJORAR A CLUB TOP",
