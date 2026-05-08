@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -116,8 +117,6 @@ const COACH_PLANS = [
       { text: "+10 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Insignia de perfil oficial", included: true, icon: ShieldCheck },
       { text: "Validación titulación UEFA / RFEF", included: true, icon: GraduationCap },
-      { text: "Book metodológico multimedia", included: true, icon: Play },
-      { text: "Filosofía de juego optimizada por IA", included: true, icon: Star },
     ],
     buttonText: "SOLICITAR VERIFICACIÓN",
     highlight: false
@@ -147,11 +146,10 @@ const COACH_PLANS = [
     features: [
       { text: "Todo lo del plan Pro", included: true, icon: Check },
       { text: "Asesor deportivo personal SportMatch", included: true, icon: Users },
-      { text: "Informes de plantilla detallados", included: true, icon: FileText },
-      { text: "Videoanálisis táctico de alto nivel", included: true, icon: Play },
       { text: "Estrategia de contenido y visibilidad", included: true, icon: Sparkles },
-      { text: "Gestión de pruebas y showcases", included: true, icon: Target },
       { text: "Contacto directo con secretarías técnicas", included: true, icon: MessageCircle },
+      { text: "Book metodológico multimedia", included: true, icon: Play },
+      { text: "Filosofía de juego optimizada por IA", included: true, icon: Star },
     ],
     buttonText: "ACCEDER A COACH TOP",
     highlight: false,
@@ -337,3 +335,4 @@ export default function PricingPage() {
     </div>
   );
 }
+
