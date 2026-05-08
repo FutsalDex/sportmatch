@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
@@ -236,7 +235,7 @@ export default function DashboardPage() {
             href="/profile/me" 
             className="w-full md:w-auto h-12 md:h-16 rounded-2xl md:rounded-3xl bg-[#030712] text-white hover:bg-black border border-white/10 flex items-center justify-center font-black px-8 text-[10px] md:text-sm uppercase tracking-widest shadow-xl transition-all"
           >
-            VER ANÁLISIS DETALLADO
+            ACTUALIZAR MI PERFIL
           </Link>
         </section>
       </main>
