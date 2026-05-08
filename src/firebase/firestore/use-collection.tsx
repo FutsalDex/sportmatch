@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useUser } from '../provider';
 
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
@@ -40,20 +41,11 @@ export interface InternalQuery extends Query<DocumentData> {
 /**
  * React hook to subscribe to a Firestore collection or query in real-time.
  * Handles nullable references/queries.
- * 
- *
- * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
- * references
- *  
- * @template T Optional type for document data. Defaults to any.
- * @param {CollectionReference<DocumentData> | Query<DocumentData> | null | undefined} targetRefOrQuery -
- * The Firestore CollectionReference or Query. Waits if null/undefined.
- * @returns {UseCollectionResult<T>} Object with data, isLoading, error.
  */
 export function useCollection<T = any>(
     memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
 ): UseCollectionResult<T> {
+  const { user } = useUser();
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
 
@@ -62,9 +54,10 @@ export function useCollection<T = any>(
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
-    if (!memoizedTargetRefOrQuery) {
+    // CRITICAL: Do not execute query if user is not authenticated
+    if (!memoizedTargetRefOrQuery || !user) {
       setData(null);
-      setIsLoading(false);
+      setIsLoading(!!memoizedTargetRefOrQuery); // Keep loading true if we are waiting for user
       setError(null);
       return;
     }
@@ -72,7 +65,6 @@ export function useCollection<T = any>(
     setIsLoading(true);
     setError(null);
 
-    // Directly use memoizedTargetRefOrQuery as it's assumed to be the final query
     const unsubscribe = onSnapshot(
       memoizedTargetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
@@ -85,11 +77,22 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
-        // This logic extracts the path from either a ref or a query
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
             ? (memoizedTargetRefOrQuery as CollectionReference).path
             : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+
+        // robust permission error check
+        const isPermissionError = error.code === 'permission-denied' || 
+                                 error.message?.includes('Missing or insufficient permissions');
+
+        // If it's a permission error and we don't have an auth'd user yet, ignore it
+        if (isPermissionError && !user) {
+          console.debug('Firestore permission denied while user not authenticated - deferring error');
+          setData(null);
+          setIsLoading(false);
+          return;
+        }
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
@@ -106,7 +109,8 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery]); // Re-run if the target query/reference changes.
+  }, [memoizedTargetRefOrQuery, user]);
+
   if(memoizedTargetRefOrQuery && !memoizedTargetRefOrQuery.__memo) {
     throw new Error(memoizedTargetRefOrQuery + ' was not properly memoized using useMemoFirebase');
   }
