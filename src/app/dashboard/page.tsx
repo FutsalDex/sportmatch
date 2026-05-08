@@ -20,7 +20,10 @@ import {
   Database,
   Search,
   Activity,
-  CreditCard
+  CreditCard,
+  FileText,
+  UserCheck,
+  Download
 } from 'lucide-react';
 import { doc, collection, query, where } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
@@ -60,6 +63,9 @@ export default function DashboardPage() {
   
   const activeMatches = matchesData?.filter(m => m.status === 'accepted') || [];
   const pendingMatches = matchesData?.filter(m => m.status === 'pending') || [];
+
+  const premiumUsersCount = allUsers?.filter(u => u.plan === 'pro' || u.plan === 'verified').length || 0;
+  const freeUsersCount = (allUsers?.length || 0) - premiumUsersCount;
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
@@ -114,19 +120,39 @@ export default function DashboardPage() {
                 </div>
               </Link>
             </Card>
-            <Card className="card-elite rounded-[2.5rem] border-blue-500/20">
-              <CardContent className="p-6 md:p-8 space-y-4">
-                <div className="bg-blue-500/10 p-3 rounded-2xl w-fit">
-                  <CreditCard className="w-6 h-6 text-blue-400" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">
-                    {allUsers?.filter(u => u.plan === 'pro' || u.plan === 'verified').length || 0}
-                  </p>
-                  <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Cuentas Premium</p>
-                </div>
-              </CardContent>
-            </Card>
+
+            <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
+              <Card className="card-elite rounded-[2.5rem] border-blue-500/20">
+                <CardContent className="p-6 md:p-8 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="bg-blue-500/10 p-2 rounded-xl">
+                      <CreditCard className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <Badge className="bg-blue-500/20 text-blue-400 border-none text-[7px] font-black">ELITE</Badge>
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-2xl md:text-3xl font-black font-headline tracking-tighter">{premiumUsersCount}</p>
+                    <p className="text-[8px] md:text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Cuentas Premium</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="card-elite rounded-[2.5rem] border-white/5">
+                <CardContent className="p-6 md:p-8 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="bg-white/5 p-2 rounded-xl">
+                      <UserCheck className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <Badge className="bg-white/5 text-muted-foreground border-none text-[7px] font-black">STANDARD</Badge>
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-2xl md:text-3xl font-black font-headline tracking-tighter">{freeUsersCount}</p>
+                    <p className="text-[8px] md:text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Cuentas Free</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             <Card className="card-elite rounded-[2.5rem] border-purple-500/20">
               <CardContent className="p-6 md:p-8 space-y-4">
                 <div className="bg-purple-500/10 p-3 rounded-2xl w-fit">
@@ -138,6 +164,7 @@ export default function DashboardPage() {
                 </div>
               </CardContent>
             </Card>
+
             <Card className="card-elite rounded-[2.5rem] bg-gradient-to-br from-red-500/20 to-transparent border-red-500/20">
               <CardContent className="p-6 md:p-8 space-y-4 flex flex-col justify-between h-full">
                 <div className="space-y-1">
@@ -229,25 +256,36 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {isAdmin ? (
-              /* SECCIÓN ADMIN: GESTIÓN DE USUARIOS */
+              /* SECCIÓN ADMIN: GESTIÓN DE SISTEMA */
               <div className="col-span-full space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   <Card className="bg-[#111827] border-red-500/10 rounded-3xl p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                   <Card className="bg-[#111827] border-white/5 rounded-3xl p-6 hover:border-primary/20 transition-all group">
                       <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                        <Users className="w-5 h-5 text-red-500" /> Explorador de Usuarios
+                        <FileText className="w-5 h-5 text-primary" /> Informes PDF Clubes
                       </h3>
-                      <p className="text-sm text-muted-foreground mb-6">Listado detallado de identidades, planes y estados de validación de toda la red.</p>
-                      <Button asChild className="w-full bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 rounded-2xl h-12">
-                        <Link href="/admin/users">VER BASE DE DATOS</Link>
+                      <p className="text-sm text-muted-foreground mb-6">Genera dossieres técnicos de talentos para clubes en seguimiento.</p>
+                      <Button variant="outline" className="w-full border-white/10 rounded-2xl h-12 uppercase font-black text-[10px] tracking-widest gap-2">
+                        PENDIENTES (0) <Download className="w-3 h-3" />
                       </Button>
                    </Card>
+
                    <Card className="bg-[#111827] border-white/5 rounded-3xl p-6">
                       <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                        <Crown className="w-5 h-5 text-primary" /> Verificaciones Pendientes
+                        <Crown className="w-5 h-5 text-primary" /> Verificaciones
                       </h3>
                       <p className="text-sm text-muted-foreground mb-6">Valida la identidad de los nuevos talentos verificados.</p>
                       <Button variant="outline" className="w-full border-white/10 rounded-2xl h-12 uppercase font-black text-[10px] tracking-widest">
                         REVISAR COLA (0)
+                      </Button>
+                   </Card>
+
+                   <Card className="bg-[#111827] border-red-500/10 rounded-3xl p-6 group">
+                      <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                        <ShieldAlert className="w-5 h-5 text-red-500" /> Protocolos Root
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-6">Mantenimiento de bases de datos y purga de logs obsoletos.</p>
+                      <Button variant="ghost" className="w-full bg-red-500/5 text-red-500 hover:bg-red-500/10 rounded-2xl h-12 uppercase font-black text-[10px] tracking-widest">
+                        ACCESO RESTRINGIDO
                       </Button>
                    </Card>
                 </div>
