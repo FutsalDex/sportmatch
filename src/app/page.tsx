@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Trophy, Target, Zap, ArrowRight } from 'lucide-react';
+import { Trophy, Target, Zap } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useDiscipline } from '@/context/discipline-context';
 import Image from 'next/image';
@@ -46,7 +46,6 @@ export default function Home() {
                 fill
                 priority
                 className="object-cover opacity-60 group-hover:opacity-80 transition-opacity"
-                data-ai-hint="football player"
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent p-6 md:p-8 flex flex-col justify-end text-left">
@@ -71,7 +70,6 @@ export default function Home() {
                 fill
                 priority
                 className="object-cover opacity-60 group-hover:opacity-80 transition-opacity"
-                data-ai-hint="futsal court"
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent p-6 md:p-8 flex flex-col justify-end text-left">
