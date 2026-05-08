@@ -2,8 +2,9 @@
 "use client";
 
 import { useState } from 'react';
-import { useUser, useFirestore, setDocumentNonBlocking, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { doc, collection, query, where } from 'firebase/firestore';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { TopNav } from '@/components/navigation/top-nav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,13 +16,16 @@ import {
   SelectContent, 
   SelectItem, 
   SelectTrigger, 
-  SelectValue 
+  SelectValue,
+  SelectGroup,
+  SelectLabel
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Send, Briefcase, Info, AlertTriangle, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { POSICIONES_FUTBOL, POSICIONES_FUTSAL } from '@/lib/constants';
 
 export default function NewOfferPage() {
   const router = useRouter();
@@ -32,7 +36,6 @@ export default function NewOfferPage() {
   const clubDocRef = useMemoFirebase(() => user ? doc(db, 'users', user.uid) : null, [db, user?.uid]);
   const { data: clubData, isLoading: isClubLoading } = useDoc(clubDocRef);
 
-  // Consulta de Ofertas Propias para verificar límites
   const myOffersQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(collection(db, 'offers'), where('clubId', '==', user.uid));
@@ -53,6 +56,7 @@ export default function NewOfferPage() {
   const currentOffersCount = myOffers?.length || 0;
   const isFreePlan = !clubData?.plan || clubData?.plan === 'free';
   const isLimitReached = isFreePlan && currentOffersCount >= 3;
+  const isFootball = clubData?.discipline === 'Football';
 
   const handleSubmit = () => {
     if (!user || !formData.position) return;
@@ -151,7 +155,7 @@ export default function NewOfferPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-black text-muted-foreground ml-2">¿A quién buscas?</Label>
-                  <Select value={formData.role} onValueChange={(v) => setFormData({...formData, role: v})}>
+                  <Select value={formData.role} onValueChange={(v) => setFormData({...formData, role: v, position: ''})}>
                     <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6 text-white font-bold">
                       <SelectValue />
                     </SelectTrigger>
@@ -164,12 +168,40 @@ export default function NewOfferPage() {
 
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-black text-muted-foreground ml-2">Puesto / Rol Específico</Label>
-                  <Input 
-                    placeholder="Ej: Delantero Centro / Analista Sub-19" 
-                    className="h-14 bg-white/5 border-none rounded-2xl px-6"
-                    value={formData.position}
-                    onChange={e => setFormData({...formData, position: e.target.value})}
-                  />
+                  {formData.role === 'Player' ? (
+                    <Select value={formData.position} onValueChange={(v) => setFormData({...formData, position: v})}>
+                      <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6 text-white font-bold">
+                        <SelectValue placeholder="Selecciona posición" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#111827] border-white/10 text-white">
+                        {isFootball ? (
+                          <>
+                            {Object.entries(POSICIONES_FUTBOL).map(([grupo, posis]) => (
+                              <SelectGroup key={grupo}>
+                                <SelectLabel className="text-primary font-black uppercase text-[10px]">{grupo}</SelectLabel>
+                                {posis.map(p => (
+                                  <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                                ))}
+                              </SelectGroup>
+                            ))}
+                          </>
+                        ) : (
+                          <>
+                            {POSICIONES_FUTSAL.map(p => (
+                              <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                            ))}
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input 
+                      placeholder="Ej: Analista Sub-19" 
+                      className="h-14 bg-white/5 border-none rounded-2xl px-6"
+                      value={formData.position}
+                      onChange={e => setFormData({...formData, position: e.target.value})}
+                    />
+                  )}
                 </div>
 
                 <div className="space-y-2">

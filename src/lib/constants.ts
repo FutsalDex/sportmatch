@@ -36,3 +36,36 @@ export const GET_LOCATION_LABEL = (country: string) => {
     default: return "PROVINCIA";
   }
 };
+
+export const POSICIONES_FUTBOL = {
+  "Portería": [
+    { value: "POR", label: "POR: Portero" }
+  ],
+  "Defensa": [
+    { value: "LD", label: "LD: Lateral Derecho" },
+    { value: "LI", label: "LI: Lateral Izquierdo" },
+    { value: "DFC", label: "DFC: Defensa Central" },
+    { value: "CAD", label: "CAD: Carrilero Derecho" },
+    { value: "CAI", label: "CAI: Carrilero Izquierdo" }
+  ],
+  "Mediocampo": [
+    { value: "MCD", label: "MCD: Mediocentro Defensivo" },
+    { value: "MC", label: "MC: Mediocentro" },
+    { value: "MCO", label: "MCO: Mediocentro Ofensivo" },
+    { value: "MD", label: "MD: Interior Derecho" },
+    { value: "MI", label: "MI: Interior Izquierdo" }
+  ],
+  "Delantera": [
+    { value: "ED", label: "ED: Extremo Derecho" },
+    { value: "EI", label: "EI: Extremo Izquierdo" },
+    { value: "SD", label: "SD: Segundo Delantero" },
+    { value: "DC", label: "DC: Delantero Centro" }
+  ]
+};
+
+export const POSICIONES_FUTSAL = [
+  { value: "POR", label: "POR: Portero" },
+  { value: "CIE", label: "CIE: Cierre" },
+  { value: "ALA", label: "ALA: Ala" },
+  { value: "PIV", label: "PIV: Pívot" }
+];

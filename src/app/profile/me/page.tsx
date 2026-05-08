@@ -45,7 +45,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
+  SelectGroup,
+  SelectLabel
 } from "@/components/ui/select";
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -53,7 +55,7 @@ import { TopNav } from '@/components/navigation/top-nav';
 import { useUser, useFirestore, useFirebase, useDoc, setDocumentNonBlocking, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { COUNTRIES } from '@/lib/constants';
+import { COUNTRIES, POSICIONES_FUTBOL, POSICIONES_FUTSAL } from '@/lib/constants';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
@@ -102,7 +104,6 @@ export default function MyProfilePage() {
     nationality: '',
     age: '',
     position: '',
-    mobility: 'Nacional',
     bio: '',
     isAiBio: false,
     height: '',
@@ -112,7 +113,6 @@ export default function MyProfilePage() {
     stadium: '',
     foundationYear: '',
     facilities: '',
-    // Campos Club
     tacticalSystem: '',
     philosophy: '',
     averageAge: '',
@@ -161,7 +161,6 @@ export default function MyProfilePage() {
         nationality: userData.nationality || '',
         age: userData.age?.toString() || '',
         position: userData.position || '',
-        mobility: userData.mobility || 'Nacional',
         instagram: userData.instagram || '',
         tiktok: userData.tiktok || '',
         twitter: userData.twitter || '',
@@ -210,6 +209,8 @@ export default function MyProfilePage() {
   const isElite = isAdmin || userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro' || userData?.plan === 'top';
   const isTargetCoach = userData?.role === 'Coach';
   const isTargetClub = userData?.role === 'Club';
+  const isTargetPlayer = userData?.role === 'Player';
+  const isFootball = userData?.discipline === 'Football';
 
   const calculateScore = () => {
     if (isAdmin && !isEditingOther) return 100;
@@ -268,7 +269,6 @@ export default function MyProfilePage() {
       nationality: formData.nationality,
       age: parseInt(formData.age) || 0,
       position: isTargetCoach ? primaryCert : formData.position,
-      mobility: formData.mobility,
       instagram: formData.instagram,
       tiktok: formData.tiktok,
       twitter: formData.twitter,
@@ -376,7 +376,6 @@ export default function MyProfilePage() {
         )}
 
         <div className="space-y-8">
-          {/* IDENTIDAD */}
           <Card className={cn("rounded-[2.5rem]", isAdmin ? "bg-[#1a0a0a] border-red-500/10" : "card-elite")}>
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center space-x-3 text-primary">
@@ -411,7 +410,6 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* ADN DEPORTIVO (SOLO CLUB) */}
           {isTargetClub && (
             <Card className="card-elite rounded-[2.5rem]">
               <CardContent className="p-10 space-y-8">
@@ -456,7 +454,6 @@ export default function MyProfilePage() {
             </Card>
           )}
 
-          {/* PARÁMETROS DE FICHAJE (SOLO CLUB) */}
           {isTargetClub && (
             <Card className="card-elite rounded-[2.5rem]">
               <CardContent className="p-10 space-y-8">
@@ -490,7 +487,6 @@ export default function MyProfilePage() {
             </Card>
           )}
 
-          {/* GESTIÓN Y CONTACTO (SOLO CLUB) */}
           {isTargetClub && (
             <Card className="card-elite rounded-[2.5rem]">
               <CardContent className="p-10 space-y-8">
@@ -512,7 +508,6 @@ export default function MyProfilePage() {
             </Card>
           )}
 
-          {/* PROTOCOLO / BIO */}
           <Card className={cn("rounded-[2.5rem]", isAdmin ? "bg-[#1a0a0a] border-red-500/10" : "card-elite")}>
             <CardContent className="p-10 space-y-6">
               <div className="flex items-center space-x-3 text-primary">
@@ -530,7 +525,6 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* FICHA TÉCNICA / DATOS CLUB */}
           {(!isAdmin || isEditingOther) && (
             <Card className="card-elite rounded-[2.5rem]">
               <CardContent className="p-10 space-y-8">
@@ -575,7 +569,35 @@ export default function MyProfilePage() {
                     <>
                       <div className="space-y-2">
                         <Label className="text-[10px] uppercase font-bold text-muted-foreground">Posición</Label>
-                        <Input value={formData.position || ''} onChange={e => setFormData({...formData, position: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" />
+                        {isTargetPlayer ? (
+                          <Select value={formData.position} onValueChange={v => setFormData({...formData, position: v})}>
+                            <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6">
+                              <SelectValue placeholder="Selecciona posición" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#111827] border-white/10 text-white">
+                              {isFootball ? (
+                                <>
+                                  {Object.entries(POSICIONES_FUTBOL).map(([grupo, posis]) => (
+                                    <SelectGroup key={grupo}>
+                                      <SelectLabel className="text-primary font-black uppercase text-[10px]">{grupo}</SelectLabel>
+                                      {posis.map(p => (
+                                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                                      ))}
+                                    </SelectGroup>
+                                  ))}
+                                </>
+                              ) : (
+                                <>
+                                  {POSICIONES_FUTSAL.map(p => (
+                                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                                  ))}
+                                </>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input value={formData.position || ''} onChange={e => setFormData({...formData, position: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label className="text-[10px] uppercase font-bold text-muted-foreground">Pierna</Label>
@@ -596,7 +618,6 @@ export default function MyProfilePage() {
             </Card>
           )}
 
-          {/* CARRERA / HISTORIAL */}
           {(!isAdmin || isEditingOther) && (
             <Card className="card-elite rounded-[2.5rem]">
               <CardContent className="p-10 space-y-8">
@@ -608,7 +629,6 @@ export default function MyProfilePage() {
                 </div>
                 
                 <div className="space-y-8">
-                  {/* FORMULARIO DE NUEVA TEMPORADA */}
                   <div className="bg-black/40 p-8 rounded-[2rem] border border-white/5 space-y-6">
                     <h3 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
                       <Zap className="w-4 h-4" /> Registrar Nueva Etapa
@@ -730,7 +750,6 @@ export default function MyProfilePage() {
                     </div>
                   </div>
 
-                  {/* LISTADO DE TEMPORADAS */}
                   <div className="space-y-4">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-2">Trayectoria Registrada</h3>
                     {formData.teamHistory.length === 0 ? (
@@ -792,7 +811,7 @@ export default function MyProfilePage() {
           onClick={handleSave} 
           className={cn(
             "fixed bottom-10 right-10 z-50 h-20 px-12 rounded-[2.5rem] font-black uppercase tracking-widest transition-all",
-            isAdmin ? "bg-red-500 text-white shadow-[0_0_50px_rgba(239,68,68,0.4)] hover:bg-red-600" : "bg-primary text-background shadow-[0_0_50px_rgba(234,179,8,0.4)]"
+            isAdmin ? "bg-red-500 text-white shadow-[0_0_50px_rgba(234,179,8,0.4)] hover:bg-red-600" : "bg-primary text-background shadow-[0_0_50px_rgba(234,179,8,0.4)]"
           )}
         >
           {isAdmin ? <ShieldAlert className="w-6 h-6 mr-3" /> : <Sparkles className="w-6 h-6 mr-3 fill-current" />}

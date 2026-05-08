@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -38,11 +37,13 @@ export default function OffersPage() {
   }, [user, isUserLoading, router]);
 
   const offersQuery = useMemoFirebase(() => {
-    // Es crítico no ejecutar la consulta hasta que el usuario esté identificado
-    // para evitar errores de permisos "Missing or insufficient permissions" al inicio.
-    if (!user) return null;
+    // ✅ CORREGIDO: Añadido isUserLoading a la guarda
+    // No construir la query hasta que:
+    // 1. La sesión haya sido resuelta (isUserLoading === false)
+    // 2. Exista un usuario autenticado (user !== null)
+    if (!db || isUserLoading || !user) return null;
     return query(collection(db, 'offers'), orderBy('createdAt', 'desc'));
-  }, [db, user?.uid]);
+  }, [db, user?.uid, isUserLoading]); // ✅ Añadido isUserLoading a dependencias
 
   const { data: offers, isLoading } = useCollection(offersQuery);
 

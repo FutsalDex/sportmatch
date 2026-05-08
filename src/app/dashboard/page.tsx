@@ -38,7 +38,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
 export default function DashboardPage() {
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const isAdmin = user?.email === 'admin01@gmail.com';
 
@@ -46,24 +46,24 @@ export default function DashboardPage() {
     return user ? doc(db, 'users', user.uid) : null;
   }, [db, user?.uid]);
 
-  const { data: userData, isLoading: isUserLoading } = useDoc(userDocRef);
+  const { data: userData, isLoading: isUserDataLoading } = useDoc(userDocRef);
 
   // Consulta de Ofertas Propias (Solo para Clubes)
+  // ✅ CORREGIDO: Añadido isUserLoading a la guarda
   const myOffersQuery = useMemoFirebase(() => {
-    if (!user || userData?.role !== 'Club') return null;
+    if (!db || isUserLoading || !user || userData?.role !== 'Club') return null;
     return query(collection(db, 'offers'), where('clubId', '==', user.uid), orderBy('createdAt', 'desc'));
-  }, [db, user?.uid, userData?.role]);
-
-  const { data: myOffers } = useCollection(myOffersQuery);
+  }, [db, user?.uid, userData?.role, isUserLoading]); // ✅ Añadido isUserLoading
 
   // Consulta global para el Admin
+  // ✅ CORREGIDO: Añadido isUserLoading a la guarda
   const allUsersQuery = useMemoFirebase(() => {
-    if (!isAdmin) return null;
+    if (!db || isUserLoading || !isAdmin) return null;
     return collection(db, 'users');
-  }, [db, isAdmin]);
+  }, [db, isAdmin, isUserLoading]); // ✅ Añadido isUserLoading
   const { data: allUsers } = useCollection(allUsersQuery);
 
-  if (isUserLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-primary font-bold animate-pulse uppercase tracking-[0.3em] text-xs">Cargando Terminal...</div>;
+  if (isUserLoading || isUserDataLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-primary font-bold animate-pulse uppercase tracking-[0.3em] text-xs">Cargando Terminal...</div>;
 
   const isClub = userData?.role === 'Club';
   const planLabel = isAdmin ? 'Super Administrador' : (userData?.plan === 'pro' ? 'Elite Pro' : userData?.plan === 'top' ? 'Elite Top' : (userData?.plan === 'verified' ? 'Elite Verificado' : 'Elite Free'));
