@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -17,7 +16,8 @@ import {
   Loader2,
   Building2,
   Clock,
-  Target
+  Target,
+  Trophy
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
@@ -37,9 +37,9 @@ export default function OffersPage() {
   }, [user, isUserLoading, router]);
 
   const offersQuery = useMemoFirebase(() => {
-    if (!db || isUserLoading || !user) return null;
+    if (!db || isUserLoading) return null;
     return query(collection(db, 'offers'), orderBy('createdAt', 'desc'));
-  }, [db, user?.uid, isUserLoading]);
+  }, [db, isUserLoading]);
 
   const { data: offers, isLoading } = useCollection(offersQuery);
 
@@ -110,11 +110,11 @@ export default function OffersPage() {
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-3">
                           <h3 className="text-2xl font-bold font-headline tracking-tight">{offer.position}</h3>
-                          <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase">{offer.teamRole || 'RECLUTAMIENTO'}</Badge>
+                          <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase">{offer.category || 'Senior'}</Badge>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                           <span className="flex items-center gap-2"><Building2 className="w-3.5 h-3.5 text-primary" /> {offer.clubName}</span>
-                          <span className="flex items-center gap-2"><Target className="w-3.5 h-3.5 text-primary" /> {offer.teamCategory || 'Élite'}</span>
+                          <span className="flex items-center gap-2"><Trophy className="w-3.5 h-3.5 text-primary" /> {offer.competition || offer.teamCategory || 'Élite'}</span>
                           <span className="flex items-center gap-2"><Wallet className="w-3.5 h-3.5 text-green-400" /> {offer.salaryRange || 'A convenir'}</span>
                         </div>
                       </div>

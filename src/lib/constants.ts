@@ -69,3 +69,24 @@ export const POSICIONES_FUTSAL = [
   { value: "ALA", label: "ALA: Ala" },
   { value: "PIV", label: "PIV: Pívot" }
 ];
+
+export const COMPETICIONES_FUTBOL_ES = [
+  "Primera Federación (1ª RFEF)",
+  "Segunda Federación (2ª RFEF)",
+  "Tercera Federación (3ª RFEF)",
+  "División de Honor",
+  "Preferente",
+  "Elite",
+  "Primera Regional",
+  "Segunda Regional",
+  "Tercera Regional"
+];
+
+export const CATEGORIAS_EDAD = [
+  "Senior",
+  "Juvenil",
+  "Cadete",
+  "Infantil",
+  "Alevín",
+  "Prebenjamín"
+];

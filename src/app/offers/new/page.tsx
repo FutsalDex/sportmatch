@@ -31,12 +31,18 @@ import {
   Users, 
   Target,
   AlertTriangle,
-  Trophy
+  Trophy,
+  Activity
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { POSICIONES_FUTBOL, POSICIONES_FUTSAL } from '@/lib/constants';
+import { 
+  POSICIONES_FUTBOL, 
+  POSICIONES_FUTSAL, 
+  COMPETICIONES_FUTBOL_ES, 
+  CATEGORIAS_EDAD 
+} from '@/lib/constants';
 
 export default function NewOfferPage() {
   const router = useRouter();
@@ -62,7 +68,8 @@ export default function NewOfferPage() {
     duration: '',
     onboardingDate: 'Inmediata',
     teamRole: 'Sin determinar',
-    teamCategory: '',
+    competition: '',
+    category: 'Senior',
     location: '',
     requirements: '',
     description: '',
@@ -79,11 +86,13 @@ export default function NewOfferPage() {
   const currentOffersCount = myOffers?.length || 0;
   const isFreePlan = !clubData?.plan || clubData?.plan === 'free';
   const isLimitReached = isFreePlan && currentOffersCount >= 3;
+  
   const isFootball = clubData?.discipline === 'Football';
+  const isSpain = clubData?.country === 'España' || !clubData?.country;
 
   const handleSubmit = () => {
-    if (!user || !formData.position || !formData.teamCategory) {
-      toast({ variant: "destructive", title: "Faltan Datos", description: "Debes completar la posición y la categoría del equipo." });
+    if (!user || !formData.position || !formData.competition) {
+      toast({ variant: "destructive", title: "Faltan Datos", description: "Debes completar la posición y la competición del equipo." });
       return;
     }
 
@@ -107,7 +116,8 @@ export default function NewOfferPage() {
       duration: formData.duration,
       onboardingDate: formData.onboardingDate,
       teamRole: formData.teamRole,
-      teamCategory: formData.teamCategory,
+      competition: formData.competition,
+      category: formData.category,
       location: clubData?.province || '',
       requirements: formData.requirements,
       description: formData.description,
@@ -226,14 +236,35 @@ export default function NewOfferPage() {
 
                     <div className="space-y-2">
                       <Label className="text-[10px] uppercase font-black text-muted-foreground ml-2 flex items-center gap-2">
-                        <Trophy className="w-3 h-3 text-primary" /> Categoría del Equipo
+                        <Trophy className="w-3 h-3 text-primary" /> Competición
                       </Label>
-                      <Input 
-                        placeholder="Ej: 3ª RFEF, Honor, Pro..." 
-                        className="h-14 bg-white/5 border-none rounded-2xl px-6" 
-                        value={formData.teamCategory} 
-                        onChange={e => setFormData({...formData, teamCategory: e.target.value})} 
-                      />
+                      {isFootball && isSpain ? (
+                        <Select value={formData.competition} onValueChange={(v) => setFormData({...formData, competition: v})}>
+                           <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6 font-bold"><SelectValue placeholder="Selecciona competición" /></SelectTrigger>
+                           <SelectContent className="bg-[#111827] border-white/10 text-white">
+                              {COMPETICIONES_FUTBOL_ES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                           </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input 
+                          placeholder="Ej: 3ª RFEF, Honor, Pro..." 
+                          className="h-14 bg-white/5 border-none rounded-2xl px-6" 
+                          value={formData.competition} 
+                          onChange={e => setFormData({...formData, competition: e.target.value})} 
+                        />
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-black text-muted-foreground ml-2 flex items-center gap-2">
+                        <Activity className="w-3 h-3 text-primary" /> Categoría
+                      </Label>
+                      <Select value={formData.category} onValueChange={(v) => setFormData({...formData, category: v})}>
+                         <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6 font-bold"><SelectValue placeholder="Selecciona categoría" /></SelectTrigger>
+                         <SelectContent className="bg-[#111827] border-white/10 text-white">
+                            {CATEGORIAS_EDAD.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                         </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="space-y-2">

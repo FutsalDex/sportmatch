@@ -23,12 +23,14 @@ import {
   Users,
   Globe2,
   FileCheck,
-  UserCheck
+  UserCheck,
+  Trophy,
+  Activity
 } from 'lucide-react';
 
 interface OfferData {
   id: string;
-  title: string; // Mapeado desde 'position'
+  title: string;
   clubId: string;
   clubName?: string;
   clubLogo?: string;
@@ -45,7 +47,8 @@ interface OfferData {
   languageLevel?: string;
   mandatoryDocs?: string;
   teamRole?: string;
-  teamCategory?: string;
+  competition?: string;
+  category?: string;
   onboardingDate?: string;
   duration?: string;
   createdAt: Date;
@@ -120,7 +123,8 @@ export default function OfferDetailPage() {
           languageLevel: data.languageLevel,
           mandatoryDocs: data.mandatoryDocs,
           teamRole: data.teamRole,
-          teamCategory: data.teamCategory,
+          competition: data.competition || data.teamCategory,
+          category: data.category,
           onboardingDate: data.onboardingDate,
           duration: data.duration,
           createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
@@ -260,8 +264,12 @@ export default function OfferDetailPage() {
                   <span className="text-xs font-bold text-primary uppercase">{offer.teamRole || 'Sin determinar'}</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                  <span className="text-[10px] font-black text-muted-foreground uppercase">Categoría</span>
-                  <span className="text-xs font-bold text-white uppercase">{offer.teamCategory || 'Élite'}</span>
+                  <span className="text-[10px] font-black text-muted-foreground uppercase">Competición</span>
+                  <span className="text-xs font-bold text-white uppercase">{offer.competition || 'Élite'}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                   <span className="text-[10px] font-black text-muted-foreground uppercase">Categoría</span>
+                   <span className="text-xs font-bold text-white uppercase">{offer.category || 'Senior'}</span>
                 </div>
               </div>
             </Card>
