@@ -22,7 +22,8 @@ import {
   MessageCircle,
   Play,
   Lock,
-  Crown
+  Crown,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -86,6 +87,7 @@ const PLAYER_PLANS = [
       { text: "Asesor deportivo SportMatch", included: true, icon: Users },
       { text: "Informes Técnico Detallado", included: true, icon: FileText },
       { text: "Videanálisis de Alto Nivel", included: true, icon: Play },
+      { text: "Estrategia de Contenidos", included: true, icon: Sparkles },
       { text: "Gestión de Pruebas y Showcases", included: true, icon: Target },
       { text: "Contacto con secretarías técnicas", included: true, icon: MessageCircle },
     ],
@@ -220,7 +222,7 @@ export default function PricingPage() {
                           <FeatureIcon className={cn(
                             "w-3 h-3", 
                             feature.included 
-                              ? (plan.dark || plan.gold ? "text-primary" : "text-primary") 
+                              ? "text-primary" 
                               : "text-muted-foreground"
                           )} />
                         </div>
