@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
@@ -6,17 +7,17 @@ import { TopNav } from '@/components/navigation/top-nav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Briefcase, 
   MapPin, 
-  Calendar, 
   Wallet, 
-  Search, 
   Plus,
   ArrowUpRight,
   Loader2,
-  Filter,
-  Building2
+  Building2,
+  Clock,
+  Target
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
@@ -29,7 +30,6 @@ export default function OffersPage() {
   const db = useFirestore();
   const [roleFilter, setRoleFilter] = useState<'all' | 'Player' | 'Coach'>('all');
 
-  // Redirección si no hay usuario una vez terminada la carga de sesión
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login');
@@ -37,13 +37,9 @@ export default function OffersPage() {
   }, [user, isUserLoading, router]);
 
   const offersQuery = useMemoFirebase(() => {
-    // ✅ CORREGIDO: Añadido isUserLoading a la guarda
-    // No construir la query hasta que:
-    // 1. La sesión haya sido resuelta (isUserLoading === false)
-    // 2. Exista un usuario autenticado (user !== null)
     if (!db || isUserLoading || !user) return null;
     return query(collection(db, 'offers'), orderBy('createdAt', 'desc'));
-  }, [db, user?.uid, isUserLoading]); // ✅ Añadido isUserLoading a dependencias
+  }, [db, user?.uid, isUserLoading]);
 
   const { data: offers, isLoading } = useCollection(offersQuery);
 
@@ -68,37 +64,27 @@ export default function OffersPage() {
             <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tighter uppercase italic leading-none">
               Oportunidades <span className="text-primary">Elite</span>
             </h1>
-            <p className="text-muted-foreground text-sm font-medium max-w-xl">
-              Explora las vacantes publicadas por clubes profesionales de la red SportMatch AI.
-            </p>
           </div>
 
-          <div className="flex gap-4">
-            <Button asChild className="h-14 px-8 rounded-2xl bg-primary text-background font-black uppercase text-xs tracking-widest shadow-xl hover:bg-primary/90">
-              <Link href="/offers/new" className="flex items-center gap-2">
-                <Plus className="w-5 h-5" /> PUBLICAR OFERTA
-              </Link>
-            </Button>
-          </div>
+          <Button asChild className="h-14 px-8 rounded-2xl bg-primary text-background font-black uppercase text-xs tracking-widest shadow-xl">
+            <Link href="/offers/new" className="flex items-center gap-2">
+              <Plus className="w-5 h-5" /> PUBLICAR OFERTA
+            </Link>
+          </Button>
         </header>
 
         <section className="space-y-6">
           <div className="flex items-center gap-3 bg-[#111827] p-1.5 rounded-2xl border border-white/5 w-fit">
-            <Button 
-              variant="ghost" 
-              onClick={() => setRoleFilter('all')}
-              className={cn("h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest", roleFilter === 'all' && "bg-primary text-background")}
-            >TODAS</Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => setRoleFilter('Player')}
-              className={cn("h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest", roleFilter === 'Player' && "bg-primary text-background")}
-            >JUGADORES</Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => setRoleFilter('Coach')}
-              className={cn("h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest", roleFilter === 'Coach' && "bg-primary text-background")}
-            >ENTRENADORES</Button>
+            {(['all', 'Player', 'Coach'] as const).map((r) => (
+              <Button 
+                key={r}
+                variant="ghost" 
+                onClick={() => setRoleFilter(r)}
+                className={cn("h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest", roleFilter === r && "bg-primary text-background")}
+              >
+                {r === 'all' ? 'TODAS' : r === 'Player' ? 'JUGADORES' : 'ENTRENADORES'}
+              </Button>
+            ))}
           </div>
 
           <div className="grid gap-6">
@@ -108,26 +94,27 @@ export default function OffersPage() {
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sincronizando mercado...</p>
               </div>
             ) : filteredOffers.length === 0 ? (
-              <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[3rem] space-y-4">
-                <Search className="w-12 h-12 text-muted-foreground/20 mx-auto" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No hay ofertas activas para este rol.</p>
+              <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[3rem] opacity-30">
+                <Briefcase className="w-12 h-12 mx-auto mb-4" />
+                <p className="text-[10px] font-black uppercase tracking-widest">No hay ofertas activas.</p>
               </div>
             ) : (
               filteredOffers.map((offer) => (
-                <Card key={offer.id} className="card-elite rounded-[2.5rem] bg-[#111827]/40 border-white/5 hover:border-primary/20 transition-all overflow-hidden group">
-                  <CardContent className="p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-                    <div className="flex items-center gap-6 flex-1">
-                      <div className="bg-primary/10 p-4 rounded-3xl group-hover:bg-primary/20 transition-colors">
-                        <Briefcase className="w-8 h-8 text-primary" />
-                      </div>
-                      <div className="space-y-2">
+                <Card key={offer.id} className="card-elite rounded-[2.5rem] bg-[#111827]/40 border-white/5 hover:border-primary/40 transition-all overflow-hidden group">
+                  <CardContent className="p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="flex items-center gap-6 flex-1 w-full">
+                      <Avatar className="w-20 h-20 rounded-[1.5rem] border-2 border-white/5 shadow-xl">
+                        <AvatarImage src={offer.clubLogo} className="object-cover" />
+                        <AvatarFallback className="bg-primary/10 text-primary font-black text-xl">{offer.clubName?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-3">
                           <h3 className="text-2xl font-bold font-headline tracking-tight">{offer.position}</h3>
-                          <Badge className="bg-white/5 text-white border-white/10 text-[8px] font-black uppercase px-2">{offer.role}</Badge>
+                          <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase">{offer.teamRole || 'RECLUTAMIENTO'}</Badge>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                           <span className="flex items-center gap-2"><Building2 className="w-3.5 h-3.5 text-primary" /> {offer.clubName}</span>
-                          <span className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5 text-primary" /> {offer.location || 'Consultar'}</span>
+                          <span className="flex items-center gap-2"><Target className="w-3.5 h-3.5 text-primary" /> {offer.teamCategory || 'Élite'}</span>
                           <span className="flex items-center gap-2"><Wallet className="w-3.5 h-3.5 text-green-400" /> {offer.salaryRange || 'A convenir'}</span>
                         </div>
                       </div>
@@ -135,11 +122,11 @@ export default function OffersPage() {
 
                     <div className="flex items-center gap-4 w-full md:w-auto">
                       <div className="flex-1 md:text-right space-y-1">
-                         <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Publicado hace</p>
-                         <p className="text-[10px] font-bold">RECIENTEMENTE</p>
+                         <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Incorporación</p>
+                         <p className="text-[10px] font-bold text-white uppercase">{offer.onboardingDate || 'INMEDIATA'}</p>
                       </div>
-                      <Button className="h-14 px-8 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-background hover:border-primary transition-all gap-2">
-                        VER DETALLES <ArrowUpRight className="w-4 h-4" />
+                      <Button asChild className="h-14 px-8 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase text-[10px] tracking-widest hover:bg-primary hover:text-background hover:border-primary transition-all gap-2">
+                        <Link href={`/offers/${offer.id}`}>VER DETALLES <ArrowUpRight className="w-4 h-4" /></Link>
                       </Button>
                     </div>
                   </CardContent>
