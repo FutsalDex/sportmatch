@@ -24,7 +24,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { TopNav } from '@/components/navigation/top-nav';
 import Link from 'next/link';
@@ -32,10 +32,13 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useDiscipline } from '@/context/discipline-context';
 import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL } from '@/lib/constants';
+import { useRouter } from 'next/navigation';
 
 export default function RankingsPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const db = useFirestore();
+  const { user, isUserLoading: isAuthLoading } = useUser();
   const { discipline } = useDiscipline();
   const [favorites, setFavorites] = useState<string[]>([]);
   
@@ -44,14 +47,25 @@ export default function RankingsPage() {
   const [countryFilter, setCountryFilter] = useState<string>('España');
   const [zoneFilter, setZoneFilter] = useState<string>('all');
   
-  // Referencia memorizada a la colección de usuarios
-  const usersRef = useMemoFirebase(() => collection(db, 'users'), [db]);
-  const { data: realUsers, isLoading: isUsersLoading } = useCollection(usersRef);
+  // Redirección si no hay usuario
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isAuthLoading, router]);
 
   useEffect(() => {
     const saved = localStorage.getItem('sm_favorites');
     if (saved) setFavorites(JSON.parse(saved));
   }, []);
+
+  // Referencia memorizada a la colección de usuarios (solo si hay usuario)
+  const usersRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return collection(db, 'users');
+  }, [db, user]);
+
+  const { data: realUsers, isLoading: isUsersLoading } = useCollection(usersRef);
 
   const toggleFavorite = (e: React.MouseEvent, userId: string) => {
     e.preventDefault();
@@ -70,7 +84,6 @@ export default function RankingsPage() {
     localStorage.setItem('sm_favorites', JSON.stringify(newFavs));
   };
 
-  // Lógica de filtrado y ordenación sobre datos reales
   const filteredAndSortedUsers = useMemo(() => {
     if (!realUsers) return [];
     
@@ -89,6 +102,8 @@ export default function RankingsPage() {
   const locationLabel = GET_LOCATION_LABEL(countryFilter);
   const locationList = GET_LOCATION_LIST(countryFilter);
 
+  if (isAuthLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Validando Credenciales...</div>;
+
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">
       <TopNav />
@@ -106,7 +121,6 @@ export default function RankingsPage() {
         </h1>
       </header>
 
-      {/* Barra de Filtros Técnica */}
       <section className="max-w-5xl mx-auto w-full px-6 mb-8">
         <div className="bg-[#111827]/50 border border-white/5 p-4 rounded-[2rem] space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -168,7 +182,6 @@ export default function RankingsPage() {
         </div>
       </section>
 
-      {/* Lista de Resultados Reales */}
       <section className="max-w-5xl mx-auto w-full px-6 space-y-2">
         {isUsersLoading ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-4">

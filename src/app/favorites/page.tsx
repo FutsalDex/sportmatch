@@ -15,20 +15,34 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { TopNav } from '@/components/navigation/top-nav';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function FavoritesPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const db = useFirestore();
+  const { user, isUserLoading: isAuthLoading } = useUser();
   const [favorites, setFavorites] = useState<string[]>([]);
   
-  // Sincronización con la base de datos real
-  const usersRef = useMemoFirebase(() => collection(db, 'users'), [db]);
+  // Redirección si no hay usuario
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isAuthLoading, router]);
+
+  // Sincronización con la base de datos real (solo si hay usuario)
+  const usersRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return collection(db, 'users');
+  }, [db, user]);
+
   const { data: allUsers, isLoading: isUsersLoading } = useCollection(usersRef);
   
   useEffect(() => {
@@ -51,6 +65,8 @@ export default function FavoritesPage() {
     if (!allUsers) return [];
     return allUsers.filter(u => favorites.includes(u.id));
   }, [allUsers, favorites]);
+
+  if (isAuthLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Cargando Mis Favoritos...</div>;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white pb-20">

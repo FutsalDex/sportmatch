@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, SlidersHorizontal, MapPin, ShieldCheck, Star, Globe, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -15,22 +15,36 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { TopNav } from '@/components/navigation/top-nav';
 import Link from 'next/link';
 import { useDiscipline } from '@/context/discipline-context';
 import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL } from '@/lib/constants';
+import { useRouter } from 'next/navigation';
 
 export default function SearchPage() {
+  const router = useRouter();
   const db = useFirestore();
+  const { user, isUserLoading: isAuthLoading } = useUser();
   const { discipline } = useDiscipline();
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [countryFilter, setCountryFilter] = useState<string>('España');
   const [zoneFilter, setZoneFilter] = useState<string>('all');
 
-  const usersRef = useMemoFirebase(() => collection(db, 'users'), [db]);
+  // Redirección si no hay usuario
+  useEffect(() => {
+    if (!isAuthLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isAuthLoading, router]);
+
+  const usersRef = useMemoFirebase(() => {
+    if (!user) return null;
+    return collection(db, 'users');
+  }, [db, user]);
+
   const { data: realUsers, isLoading: isUsersLoading } = useCollection(usersRef);
 
   const filteredUsers = useMemo(() => {
@@ -49,6 +63,8 @@ export default function SearchPage() {
 
   const locationLabel = GET_LOCATION_LABEL(countryFilter);
   const locationList = GET_LOCATION_LIST(countryFilter);
+
+  if (isAuthLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Sincronizando Terminal de Búsqueda...</div>;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#030712] text-white">
