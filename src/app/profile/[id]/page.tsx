@@ -1,3 +1,4 @@
+
 "use client";
 
 import { use, useState } from 'react';
@@ -223,7 +224,9 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                   {isCoach ? (
                     <div className="flex justify-between md:justify-end gap-6 md:gap-10 text-center">
                       <div><p className="text-[7px] font-black text-muted-foreground uppercase mb-1">Posición</p><p className="font-bold text-base md:text-xl">{entry.leaguePosition || '-'}</p></div>
-                      <div><p className="text-[7px] font-black text-muted-foreground uppercase mb-1">Ascenso</p><p className={cn("font-bold text-base md:text-xl", entry.promotion === 'Sí' ? "text-primary" : "text-white")}>{entry.promotion || 'No'}</p></div>
+                      <div><p className="text-[7px] font-black text-muted-foreground uppercase mb-1">PG</p><p className="font-bold text-base md:text-xl text-green-400">{entry.wins || 0}</p></div>
+                      <div><p className="text-[7px] font-black text-muted-foreground uppercase mb-1">PE</p><p className="font-bold text-base md:text-xl">{entry.draws || 0}</p></div>
+                      <div><p className="text-[7px] font-black text-muted-foreground uppercase mb-1">PP</p><p className="font-bold text-base md:text-xl text-red-400">{entry.losses || 0}</p></div>
                     </div>
                   ) : (
                     <div className="flex justify-between md:justify-end gap-6 md:gap-10 text-center">

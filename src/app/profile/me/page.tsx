@@ -69,6 +69,9 @@ interface SeasonEntry {
   league?: string; // For coaches
   leaguePosition?: string; // For coaches
   promotion?: string; // For coaches ("Sí" / "No")
+  wins?: number; // For coaches
+  draws?: number; // For coaches
+  losses?: number; // For coaches
 }
 
 export default function MyProfilePage() {
@@ -118,7 +121,10 @@ export default function MyProfilePage() {
       matches: 0,
       league: '',
       leaguePosition: '',
-      promotion: 'No'
+      promotion: 'No',
+      wins: 0,
+      draws: 0,
+      losses: 0
     } as SeasonEntry
   });
 
@@ -312,7 +318,10 @@ export default function MyProfilePage() {
           matches: 0,
           league: '',
           leaguePosition: '',
-          promotion: 'No'
+          promotion: 'No',
+          wins: 0,
+          draws: 0,
+          losses: 0
         } 
       }));
     }
@@ -603,7 +612,7 @@ export default function MyProfilePage() {
                 <Badge variant="outline" className="border-primary/20 text-primary text-[8px] font-black">MÁX 10 PTS</Badge>
               </div>
               <div className="space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-4 bg-black/20 p-6 rounded-[2rem]">
+                <div className="grid grid-cols-2 md:grid-cols-9 gap-4 bg-black/20 p-6 rounded-[2rem] items-end">
                   {isCoach ? (
                     <>
                       <div className="space-y-1">
@@ -619,11 +628,11 @@ export default function MyProfilePage() {
                         <Input placeholder="Liga" value={formData.newSeason.league} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, league: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Posición</Label>
+                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Pos.</Label>
                         <Input placeholder="1º" value={formData.newSeason.leaguePosition} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, leaguePosition: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Ascenso</Label>
+                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Asc.</Label>
                         <Select value={formData.newSeason.promotion} onValueChange={v => setFormData({...formData, newSeason: {...formData.newSeason, promotion: v}})}>
                           <SelectTrigger className="bg-[#030712] border-none rounded-xl h-10 px-4"><SelectValue /></SelectTrigger>
                           <SelectContent className="bg-[#111827] border-white/10 text-white">
@@ -631,6 +640,18 @@ export default function MyProfilePage() {
                             <SelectItem value="No">No</SelectItem>
                           </SelectContent>
                         </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">PG</Label>
+                        <Input type="number" value={formData.newSeason.wins} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, wins: parseInt(e.target.value)}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">PE</Label>
+                        <Input type="number" value={formData.newSeason.draws} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, draws: parseInt(e.target.value)}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">PP</Label>
+                        <Input type="number" value={formData.newSeason.losses} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, losses: parseInt(e.target.value)}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
                       </div>
                     </>
                   ) : (
@@ -671,6 +692,9 @@ export default function MyProfilePage() {
                     {isCoach ? (
                       <div className="flex gap-8 mr-8">
                         <div><p className="text-[8px] font-black text-muted-foreground uppercase">Ascenso</p><p className={cn("font-bold text-lg", item.promotion === 'Sí' ? "text-primary" : "text-white")}>{item.promotion}</p></div>
+                        <div><p className="text-[8px] font-black text-muted-foreground uppercase">PG</p><p className="font-bold text-lg text-green-400">{item.wins || 0}</p></div>
+                        <div><p className="text-[8px] font-black text-muted-foreground uppercase">PE</p><p className="font-bold text-lg">{item.draws || 0}</p></div>
+                        <div><p className="text-[8px] font-black text-muted-foreground uppercase">PP</p><p className="font-bold text-lg text-red-400">{item.losses || 0}</p></div>
                       </div>
                     ) : (
                       <div className="flex gap-8 mr-8">
