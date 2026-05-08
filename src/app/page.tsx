@@ -44,8 +44,9 @@ export default function Home() {
                 src={footballBg} 
                 alt="Fútbol"
                 fill
-                className="object-cover opacity-50 group-hover:opacity-70 transition-opacity"
-                data-ai-hint="football match"
+                priority
+                className="object-cover opacity-60 group-hover:opacity-80 transition-opacity"
+                data-ai-hint="football player"
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent p-6 md:p-8 flex flex-col justify-end text-left">
@@ -68,7 +69,8 @@ export default function Home() {
                 src={futsalBg} 
                 alt="Fútbol Sala"
                 fill
-                className="object-cover opacity-50 group-hover:opacity-70 transition-opacity"
+                priority
+                className="object-cover opacity-60 group-hover:opacity-80 transition-opacity"
                 data-ai-hint="futsal court"
               />
             )}

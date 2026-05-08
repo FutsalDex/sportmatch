@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
@@ -9,6 +10,7 @@ service firebase.storage {
     
     match /RECURSOS/{allPaths=**} {
       allow read: if true;
+      allow write: if false; // Solo lectura pública para recursos corporativos
     }
 
     match /{allPaths=**} {
