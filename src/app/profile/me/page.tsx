@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -399,6 +400,13 @@ export default function MyProfilePage() {
                   </div>
                 </div>
                 <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Edad</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary z-10" />
+                    <Input type="number" value={formData.age || ''} onChange={e => setFormData({...formData, age: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12 pr-6" />
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">País</Label>
                   <Select value={formData.country || 'España'} onValueChange={v => setFormData({...formData, country: v, province: ''})}>
                     <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6"><SelectValue placeholder="País" /></SelectTrigger>
@@ -555,9 +563,8 @@ export default function MyProfilePage() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                   {[
-                    { label: 'Edad', key: 'age', type: 'number' },
                     { label: 'Altura (CM)', key: 'height', type: 'number' },
                     { label: 'Peso (KG)', key: 'weight', type: 'number' }
                   ].map((field) => (
