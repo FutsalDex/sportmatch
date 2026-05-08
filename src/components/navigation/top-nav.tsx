@@ -42,7 +42,7 @@ const navItems = [
   { icon: Home, label: 'INICIO', href: '/' },
   { icon: BarChart3, label: 'RANKING', href: '/rankings' },
   { icon: Star, label: 'FAVORITOS', href: '/favorites' },
-  { icon: LayoutDashboard, label: 'DASHBOARD', href: '/dashboard' },
+  { icon: LayoutDashboard, label: 'MI PANEL', href: '/dashboard' },
   { icon: Briefcase, label: 'SCOUTING', href: '/search' },
   { icon: CreditCard, label: 'PLANES', href: '/pricing' },
 ];
@@ -134,7 +134,7 @@ export function TopNav() {
               <DropdownMenuItem asChild className="focus:bg-white/5 rounded-xl py-3 px-4 cursor-pointer">
                 <Link href="/dashboard" className="flex items-center gap-3">
                   <ShieldCheck className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-bold text-white">Panel Control</span>
+                  <span className="text-sm font-bold text-white">Mi Panel</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/10 my-1 mx-2" />

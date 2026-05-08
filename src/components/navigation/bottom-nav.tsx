@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -10,7 +11,7 @@ const navItems = [
   { icon: Search, label: 'Scout', href: '/search' },
   { icon: BarChart3, label: 'Rankings', href: '/rankings' },
   { icon: Star, label: 'Favs', href: '/favorites' },
-  { icon: LayoutDashboard, label: 'Panel', href: '/dashboard' },
+  { icon: LayoutDashboard, label: 'Mi Panel', href: '/dashboard' },
   { icon: User, label: 'Perfil', href: '/profile/me' },
 ];
 

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -33,6 +34,8 @@ export default function DashboardPage() {
 
   if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-primary font-bold animate-pulse uppercase tracking-[0.3em] text-xs p-10 text-center">Cargando Terminal de Inteligencia...</div>;
 
+  const planLabel = userData?.plan === 'pro' ? 'Elite Pro' : userData?.plan === 'verified' ? 'Elite Verificado' : 'Elite Free';
+
   return (
     <div className="min-h-screen bg-[#030712] text-white">
       <TopNav />
@@ -41,7 +44,7 @@ export default function DashboardPage() {
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
             <Badge variant="outline" className="border-primary/30 text-primary bg-primary/5 px-4 py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">
-              Centro de Mando Activo
+              Mi Panel
             </Badge>
             <h1 className="text-2xl md:text-4xl font-bold font-headline tracking-tighter">Hola, {userData?.name?.split(' ')[0] || 'Scout'}</h1>
             <p className="text-[10px] md:text-base text-muted-foreground font-medium">Gestiona tu carrera y analiza tu impacto.</p>
@@ -53,7 +56,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Plan Actual</p>
-                <p className="font-bold text-xs md:text-sm">Elite Free</p>
+                <p className="font-bold text-xs md:text-sm uppercase tracking-tighter">{planLabel}</p>
               </div>
             </div>
           </div>
@@ -67,13 +70,13 @@ export default function DashboardPage() {
                 <div className="bg-primary/10 p-2 md:p-3 rounded-2xl group-hover:bg-primary/20 transition-colors">
                   <Star className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                 </div>
-                <Badge className="bg-primary/10 text-primary border-none text-[9px] md:text-[10px]">Top 5%</Badge>
+                <Badge className="bg-primary/10 text-primary border-none text-[9px] md:text-[10px]">Puntuación Real</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">{userData?.score || 50}</p>
+                <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">{userData?.score || 0}</p>
                 <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Score IA Global</p>
               </div>
-              <Progress value={userData?.score || 50} className="h-1 bg-white/5" />
+              <Progress value={userData?.score || 0} className="h-1 bg-white/5" />
             </CardContent>
           </Card>
 
@@ -112,7 +115,7 @@ export default function DashboardPage() {
                 <p className="text-[10px] md:text-xs text-muted-foreground font-medium">Análisis avanzado e insignias élite.</p>
               </div>
               <Button asChild className="w-full h-10 md:h-12 bg-primary text-background font-black uppercase text-[9px] md:text-[10px] tracking-widest rounded-xl md:rounded-2xl hover:bg-primary/90">
-                <Link href="/pricing" className="flex items-center justify-center">
+                <Link href="/pricing" className="flex items-center justify-center text-white">
                   Mejorar Ahora <ArrowUpRight className="ml-2 w-4 h-4" />
                 </Link>
               </Button>
@@ -198,16 +201,16 @@ export default function DashboardPage() {
           </div>
           <div className="space-y-2 md:space-y-4 flex-1 text-center md:text-left">
             <h2 className="text-xl md:text-3xl font-bold font-headline tracking-tighter uppercase italic">Predicción IA de Mercado</h2>
-            <p className="font-bold text-sm md:text-lg leading-tight">
-              "Tu Score ha subido +4 puntos tras actualizar tu biografía. El 80% de los clubes buscan perfiles con tu versatilidad táctica."
+            <p className="font-bold text-sm md:text-lg leading-tight text-background">
+              "Tu Score ha subido puntos tras actualizar tu biografía. El 80% de los clubes buscan perfiles con tu versatilidad táctica."
             </p>
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
               <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[8px] md:text-[10px]">TENDENCIA ASCENDENTE</Badge>
               <Badge variant="outline" className="bg-background/20 text-background border-background/30 font-black text-[8px] md:text-[10px]">ALTA VISIBILIDAD</Badge>
             </div>
           </div>
-          <Button variant="outline" className="w-full md:w-auto h-12 md:h-16 rounded-2xl md:rounded-3xl border-background bg-background text-white hover:bg-background/90 hover:text-primary font-black px-8 text-[10px] md:text-sm">
-            VER ANÁLISIS DETALLADO
+          <Button variant="outline" asChild className="w-full md:w-auto h-12 md:h-16 rounded-2xl md:rounded-3xl border-background bg-background text-white hover:bg-background/90 hover:text-primary font-black px-8 text-[10px] md:text-sm">
+            <Link href="/profile/me">VER ANÁLISIS DETALLADO</Link>
           </Button>
         </section>
       </main>
