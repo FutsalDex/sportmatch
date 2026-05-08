@@ -4,6 +4,7 @@ import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@
 import { TopNav } from '@/components/navigation/top-nav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Zap, 
   TrendingUp, 
