@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
@@ -18,7 +19,8 @@ import {
   ShieldAlert,
   Database,
   Search,
-  Activity
+  Activity,
+  CreditCard
 } from 'lucide-react';
 import { doc, collection, query, where } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
@@ -40,7 +42,6 @@ export default function DashboardPage() {
   // Consulta de Matches
   const matchesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    // Si es admin, quizás quiera ver todos, pero por ahora los suyos o una muestra
     return query(collection(db, 'matches'), where(`members.${user.uid}`, '==', true));
   }, [db, user?.uid]);
 
@@ -99,25 +100,30 @@ export default function DashboardPage() {
         {isAdmin ? (
           /* DASHBOARD ADMIN */
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="card-elite rounded-[2.5rem] border-red-500/20 bg-red-500/5">
-              <CardContent className="p-6 md:p-8 space-y-4">
-                <div className="bg-red-500/10 p-3 rounded-2xl w-fit">
+            <Card className="card-elite rounded-[2.5rem] border-red-500/20 bg-red-500/5 hover:border-red-500/40 transition-all cursor-pointer group">
+              <Link href="/admin/users" className="block p-6 md:p-8 space-y-4">
+                <div className="bg-red-500/10 p-3 rounded-2xl w-fit group-hover:bg-red-500/20 transition-colors">
                   <Users className="w-6 h-6 text-red-500" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">{allUsers?.length || 0}</p>
-                  <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Usuarios Totales</p>
+                  <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Gestión de Usuarios</p>
                 </div>
-              </CardContent>
+                <div className="flex items-center text-red-500 text-[8px] font-black uppercase tracking-widest">
+                  ABRIR BASE DE DATOS <ChevronRight className="ml-1 w-3 h-3" />
+                </div>
+              </Link>
             </Card>
             <Card className="card-elite rounded-[2.5rem] border-blue-500/20">
               <CardContent className="p-6 md:p-8 space-y-4">
                 <div className="bg-blue-500/10 p-3 rounded-2xl w-fit">
-                  <Database className="w-6 h-6 text-blue-400" />
+                  <CreditCard className="w-6 h-6 text-blue-400" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">Active</p>
-                  <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Estado Servidores</p>
+                  <p className="text-3xl md:text-4xl font-black font-headline tracking-tighter">
+                    {allUsers?.filter(u => u.plan === 'pro' || u.plan === 'verified').length || 0}
+                  </p>
+                  <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Cuentas Premium</p>
                 </div>
               </CardContent>
             </Card>
@@ -216,7 +222,7 @@ export default function DashboardPage() {
             <h2 className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-muted-foreground flex items-center">
               <LayoutDashboard className="w-4 h-4 mr-2" /> {isAdmin ? 'Gestión de Sistema' : 'Pipeline de Scouting'}
             </h2>
-            <Link href={isAdmin ? "/search" : "/matches"} className="text-primary text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:underline flex items-center">
+            <Link href={isAdmin ? "/admin/users" : "/matches"} className="text-primary text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:underline flex items-center">
               Ver todos <ChevronRight className="ml-1 w-3 h-3" />
             </Link>
           </div>
@@ -228,11 +234,11 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                    <Card className="bg-[#111827] border-red-500/10 rounded-3xl p-6">
                       <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                        <Search className="w-5 h-5 text-red-500" /> Búsqueda Maestra
+                        <Users className="w-5 h-5 text-red-500" /> Explorador de Usuarios
                       </h3>
-                      <p className="text-sm text-muted-foreground mb-6">Accede a cualquier perfil de la red con privilegios de edición total.</p>
+                      <p className="text-sm text-muted-foreground mb-6">Listado detallado de identidades, planes y estados de validación de toda la red.</p>
                       <Button asChild className="w-full bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500/20 rounded-2xl h-12">
-                        <Link href="/search">IR AL BUSCADOR</Link>
+                        <Link href="/admin/users">VER BASE DE DATOS</Link>
                       </Button>
                    </Card>
                    <Card className="bg-[#111827] border-white/5 rounded-3xl p-6">
