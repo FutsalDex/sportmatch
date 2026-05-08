@@ -73,7 +73,6 @@ export default function MyProfilePage() {
   const { toast } = useToast();
 
   const isAdmin = user?.email === 'admin01@gmail.com';
-  // Si hay un editId y somos admin, editamos a ese sujeto, si no, a nosotros mismos
   const targetUserId = (isAdmin && editId) ? editId : user?.uid;
   const isEditingOther = isAdmin && editId && editId !== user?.uid;
 
@@ -170,13 +169,8 @@ export default function MyProfilePage() {
   const isTargetCoach = userData?.role === 'Coach';
 
   const calculateScore = () => {
-    // Si somos admin y editamos nuestro propio perfil (o el sistema de mando)
     if (isAdmin && !isEditingOther) return 100;
-    
-    // Si editamos a otro o somos usuario normal, calculamos
     let score = 0;
-    const isFree = !isElite;
-
     let basicScore = 0;
     if (formData.name) basicScore += 2;
     if (formData.nationality) basicScore += 2;
@@ -316,20 +310,6 @@ export default function MyProfilePage() {
           </Card>
         )}
 
-        {isAdmin && !isEditingOther && (
-          <Card className="bg-red-500/5 border-red-500/20 rounded-[2rem] p-8">
-            <div className="flex items-start gap-4">
-               <Terminal className="w-8 h-8 text-red-500 shrink-0" />
-               <div className="space-y-2">
-                 <h3 className="font-bold text-xl font-headline tracking-tight uppercase text-red-500">Super Administrador Activo</h3>
-                 <p className="text-sm text-muted-foreground leading-relaxed">
-                   Esta terminal te permite gestionar los parámetros de tu perfil de mando y auditar cualquier nodo de la red SportMatch.
-                 </p>
-               </div>
-            </div>
-          </Card>
-        )}
-
         <div className="space-y-8">
           {/* IDENTIDAD */}
           <Card className={cn("rounded-[2.5rem]", isAdmin ? "bg-[#1a0a0a] border-red-500/10" : "card-elite")}>
@@ -395,7 +375,7 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* CAMPOS TÉCNICOS SI NO ES ADMIN EDITÁNDOSE A SÍ MISMO */}
+          {/* FICHA TÉCNICA */}
           {(!isAdmin || isEditingOther) && (
             <Card className="card-elite rounded-[2.5rem]">
               <CardContent className="p-10 space-y-8">
@@ -440,25 +420,190 @@ export default function MyProfilePage() {
             </Card>
           )}
 
+          {/* CARRERA / HISTORIAL */}
           {(!isAdmin || isEditingOther) && (
             <Card className="card-elite rounded-[2.5rem]">
               <CardContent className="p-10 space-y-8">
                 <div className="flex items-center space-x-3 text-primary">
                   <Trophy className="w-6 h-6" />
-                  <h2 className="text-2xl font-bold font-headline uppercase italic">Carrera</h2>
+                  <h2 className="text-2xl font-bold font-headline uppercase italic">Historial de Carrera</h2>
                 </div>
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-black/20 p-6 rounded-[2rem] items-end">
-                    <Input placeholder="Temporada" value={formData.newSeason.season} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-white/5 border-none rounded-xl" />
-                    <Input placeholder="Club" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-white/5 border-none rounded-xl" />
-                    <Button onClick={addSeason} className="h-10 bg-primary/10 text-primary border border-primary/20 font-black uppercase text-[10px] rounded-xl hover:bg-primary/20">AÑADIR</Button>
-                  </div>
-                  {formData.teamHistory.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-6 bg-white/5 rounded-2xl">
-                      <div><p className="font-bold">{item.club} ({item.season})</p></div>
-                      <Button variant="ghost" size="icon" onClick={() => setFormData({...formData, teamHistory: formData.teamHistory.filter((_, i) => i !== idx)})} className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                
+                <div className="space-y-8">
+                  {/* FORMULARIO DE NUEVA TEMPORADA */}
+                  <div className="bg-black/40 p-8 rounded-[2rem] border border-white/5 space-y-6">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                      <Zap className="w-4 h-4" /> Registrar Nueva Etapa
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Temporada</Label>
+                        <Input 
+                          placeholder="Ej: 23/24" 
+                          value={formData.newSeason.season} 
+                          onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} 
+                          className="bg-white/5 border-none rounded-xl h-11" 
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Club / Entidad</Label>
+                        <Input 
+                          placeholder="Nombre del club" 
+                          value={formData.newSeason.club} 
+                          onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} 
+                          className="bg-white/5 border-none rounded-xl h-11" 
+                        />
+                      </div>
+                      
+                      {isTargetCoach ? (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Liga / Competición</Label>
+                            <Input 
+                              placeholder="Ej: 1ª RFEF" 
+                              value={formData.newSeason.league || ''} 
+                              onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, league: e.target.value}})} 
+                              className="bg-white/5 border-none rounded-xl h-11" 
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Posición Final</Label>
+                            <Input 
+                              placeholder="Ej: 3º" 
+                              value={formData.newSeason.leaguePosition || ''} 
+                              onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, leaguePosition: e.target.value}})} 
+                              className="bg-white/5 border-none rounded-xl h-11" 
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Posición en Campo</Label>
+                            <Input 
+                              placeholder="Ej: Delantero" 
+                              value={formData.newSeason.position || ''} 
+                              onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, position: e.target.value}})} 
+                              className="bg-white/5 border-none rounded-xl h-11" 
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Partidos Jugados</Label>
+                            <Input 
+                              type="number"
+                              placeholder="0" 
+                              value={formData.newSeason.matches || 0} 
+                              onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value) || 0}})} 
+                              className="bg-white/5 border-none rounded-xl h-11" 
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
-                  ))}
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                      {isTargetCoach ? (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Victorias</Label>
+                            <Input type="number" value={formData.newSeason.wins || 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, wins: parseInt(e.target.value) || 0}})} className="bg-white/5 border-none rounded-xl h-11" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Empates</Label>
+                            <Input type="number" value={formData.newSeason.draws || 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, draws: parseInt(e.target.value) || 0}})} className="bg-white/5 border-none rounded-xl h-11" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Derrotas</Label>
+                            <Input type="number" value={formData.newSeason.losses || 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, losses: parseInt(e.target.value) || 0}})} className="bg-white/5 border-none rounded-xl h-11" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Ascenso</Label>
+                            <Select value={formData.newSeason.promotion || 'No'} onValueChange={v => setFormData({...formData, newSeason: {...formData.newSeason, promotion: v}})}>
+                              <SelectTrigger className="bg-white/5 border-none rounded-xl h-11"><SelectValue /></SelectTrigger>
+                              <SelectContent className="bg-[#111827] border-white/10 text-white">
+                                <SelectItem value="No">No</SelectItem>
+                                <SelectItem value="Sí">Sí</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Goles</Label>
+                            <Input type="number" value={formData.newSeason.goals || 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value) || 0}})} className="bg-white/5 border-none rounded-xl h-11" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Asistencias</Label>
+                            <Input type="number" value={formData.newSeason.assists || 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, assists: parseInt(e.target.value) || 0}})} className="bg-white/5 border-none rounded-xl h-11" />
+                          </div>
+                        </>
+                      )}
+                      
+                      <div className="col-span-2 md:col-span-1 lg:col-start-6 flex items-end">
+                        <Button 
+                          onClick={addSeason} 
+                          className="w-full h-11 bg-primary text-background font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-primary/90 shadow-lg"
+                        >
+                          REGISTRAR ETAPA
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* LISTADO DE TEMPORADAS */}
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-2">Trayectoria Registrada</h3>
+                    {formData.teamHistory.length === 0 ? (
+                      <div className="text-center py-10 border-2 border-dashed border-white/5 rounded-[2rem] opacity-30">
+                        <p className="text-[10px] font-bold uppercase tracking-widest">Sin registros previos</p>
+                      </div>
+                    ) : (
+                      formData.teamHistory.map((item, idx) => (
+                        <div key={idx} className="group relative p-6 bg-white/[0.03] border border-white/5 rounded-2xl hover:border-primary/20 transition-all">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                              <div className="bg-primary/10 px-3 py-1 rounded-full">
+                                <span className="text-primary font-black text-[10px]">{item.season}</span>
+                              </div>
+                              <div>
+                                <p className="font-bold text-lg leading-none">{item.club}</p>
+                                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1">
+                                  {isTargetCoach ? (item.league || 'Competición') : (item.position || 'Posición')}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-6">
+                              {isTargetCoach ? (
+                                <div className="flex gap-4 text-center">
+                                   <div><p className="text-[8px] font-black text-muted-foreground uppercase">PG</p><p className="text-xs font-bold">{item.wins || 0}</p></div>
+                                   <div><p className="text-[8px] font-black text-muted-foreground uppercase">PE</p><p className="text-xs font-bold">{item.draws || 0}</p></div>
+                                   <div><p className="text-[8px] font-black text-muted-foreground uppercase">PP</p><p className="text-xs font-bold">{item.losses || 0}</p></div>
+                                </div>
+                              ) : (
+                                <div className="flex gap-4 text-center">
+                                   <div><p className="text-[8px] font-black text-muted-foreground uppercase">PJ</p><p className="text-xs font-bold">{item.matches || 0}</p></div>
+                                   <div><p className="text-[8px] font-black text-muted-foreground uppercase">G</p><p className="text-xs font-bold text-primary">{item.goals || 0}</p></div>
+                                   <div><p className="text-[8px] font-black text-muted-foreground uppercase">A</p><p className="text-xs font-bold">{item.assists || 0}</p></div>
+                                </div>
+                              )}
+                              
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => setFormData({...formData, teamHistory: formData.teamHistory.filter((_, i) => i !== idx)})} 
+                                className="h-10 w-10 rounded-xl text-red-500 hover:bg-red-500/10 hover:text-red-600 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
