@@ -22,14 +22,16 @@ import {
   BarChart3,
   TrendingUp,
   Target,
-  ArrowUp
+  ArrowUp,
+  ShieldAlert,
+  Pencil
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -39,6 +41,7 @@ import { TopNav } from '@/components/navigation/top-nav';
 export default function ProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const db = useFirestore();
+  const { user: viewer } = useUser();
 
   const userDocRef = useMemoFirebase(() => doc(db, 'users', id), [db, id]);
   const profileDocRef = useMemoFirebase(() => doc(db, 'userProfiles', id), [db, id]);
@@ -47,9 +50,12 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
   const { data: profileData, isLoading: isProfileLoading } = useDoc(profileDocRef);
 
   const isLoading = isUserLoading || isProfileLoading;
+  const isViewerAdmin = viewer?.email === 'admin01@gmail.com';
+  const isOwnProfile = viewer?.uid === id;
 
   const isCoach = userData?.role === 'Coach';
-  const isVerified = userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro';
+  // El admin ve todo como verificado para poder auditar
+  const isVerified = isViewerAdmin || userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro';
 
   // Cálculo de totales de carrera
   const careerTotals = useMemo(() => {
@@ -72,7 +78,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
   if (isLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Sincronizando Terminal...</div>;
 
-  if (!userData) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-white p-10 text-center text-sm font-bold">Usuario no encontrado.</div>;
+  if (!userData) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-white p-10 text-center text-sm font-bold">Usuario no encontrado o ID inválido.</div>;
 
   const getYoutubeId = (url: string) => {
     if (!url) return null;
@@ -108,11 +114,18 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
       <div className="relative pt-12 md:pt-16 pb-12 md:pb-20 px-4 md:px-6 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] md:w-[800px] h-[300px] md:h-[400px] bg-primary/10 blur-[80px] md:blur-[120px] -z-10 rounded-full" />
         
-        <Link href="/rankings" className="absolute top-4 left-4 z-20">
-          <div className="bg-black/40 backdrop-blur-md p-2 md:p-3 rounded-xl md:rounded-2xl border border-white/10 hover:border-primary/50 transition-colors">
-            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-white" />
-          </div>
-        </Link>
+        <div className="absolute top-4 left-4 z-20 flex gap-2">
+          <Link href="/rankings">
+            <div className="bg-black/40 backdrop-blur-md p-2 md:p-3 rounded-xl md:rounded-2xl border border-white/10 hover:border-primary/50 transition-colors">
+              <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </div>
+          </Link>
+          {isViewerAdmin && !isOwnProfile && (
+            <Badge className="bg-red-500 text-white border-none font-black text-[9px] px-3 flex items-center gap-1.5 shadow-[0_0_20px_rgba(239,68,68,0.3)]">
+              <ShieldAlert className="w-3 h-3" /> MODO SUPERVISIÓN ACTIVO
+            </Badge>
+          )}
+        </div>
 
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center space-y-4 md:space-y-6">
           <div className="relative group">
@@ -131,7 +144,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             <div className="space-y-1">
               <h1 className="text-3xl md:text-6xl font-bold font-headline tracking-tighter uppercase italic">{userData.name}</h1>
               <div className="flex items-center justify-center gap-2 text-muted-foreground font-bold uppercase tracking-[0.1em] md:tracking-[0.2em] text-[8px] md:text-[10px]">
-                <MapPin className="w-3 h-3 text-primary" /> {userData.province}, {userData.country}
+                <MapPin className="w-3 h-3 text-primary" /> {userData.province}{userData.country ? `, ${userData.country}` : ''}
               </div>
             </div>
 
@@ -232,7 +245,9 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                   <FileText className="w-4 h-4 md:w-5 md:h-5" />
                   <h3 className="font-black text-[8px] md:text-[10px] uppercase tracking-widest">Biografía Profesional</h3>
                 </div>
-                <p className="text-xs md:text-base text-muted-foreground leading-relaxed whitespace-pre-line font-medium">{profileData?.bio || "Sin biografía registrada."}</p>
+                <p className="text-xs md:text-base text-muted-foreground leading-relaxed whitespace-pre-line font-medium">
+                  {profileData?.bio || (isViewerAdmin ? "[ADMIN: El usuario no ha completado su biografía]" : "Sin biografía registrada.")}
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -274,7 +289,9 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             ) : (
               <div className="text-center py-16 md:py-20 card-elite rounded-[2rem] md:rounded-[3rem] border-dashed border-white/10">
                 <Trophy className="w-8 h-8 md:w-12 md:h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-                <p className="text-muted-foreground font-bold uppercase tracking-widest text-[8px] md:text-xs">Sin historial disponible.</p>
+                <p className="text-muted-foreground font-bold uppercase tracking-widest text-[8px] md:text-xs">
+                  {isViewerAdmin ? "[ADMIN: Sin historial de temporadas]" : "Sin historial disponible."}
+                </p>
               </div>
             )}
           </TabsContent>
@@ -337,7 +354,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 </CardContent>
               </Card>
 
-              {/* Tarjeta 2: Análisis IA SportMatch (Solo Verificado/Pro) */}
+              {/* Tarjeta 2: Análisis IA SportMatch (Solo Verificado/Pro o ADMIN) */}
               <Card className={cn(
                 "rounded-[2rem] md:rounded-[2.5rem] relative overflow-hidden flex flex-col justify-center",
                 isVerified 
@@ -356,7 +373,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                   {isVerified ? (
                     <>
                       <p className="font-bold text-lg md:text-2xl italic leading-tight tracking-tight">
-                        "{profileData?.summary || "Perfil en fase de análisis avanzado. El sistema está evaluando las métricas de rendimiento."}"
+                        "{profileData?.summary || (isViewerAdmin ? "[ADMIN: El sistema aún no ha generado el resumen para este perfil]" : "Perfil en fase de análisis avanzado. El sistema está evaluando las métricas de rendimiento.")}"
                       </p>
                       <div className="flex flex-wrap gap-2 md:gap-3 pt-2">
                         <Badge variant="outline" className="bg-black/20 text-primary-foreground border-black/30 font-black text-[7px] md:text-[10px]">TENDENCIA POSITIVA</Badge>
@@ -378,6 +395,16 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </TabsContent>
         </Tabs>
+
+        {isViewerAdmin && !isOwnProfile && (
+           <div className="pt-10 flex justify-center">
+              <Button asChild className="h-16 px-10 rounded-2xl bg-red-500 text-white font-black uppercase tracking-widest hover:bg-red-600 gap-3 shadow-[0_0_30px_rgba(239,68,68,0.3)]">
+                <Link href={`/profile/me?edit=${id}`}>
+                  <Pencil className="w-5 h-5" /> EDITAR COMO ADMINISTRADOR
+                </Link>
+              </Button>
+           </div>
+        )}
       </main>
     </div>
   );
