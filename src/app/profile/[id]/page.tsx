@@ -1,4 +1,3 @@
-
 "use client";
 
 import { use, useState, useMemo } from 'react';
@@ -56,6 +55,9 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
   const isCoach = userData?.role === 'Coach';
   // El admin ve todo como verificado para poder auditar
   const isVerified = isViewerAdmin || userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro';
+  
+  // El Análisis IA es exclusivo del Plan Pro y del Administrador
+  const hasAiAccess = isViewerAdmin || userData?.plan === 'pro';
 
   // Cálculo de totales de carrera
   const careerTotals = useMemo(() => {
@@ -354,23 +356,23 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 </CardContent>
               </Card>
 
-              {/* Tarjeta 2: Análisis IA SportMatch (Solo Verificado/Pro o ADMIN) */}
+              {/* Tarjeta 2: Análisis IA SportMatch (Solo Pro o ADMIN) */}
               <Card className={cn(
                 "rounded-[2rem] md:rounded-[2.5rem] relative overflow-hidden flex flex-col justify-center",
-                isVerified 
+                hasAiAccess 
                   ? "bg-primary text-primary-foreground shadow-[0_0_60px_rgba(234,179,8,0.3)] border-none" 
                   : "bg-[#111827]/40 border-white/5 border border-dashed"
               )}>
-                {isVerified && <Zap className="absolute -top-6 md:-top-10 -right-6 md:-right-10 w-32 md:w-40 h-32 md:h-40 opacity-10 rotate-12" />}
+                {hasAiAccess && <Zap className="absolute -top-6 md:-top-10 -right-6 md:-right-10 w-32 md:w-40 h-32 md:h-40 opacity-10 rotate-12" />}
                 <CardContent className="p-8 md:p-10 space-y-4 md:space-y-6 relative z-10">
                   <div className="flex items-center gap-2 md:gap-3">
-                    <Award className={cn("w-6 h-6 md:w-8 md:h-8", isVerified ? "fill-primary-foreground" : "text-muted-foreground")} />
-                    <h3 className={cn("text-xl md:text-2xl font-black uppercase italic tracking-tighter", isVerified ? "text-primary-foreground" : "text-muted-foreground")}>
+                    <Award className={cn("w-6 h-6 md:w-8 md:h-8", hasAiAccess ? "fill-primary-foreground" : "text-muted-foreground")} />
+                    <h3 className={cn("text-xl md:text-2xl font-black uppercase italic tracking-tighter", hasAiAccess ? "text-primary-foreground" : "text-muted-foreground")}>
                       Resumen SportMatch IA
                     </h3>
                   </div>
 
-                  {isVerified ? (
+                  {hasAiAccess ? (
                     <>
                       <p className="font-bold text-lg md:text-2xl italic leading-tight tracking-tight">
                         "{profileData?.summary || (isViewerAdmin ? "[ADMIN: El sistema aún no ha generado el resumen para este perfil]" : "Perfil en fase de análisis avanzado. El sistema está evaluando las métricas de rendimiento.")}"
@@ -383,10 +385,10 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                   ) : (
                     <div className="space-y-4">
                       <p className="text-muted-foreground text-sm font-medium leading-relaxed">
-                        El análisis de rendimiento mediante IA requiere una cuenta **Elite Verificado** o **Pro**. Activa tu verificación para desbloquear la síntesis táctica avanzada.
+                        El análisis de rendimiento mediante IA es una función exclusiva del plan **Elite Pro**. Mejora tu cuenta para desbloquear la síntesis táctica avanzada.
                       </p>
                       <Button asChild variant="outline" className="h-12 border-primary/40 text-primary hover:bg-primary/10 rounded-xl font-black uppercase text-[10px] tracking-widest w-full">
-                        <Link href="/pricing">MEJORAR CUENTA</Link>
+                        <Link href="/pricing">MEJORAR A PRO</Link>
                       </Button>
                     </div>
                   )}
