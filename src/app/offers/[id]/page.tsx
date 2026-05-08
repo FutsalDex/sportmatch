@@ -3,38 +3,66 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
-import { useFirebase } from '@/firebase/provider'; // 👈 Cambia a useFirebase
+import { useFirebase } from '@/firebase/provider';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Building2, Calendar, DollarSign, Home, Car, Shield, Clock, AlertCircle } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Building2, 
+  Calendar, 
+  DollarSign, 
+  Home, 
+  Car, 
+  Shield, 
+  Clock, 
+  AlertCircle,
+  Target,
+  Briefcase,
+  Users,
+  Globe2,
+  FileCheck,
+  UserCheck
+} from 'lucide-react';
 
 interface OfferData {
   id: string;
-  title: string;
+  title: string; // Mapeado desde 'position'
   clubId: string;
   clubName?: string;
+  clubLogo?: string;
   description: string;
-  salary: number;
-  bonus?: string;
+  salaryRange?: string;
+  bonusObjectives?: string;
   location: string;
   accommodation?: string;
   transport?: string;
-  healthInsurance?: boolean;
-  requirements?: string[];
-  deadline: Date;
+  healthInsurance?: string;
+  careerPlan?: string;
+  nationalityRequirement?: string;
+  preferredAgeRange?: string;
+  languageLevel?: string;
+  mandatoryDocs?: string;
+  teamRole?: string;
+  teamCategory?: string;
+  onboardingDate?: string;
+  duration?: string;
   createdAt: Date;
-  status: 'active' | 'closed' | 'filled';
+  status: string;
+  role: string;
 }
 
-const InfoCard = ({ title, items }: { title: string; items: Array<{ label: string; value: string; highlight?: boolean }> }) => {
+const InfoCard = ({ title, items, icon: Icon }: { title: string; items: Array<{ label: string; value: string; highlight?: boolean }>; icon?: any }) => {
   return (
-    <Card className="bg-black/50 border-zinc-800">
-      <CardHeader>
-        <CardTitle className="text-lg text-primary">{title}</CardTitle>
+    <Card className="bg-black/50 border-zinc-800 rounded-[2rem] overflow-hidden">
+      <CardHeader className="border-b border-white/5 pb-4">
+        <div className="flex items-center gap-3">
+          {Icon && <Icon className="w-5 h-5 text-primary" />}
+          <CardTitle className="text-lg text-primary uppercase italic font-headline tracking-tight">{title}</CardTitle>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <div className="grid grid-cols-2 gap-4">
           {items.map((item, i) => (
             <div key={i} className="space-y-1">
@@ -53,7 +81,7 @@ const InfoCard = ({ title, items }: { title: string; items: Array<{ label: strin
 export default function OfferDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { firestore, user, isUserLoading } = useFirebase(); // 👈 Usa useFirebase
+  const { firestore, user, isUserLoading } = useFirebase();
   const [offer, setOffer] = useState<OfferData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,12 +89,8 @@ export default function OfferDetailPage() {
   const offerId = params?.id as string;
 
   const loadOffer = useCallback(async () => {
-    if (!firestore || !offerId) {
-      console.log('Missing firestore or offerId:', { firestore: !!firestore, offerId });
-      return;
-    }
+    if (!firestore || !offerId) return;
 
-    console.log('Loading offer:', offerId);
     setIsLoading(true);
     setError(null);
 
@@ -76,195 +100,218 @@ export default function OfferDetailPage() {
 
       if (offerSnap.exists()) {
         const data = offerSnap.data();
-        console.log('Offer data loaded:', data);
         
         setOffer({
           id: offerSnap.id,
-          title: data.title || 'Sin título',
+          title: data.position || 'Sin título',
           clubId: data.clubId || '',
           clubName: data.clubName,
+          clubLogo: data.clubLogo,
           description: data.description || '',
-          salary: data.salary || 0,
-          bonus: data.bonus,
+          salaryRange: data.salaryRange,
+          bonusObjectives: data.bonusObjectives,
           location: data.location || 'No especificada',
           accommodation: data.accommodation,
           transport: data.transport,
           healthInsurance: data.healthInsurance,
-          requirements: data.requirements || [],
-          deadline: data.deadline?.toDate?.() || new Date(),
-          createdAt: data.createdAt?.toDate?.() || new Date(),
+          careerPlan: data.careerPlan,
+          nationalityRequirement: data.nationalityRequirement,
+          preferredAgeRange: data.preferredAgeRange,
+          languageLevel: data.languageLevel,
+          mandatoryDocs: data.mandatoryDocs,
+          teamRole: data.teamRole,
+          teamCategory: data.teamCategory,
+          onboardingDate: data.onboardingDate,
+          duration: data.duration,
+          createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
           status: data.status || 'active',
+          role: data.role || 'Player'
         });
       } else {
-        setError('Oferta no encontrada');
+        setError('Oferta no localizada en el núcleo de datos');
       }
     } catch (err: any) {
       console.error('Error fetching offer:', err);
-      setError(err.message || 'Error al cargar la oferta');
+      setError('Error de conexión con la red SportMatch');
     } finally {
       setIsLoading(false);
     }
   }, [firestore, offerId]);
 
   useEffect(() => {
-    if (!firestore) {
-      console.log('Waiting for firestore...');
-      return;
+    if (firestore && offerId) {
+      loadOffer();
     }
-
-    if (!offerId) {
-      console.log('No offerId provided');
-      setError('ID de oferta no válido');
-      setIsLoading(false);
-      return;
-    }
-
-    loadOffer();
   }, [firestore, offerId, loadOffer]);
 
-  // Mostrar loading
   if (isLoading || isUserLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-muted-foreground font-mono">Cargando oferta...</p>
-          </div>
-        </div>
+      <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">
+        Sincronizando Dossier de Vacante...
       </div>
     );
   }
 
-  // Mostrar error
   if (error || !offer) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="bg-red-500/10 border-red-500/50">
-          <CardContent className="py-8">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <AlertCircle className="w-12 h-12 text-red-500" />
-              <p className="text-red-500 font-medium">{error || 'Oferta no encontrada'}</p>
-              <Button onClick={() => router.push('/offers')} variant="outline">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver al mercado
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center gap-6 p-6">
+        <AlertCircle className="w-16 h-16 text-red-500" />
+        <p className="text-red-500 font-bold uppercase tracking-widest text-sm">{error || 'Oferta no encontrada'}</p>
+        <Button onClick={() => router.push('/offers')} variant="outline" className="rounded-2xl border-white/10">
+          <ArrowLeft className="w-4 h-4 mr-2" /> VOLVER AL TABLERO
+        </Button>
       </div>
     );
   }
 
-  const daysRemaining = Math.ceil((offer.deadline.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <Button variant="ghost" onClick={() => router.back()} className="mb-6 hover:bg-zinc-800">
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Volver
-      </Button>
-
-      <div className="mb-8">
-        <div className="flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-2">{offer.title}</h1>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Building2 className="w-4 h-4" />
-              <span>{offer.clubName || 'Club'}</span>
-              <span>•</span>
-              <Calendar className="w-4 h-4" />
-              <span>{offer.createdAt.toLocaleDateString()}</span>
-            </div>
-          </div>
-          <Badge variant={offer.status === 'active' ? 'default' : 'secondary'}>
-            {offer.status === 'active' ? 'Activa' : offer.status === 'filled' ? 'Cubierta' : 'Cerrada'}
-          </Badge>
-        </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-6">
-          <InfoCard
-            title="Módulo Económico"
-            items={[
-              { label: 'Salario', value: `€${offer.salary.toLocaleString()}/mes`, highlight: true },
-              { label: 'Bonus por objetivos', value: offer.bonus || 'No especificado' },
-            ]}
-          />
-
-          <InfoCard
-            title="Módulo Logístico"
-            items={[
-              { label: 'Ubicación', value: offer.location },
-              { label: 'Alojamiento', value: offer.accommodation || 'No incluido' },
-              { label: 'Transporte', value: offer.transport || 'No incluido' },
-              { label: 'Seguro médico', value: offer.healthInsurance ? 'Incluido' : 'No incluido' },
-            ]}
-          />
-
-          {offer.requirements && offer.requirements.length > 0 && (
-            <Card className="bg-black/50 border-zinc-800">
-              <CardHeader>
-                <CardTitle className="text-lg text-primary">Requisitos Técnicos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {offer.requirements.map((req, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <span className="text-primary mt-1">•</span>
-                      <span className="text-gray-300">{req}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        <div className="space-y-6">
-          <Card className="bg-black/50 border-zinc-800">
-            <CardHeader>
-              <CardTitle className="text-lg text-primary">Descripción del puesto</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-300 whitespace-pre-wrap">{offer.description}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-black/50 border-zinc-800">
-            <CardHeader>
-              <CardTitle className="text-lg text-primary">Plazo de inscripción</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Clock className="w-4 h-4" />
-                  <span>Fecha límite:</span>
-                </div>
-                <span className={`font-bold ${daysRemaining < 7 ? 'text-red-500' : 'text-white'}`}>
-                  {offer.deadline.toLocaleDateString()} ({daysRemaining} días)
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Button 
-            className="w-full bg-primary hover:bg-primary/90 text-black font-bold py-6 text-lg"
-            onClick={() => {
-              if (!user) {
-                router.push('/auth/login?redirect=' + encodeURIComponent(`/offers/${offerId}`));
-              } else {
-                alert('Función de postulación en desarrollo');
-              }
-            }}
-          >
-            {user ? 'Postularme a esta oferta' : 'Iniciar sesión para postular'}
+    <div className="min-h-screen bg-[#030712] text-white">
+      <div className="max-w-5xl mx-auto px-6 py-12 space-y-10">
+        <header className="space-y-6">
+          <Button variant="ghost" onClick={() => router.back()} className="hover:bg-white/5 text-primary font-black uppercase text-[10px] tracking-widest px-0">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Volver
           </Button>
 
-          <p className="text-xs text-center text-muted-foreground mt-4">
-            Al postularte, tu perfil será compartido con el club para evaluación.
-          </p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-6">
+              <div className="w-20 h-20 rounded-[1.5rem] bg-[#111827] border-2 border-white/5 flex items-center justify-center overflow-hidden">
+                {offer.clubLogo ? (
+                  <img src={offer.clubLogo} alt={offer.clubName} className="w-full h-full object-cover" />
+                ) : (
+                  <Building2 className="w-8 h-8 text-muted-foreground" />
+                )}
+              </div>
+              <div className="space-y-1">
+                <h1 className="text-3xl md:text-5xl font-black font-headline tracking-tighter uppercase italic">{offer.title}</h1>
+                <div className="flex items-center gap-3 text-muted-foreground font-bold uppercase tracking-widest text-[10px]">
+                  <Building2 className="w-3.5 h-3.5 text-primary" /> {offer.clubName}
+                  <span className="opacity-20">•</span>
+                  <Calendar className="w-3.5 h-3.5 text-primary" /> {offer.createdAt.toLocaleDateString()}
+                </div>
+              </div>
+            </div>
+            <Badge className={cn(
+              "h-10 px-6 rounded-full font-black text-[10px] tracking-[0.2em] uppercase",
+              offer.status === 'active' ? "bg-primary text-background" : "bg-white/10 text-muted-foreground"
+            )}>
+              {offer.status === 'active' ? '🟢 Vacante Activa' : '🔴 Finalizada'}
+            </Badge>
+          </div>
+        </header>
+
+        <div className="grid gap-8 md:grid-cols-3">
+          <div className="md:col-span-2 space-y-8">
+            <InfoCard
+              title="Módulo Económico"
+              icon={DollarSign}
+              items={[
+                { label: 'Salario Ofrecido', value: offer.salaryRange || 'A convenir', highlight: true },
+                { label: 'Duración Contrato', value: offer.duration || 'Sin especificar' },
+              ]}
+            />
+
+            <Card className="bg-black/50 border-zinc-800 rounded-[2.5rem] p-8 space-y-4">
+              <div className="flex items-center gap-3 text-primary">
+                <Target className="w-5 h-5" />
+                <h3 className="font-black text-xs uppercase tracking-widest">Bonus por Objetivos</h3>
+              </div>
+              <p className="text-sm text-gray-300 font-medium leading-relaxed">
+                {offer.bonusObjectives || 'Sin primas adicionales registradas.'}
+              </p>
+            </Card>
+
+            <InfoCard
+              title="Módulo Logístico"
+              icon={Home}
+              items={[
+                { label: 'Ubicación', value: offer.location },
+                { label: 'Alojamiento', value: offer.accommodation || 'No incluido' },
+                { label: 'Transporte', value: offer.transport || 'No incluido' },
+                { label: 'Seguro médico', value: offer.healthInsurance || 'No incluido' },
+                { label: 'Plan de Carrera', value: offer.careerPlan || 'No incluido' },
+              ]}
+            />
+
+            <Card className="bg-[#111827]/40 border-white/5 rounded-[2.5rem] p-8 space-y-4">
+              <div className="flex items-center gap-3 text-primary">
+                <Briefcase className="w-5 h-5" />
+                <h3 className="font-black text-xs uppercase tracking-widest">Descripción del Proyecto</h3>
+              </div>
+              <p className="text-gray-300 whitespace-pre-wrap text-sm leading-relaxed">
+                {offer.description}
+              </p>
+            </Card>
+          </div>
+
+          <div className="space-y-8">
+            <Card className="bg-primary/5 border-primary/20 rounded-[2.5rem] p-8 space-y-6">
+              <div className="flex items-center gap-3 text-primary">
+                <Users className="w-5 h-5" />
+                <h3 className="font-black text-xs uppercase tracking-widest">Incorporación y Rol</h3>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase">Incorporación</span>
+                  <span className="text-xs font-bold text-white uppercase">{offer.onboardingDate || 'Inmediata'}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase">Rol en Plantilla</span>
+                  <span className="text-xs font-bold text-primary uppercase">{offer.teamRole || 'Sin determinar'}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase">Categoría</span>
+                  <span className="text-xs font-bold text-white uppercase">{offer.teamCategory || 'Élite'}</span>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="bg-black/50 border-zinc-800 rounded-[2.5rem] p-8 space-y-6">
+              <div className="flex items-center gap-3 text-primary">
+                <UserCheck className="w-5 h-5" />
+                <h3 className="font-black text-xs uppercase tracking-widest">Filtros de Candidato</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><Globe2 className="w-3 h-3" /> Pasaporte</p>
+                  <p className="text-xs font-bold text-white uppercase">{offer.nationalityRequirement || 'Indiferente'}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><Clock className="w-3 h-3" /> Edad Preferente</p>
+                  <p className="text-xs font-bold text-white uppercase">{offer.preferredAgeRange || 'Sin límite'}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><FileCheck className="w-3 h-3" /> Idioma Local</p>
+                  <p className="text-xs font-bold text-white uppercase">{offer.languageLevel || 'No requerido'}</p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-white/5 space-y-2">
+                <p className="text-[8px] font-black text-primary uppercase tracking-widest">Documentación Obligatoria</p>
+                <p className="text-[10px] text-gray-400 leading-tight italic">{offer.mandatoryDocs || 'No se requiere documentación específica previa.'}</p>
+              </div>
+            </Card>
+
+            <div className="space-y-4 pt-4">
+              <Button 
+                className="w-full h-16 rounded-[2rem] bg-primary text-background font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:scale-[1.02] transition-transform"
+                onClick={() => {
+                  if (!user) {
+                    router.push('/login');
+                  } else {
+                    alert('Función de postulación técnica en desarrollo');
+                  }
+                }}
+              >
+                {user ? 'POSTULARME AHORA' : 'IDENTIFICARSE PARA POSTULAR'}
+              </Button>
+
+              <p className="text-[9px] text-center text-muted-foreground font-medium px-4">
+                Al postularte, tu **Dossier de Inteligencia Deportiva** será enviado a la secretaría técnica del club.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
