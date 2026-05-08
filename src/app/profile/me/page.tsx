@@ -430,7 +430,7 @@ export default function MyProfilePage() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 ml-2">
-                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Movilidad</Label>
+                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Movilidad Geográfica</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-4 w-4 rounded-full text-primary/60 hover:text-primary hover:bg-primary/10">
@@ -785,7 +785,7 @@ export default function MyProfilePage() {
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Club</Label>
-                        <Input placeholder="Real Madrid" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
+                        <Input placeholder="Real Madrid" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason, club: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Posición</Label>

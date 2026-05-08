@@ -17,7 +17,8 @@ import {
   GraduationCap, 
   Ruler, 
   Weight as WeightIcon, 
-  Footprints 
+  Footprints,
+  Map
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -179,17 +180,21 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
           </TabsList>
           
           <TabsContent value="stats" className="mt-6 md:mt-8 space-y-6 md:space-y-8">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {isCoach ? (
-                profileData?.certifications?.length > 0 ? (
-                  profileData.certifications.slice(0, 3).map((cert: string, i: number) => (
-                    <StatCard key={i} icon={GraduationCap} label={`Titulación ${i+1}`} value={cert} />
-                  ))
-                ) : (
-                  <StatCard icon={GraduationCap} label="Titulaciones" value="Pendiente" />
-                )
+                <>
+                  <StatCard icon={Map} label="Movilidad" value={userData.mobility || 'Nacional'} />
+                  {profileData?.certifications?.length > 0 ? (
+                    profileData.certifications.slice(0, 3).map((cert: string, i: number) => (
+                      <StatCard key={i} icon={GraduationCap} label={`Titulación ${i+1}`} value={cert} />
+                    ))
+                  ) : (
+                    <StatCard icon={GraduationCap} label="Titulaciones" value="Pendiente" />
+                  )}
+                </>
               ) : (
                 <>
+                  <StatCard icon={Map} label="Movilidad" value={userData.mobility || 'Nacional'} />
                   <StatCard icon={Ruler} label="Altura" value={`${profileData?.height || '--'} cm`} />
                   <StatCard icon={WeightIcon} label="Peso" value={`${profileData?.weight || '--'} kg`} />
                   <StatCard icon={Footprints} label="Pierna" value={profileData?.strongFoot || '--'} />
