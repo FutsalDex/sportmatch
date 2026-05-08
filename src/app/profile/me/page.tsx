@@ -25,7 +25,8 @@ import {
   Map,
   User as UserIcon,
   ChevronLeft,
-  Bot
+  Bot,
+  Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -101,6 +102,9 @@ export default function MyProfilePage() {
     weight: '',
     strongFoot: '',
     certifications: ['', '', ''],
+    stadium: '',
+    foundationYear: '',
+    facilities: '',
     instagram: '',
     tiktok: '',
     twitter: '',
@@ -151,6 +155,9 @@ export default function MyProfilePage() {
         weight: profileData.weight?.toString() || '',
         strongFoot: profileData.strongFoot || '',
         certifications: profileData.certifications?.length ? [...profileData.certifications, '', '', ''].slice(0, 3) : ['', '', ''],
+        stadium: profileData.stadium || '',
+        foundationYear: profileData.foundationYear || '',
+        facilities: profileData.facilities || '',
         bookImageUrls: profileData.bookImageUrls?.length ? [...profileData.bookImageUrls, '', '', ''].slice(0, 3) : ['', '', ''],
         videoUrls: profileData.videoUrls?.length ? [...profileData.videoUrls, '', ''].slice(0, 2) : ['', ''],
         socialVideoUrls: profileData.socialVideoUrls?.length ? [...profileData.socialVideoUrls, '', ''].slice(0, 2) : ['', ''],
@@ -167,6 +174,7 @@ export default function MyProfilePage() {
 
   const isElite = isAdmin || userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro';
   const isTargetCoach = userData?.role === 'Coach';
+  const isTargetClub = userData?.role === 'Club';
 
   const calculateScore = () => {
     if (isAdmin && !isEditingOther) return 100;
@@ -179,7 +187,11 @@ export default function MyProfilePage() {
     score += Math.min(basicScore, 10);
 
     let moduleScore = 0;
-    if (isTargetCoach) {
+    if (isTargetClub) {
+      if (formData.stadium) moduleScore += 3;
+      if (formData.foundationYear) moduleScore += 3;
+      if (formData.position) moduleScore += 4;
+    } else if (isTargetCoach) {
       formData.certifications.forEach(c => { if (c) moduleScore += 3.4; });
     } else {
       if (formData.age) moduleScore += 2;
@@ -236,6 +248,9 @@ export default function MyProfilePage() {
       weight: parseFloat(formData.weight) || 0,
       strongFoot: formData.strongFoot,
       certifications: formData.certifications.filter(c => !!c),
+      stadium: formData.stadium,
+      foundationYear: formData.foundationYear,
+      facilities: formData.facilities,
       bookImageUrls: formData.bookImageUrls.filter(u => !!u),
       videoUrls: formData.videoUrls.filter(v => !!v),
       socialVideoUrls: formData.socialVideoUrls.filter(v => !!v),
@@ -336,7 +351,7 @@ export default function MyProfilePage() {
                     </Select>
                   </div>
                 )}
-                {(!isAdmin || isEditingOther) && (
+                {(!isAdmin || isEditingOther) && !isTargetClub && (
                   <div className="space-y-2">
                     <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Edad</Label>
                     <Input type="number" value={formData.age || ''} onChange={e => setFormData({...formData, age: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" />
@@ -363,7 +378,7 @@ export default function MyProfilePage() {
               <div className="flex items-center space-x-3 text-primary">
                 <FileText className={cn("w-6 h-6", isAdmin && "text-red-500")} />
                 <h2 className={cn("text-2xl font-bold font-headline uppercase italic", isAdmin && "text-red-500")}>
-                  {isAdmin && !isEditingOther ? 'Protocolo de Mando' : 'Biografía'}
+                  {isAdmin && !isEditingOther ? 'Protocolo de Mando' : (isTargetClub ? 'Visión e Historia' : 'Biografía')}
                 </h2>
               </div>
               <Textarea 
@@ -375,16 +390,37 @@ export default function MyProfilePage() {
             </CardContent>
           </Card>
 
-          {/* FICHA TÉCNICA */}
+          {/* FICHA TÉCNICA / DATOS CLUB */}
           {(!isAdmin || isEditingOther) && (
             <Card className="card-elite rounded-[2.5rem]">
               <CardContent className="p-10 space-y-8">
                 <div className="flex items-center space-x-3 text-primary">
-                  {isTargetCoach ? <GraduationCap className="w-6 h-6" /> : <Activity className="w-6 h-6" />}
-                  <h2 className="text-2xl font-bold font-headline uppercase italic">Ficha Técnica</h2>
+                  {isTargetClub ? <Building2 className="w-6 h-6" /> : (isTargetCoach ? <GraduationCap className="w-6 h-6" /> : <Activity className="w-6 h-6" />)}
+                  <h2 className="text-2xl font-bold font-headline uppercase italic">
+                    {isTargetClub ? 'Infraestructura y Categoría' : 'Ficha Técnica'}
+                  </h2>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {isTargetCoach ? (
+                  {isTargetClub ? (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Categoría Principal</Label>
+                        <Input value={formData.position || ''} onChange={e => setFormData({...formData, position: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Ej: 2ª RFEF" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Estadio / Sede</Label>
+                        <Input value={formData.stadium || ''} onChange={e => setFormData({...formData, stadium: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Fundación (Año)</Label>
+                        <Input value={formData.foundationYear || ''} onChange={e => setFormData({...formData, foundationYear: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Ej: 1923" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Instalaciones</Label>
+                        <Input value={formData.facilities || ''} onChange={e => setFormData({...formData, facilities: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" placeholder="Ej: Ciudad Deportiva" />
+                      </div>
+                    </>
+                  ) : isTargetCoach ? (
                     formData.certifications.map((cert, i) => (
                       <div key={i} className="space-y-2">
                         <Label className="text-[10px] uppercase font-bold text-muted-foreground">Titulación {i+1}</Label>
@@ -426,7 +462,9 @@ export default function MyProfilePage() {
               <CardContent className="p-10 space-y-8">
                 <div className="flex items-center space-x-3 text-primary">
                   <Trophy className="w-6 h-6" />
-                  <h2 className="text-2xl font-bold font-headline uppercase italic">Historial de Carrera</h2>
+                  <h2 className="text-2xl font-bold font-headline uppercase italic">
+                    {isTargetClub ? 'Palmarés y Logros' : 'Historial de Carrera'}
+                  </h2>
                 </div>
                 
                 <div className="space-y-8">
@@ -447,30 +485,30 @@ export default function MyProfilePage() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Club / Entidad</Label>
+                        <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">{isTargetClub ? 'Competición' : 'Club / Entidad'}</Label>
                         <Input 
-                          placeholder="Nombre del club" 
+                          placeholder={isTargetClub ? "Ej: 1ª RFEF" : "Nombre del club"} 
                           value={formData.newSeason.club} 
                           onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} 
                           className="bg-white/5 border-none rounded-xl h-11" 
                         />
                       </div>
                       
-                      {isTargetCoach ? (
+                      {isTargetCoach || isTargetClub ? (
                         <>
                           <div className="space-y-1.5">
-                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Liga / Competición</Label>
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">{isTargetClub ? 'Resultado Final' : 'Liga / Competición'}</Label>
                             <Input 
-                              placeholder="Ej: 1ª RFEF" 
+                              placeholder={isTargetClub ? "Ej: Campeón" : "Ej: 1ª RFEF"} 
                               value={formData.newSeason.league || ''} 
                               onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, league: e.target.value}})} 
                               className="bg-white/5 border-none rounded-xl h-11" 
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Posición Final</Label>
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">{isTargetClub ? 'Hito / Ascenso' : 'Posición Final'}</Label>
                             <Input 
-                              placeholder="Ej: 3º" 
+                              placeholder={isTargetClub ? "Ej: Ascenso a 2ª" : "Ej: 3º"} 
                               value={formData.newSeason.leaguePosition || ''} 
                               onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, leaguePosition: e.target.value}})} 
                               className="bg-white/5 border-none rounded-xl h-11" 
@@ -503,7 +541,7 @@ export default function MyProfilePage() {
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                      {isTargetCoach ? (
+                      {isTargetCoach || isTargetClub ? (
                         <>
                           <div className="space-y-1.5">
                             <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Victorias</Label>
@@ -518,7 +556,7 @@ export default function MyProfilePage() {
                             <Input type="number" value={formData.newSeason.losses || 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, losses: parseInt(e.target.value) || 0}})} className="bg-white/5 border-none rounded-xl h-11" />
                           </div>
                           <div className="space-y-1.5">
-                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">Ascenso</Label>
+                            <Label className="text-[9px] uppercase font-bold text-muted-foreground ml-1">{isTargetClub ? 'Logro Especial' : 'Ascenso'}</Label>
                             <Select value={formData.newSeason.promotion || 'No'} onValueChange={v => setFormData({...formData, newSeason: {...formData.newSeason, promotion: v}})}>
                               <SelectTrigger className="bg-white/5 border-none rounded-xl h-11"><SelectValue /></SelectTrigger>
                               <SelectContent className="bg-[#111827] border-white/10 text-white">
@@ -570,13 +608,13 @@ export default function MyProfilePage() {
                               <div>
                                 <p className="font-bold text-lg leading-none">{item.club}</p>
                                 <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1">
-                                  {isTargetCoach ? (item.league || 'Competición') : (item.position || 'Posición')}
+                                  {isTargetCoach || isTargetClub ? (item.league || 'Competición') : (item.position || 'Posición')}
                                 </p>
                               </div>
                             </div>
                             
                             <div className="flex items-center gap-6">
-                              {isTargetCoach ? (
+                              {isTargetCoach || isTargetClub ? (
                                 <div className="flex gap-4 text-center">
                                    <div><p className="text-[8px] font-black text-muted-foreground uppercase">PG</p><p className="text-xs font-bold">{item.wins || 0}</p></div>
                                    <div><p className="text-[8px] font-black text-muted-foreground uppercase">PE</p><p className="text-xs font-bold">{item.draws || 0}</p></div>

@@ -149,7 +149,10 @@
         "bookImageUrls": { "type": "array", "items": { "type": "string" } },
         "summary": { "type": "string" },
         "analysis": { "type": "string" },
-        "certifications": { "type": "array", "items": { "type": "string" } }
+        "certifications": { "type": "array", "items": { "type": "string" } },
+        "stadium": { "type": "string" },
+        "foundationYear": { "type": "string" },
+        "facilities": { "type": "string" }
       },
       "required": ["id", "userId", "bio"]
     }

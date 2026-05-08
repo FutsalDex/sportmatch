@@ -1,3 +1,4 @@
+
 "use client";
 
 import { use, useState, useMemo } from 'react';
@@ -23,7 +24,9 @@ import {
   Target,
   ArrowUp,
   ShieldAlert,
-  Pencil
+  Pencil,
+  Building2,
+  Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +56,8 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
   const isOwnProfile = viewer?.uid === id;
 
   const isCoach = userData?.role === 'Coach';
+  const isClub = userData?.role === 'Club';
+  
   // El admin ve todo como verificado para poder auditar
   const isVerified = isViewerAdmin || userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro';
   
@@ -63,7 +68,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
   const careerTotals = useMemo(() => {
     if (!profileData?.teamHistory) return null;
     return profileData.teamHistory.reduce((acc: any, curr: any) => {
-      if (isCoach) {
+      if (isCoach || isClub) {
         acc.wins += (Number(curr.wins) || 0);
         acc.draws += (Number(curr.draws) || 0);
         acc.losses += (Number(curr.losses) || 0);
@@ -75,8 +80,8 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
         acc.assists += (Number(curr.assists) || 0);
       }
       return acc;
-    }, isCoach ? { wins: 0, draws: 0, losses: 0, matches: 0, promotions: 0 } : { matches: 0, goals: 0, assists: 0 });
-  }, [profileData?.teamHistory, isCoach]);
+    }, (isCoach || isClub) ? { wins: 0, draws: 0, losses: 0, matches: 0, promotions: 0 } : { matches: 0, goals: 0, assists: 0 });
+  }, [profileData?.teamHistory, isCoach, isClub]);
 
   if (isLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Sincronizando Terminal...</div>;
 
@@ -131,7 +136,10 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
 
         <div className="max-w-4xl mx-auto flex flex-col items-center text-center space-y-4 md:space-y-6">
           <div className="relative group">
-            <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-primary rounded-[2.5rem] md:rounded-[3rem] overflow-hidden bg-[#111827] shadow-[0_0_50px_rgba(234,179,8,0.2)]">
+            <Avatar className={cn(
+              "w-32 h-32 md:w-40 md:h-40 border-4 border-primary rounded-[2.5rem] md:rounded-[3rem] overflow-hidden bg-[#111827] shadow-[0_0_50px_rgba(234,179,8,0.2)]",
+              isClub && "rounded-[1.5rem] md:rounded-[2rem]"
+            )}>
               <AvatarImage src={userData.profileImageUrl} className="object-cover" />
               <AvatarFallback className="text-2xl md:text-4xl font-black bg-primary/10 text-primary">{userData.name?.substring(0,2).toUpperCase()}</AvatarFallback>
             </Avatar>
@@ -180,7 +188,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div className="flex items-center gap-2 md:gap-3">
                 <Play className="w-4 h-4 md:w-5 md:h-5 text-primary fill-primary" />
-                <h2 className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-muted-foreground">Material Gráfico de Perfil</h2>
+                <h2 className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-muted-foreground">Material Gráfico {isClub ? 'Institucional' : 'de Perfil'}</h2>
               </div>
               <Badge className="bg-primary/10 text-primary border-none text-[7px] md:text-[8px] font-black tracking-widest uppercase">Visual Scouting</Badge>
             </div>
@@ -212,15 +220,24 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
         <Tabs defaultValue="stats" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-[#111827] border border-white/5 rounded-2xl md:rounded-[2rem] h-12 md:h-16 p-1 md:p-1.5">
             <TabsTrigger value="stats" className="rounded-xl md:rounded-2xl font-black text-[7px] md:text-[10px] uppercase tracking-wider md:tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              {isCoach ? 'Títulos' : 'Técnica'}
+              {isClub ? 'Entidad' : (isCoach ? 'Títulos' : 'Técnica')}
             </TabsTrigger>
-            <TabsTrigger value="history" className="rounded-xl md:rounded-2xl font-black text-[7px] md:text-[10px] uppercase tracking-wider md:tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Historial</TabsTrigger>
+            <TabsTrigger value="history" className="rounded-xl md:rounded-2xl font-black text-[7px] md:text-[10px] uppercase tracking-wider md:tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              {isClub ? 'Palmarés' : 'Historial'}
+            </TabsTrigger>
             <TabsTrigger value="ai" className="rounded-xl md:rounded-2xl font-black text-[7px] md:text-[10px] uppercase tracking-wider md:tracking-widest data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Análisis SportMatch</TabsTrigger>
           </TabsList>
           
           <TabsContent value="stats" className="mt-6 md:mt-8 space-y-6 md:space-y-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {isCoach ? (
+              {isClub ? (
+                <>
+                  <StatCard icon={Building2} label="Estadio" value={profileData?.stadium || 'Pendiente'} />
+                  <StatCard icon={Calendar} label="Fundación" value={profileData?.foundationYear || '----'} />
+                  <StatCard icon={Target} label="Categoría" value={userData.position || 'Amateur'} />
+                  <StatCard icon={MapPin} label="Instalaciones" value={profileData?.facilities || 'Sede Social'} />
+                </>
+              ) : isCoach ? (
                 <>
                   <StatCard icon={Map} label="Movilidad" value={userData.mobility || 'Nacional'} />
                   {profileData?.certifications?.length > 0 ? (
@@ -245,7 +262,9 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
               <CardContent className="p-6 md:p-10 space-y-3 md:space-y-4">
                 <div className="flex items-center gap-2 text-primary">
                   <FileText className="w-4 h-4 md:w-5 md:h-5" />
-                  <h3 className="font-black text-[8px] md:text-[10px] uppercase tracking-widest">Biografía Profesional</h3>
+                  <h3 className="font-black text-[8px] md:text-[10px] uppercase tracking-widest">
+                    {isClub ? 'Visión Institucional' : 'Biografía Profesional'}
+                  </h3>
                 </div>
                 <p className="text-xs md:text-base text-muted-foreground leading-relaxed whitespace-pre-line font-medium">
                   {profileData?.bio || (isViewerAdmin ? "[ADMIN: El usuario no ha completado su biografía]" : "Sin biografía registrada.")}
@@ -261,18 +280,18 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                   <div className="flex-1">
                     <div className="flex items-center gap-2 md:gap-3">
                       <span className="text-primary font-black text-[10px] md:text-xs bg-primary/10 px-2 md:px-3 py-0.5 md:py-1 rounded-full">{entry.season}</span>
-                      <h4 className="font-bold text-lg md:text-2xl font-headline tracking-tight truncate">{entry.club}</h4>
-                      {isCoach && entry.promotion === 'Sí' && (
+                      <h4 className="font-bold text-lg md:text-2xl font-headline tracking-tight truncate">{isClub ? entry.league : entry.club}</h4>
+                      {(isCoach || isClub) && entry.promotion === 'Sí' && (
                         <Badge className="bg-primary text-background text-[7px] md:text-[8px] font-black gap-1 uppercase tracking-tighter">
-                          <ArrowUp className="w-2.5 h-2.5" /> Ascenso
+                          <ArrowUp className="w-2.5 h-2.5" /> {isClub ? 'Campeón' : 'Ascenso'}
                         </Badge>
                       )}
                     </div>
                     <p className="text-[7px] md:text-[10px] text-muted-foreground font-black uppercase tracking-[0.1em] md:tracking-[0.2em] mt-1">
-                      {isCoach ? (entry.league || 'Competición') : entry.position}
+                      {isClub ? entry.leaguePosition : (isCoach ? (entry.league || 'Competición') : entry.position)}
                     </p>
                   </div>
-                  {isCoach ? (
+                  {isCoach || isClub ? (
                     <div className="flex justify-between md:justify-end gap-6 md:gap-10 text-center">
                       <div><p className="text-[7px] font-black text-muted-foreground uppercase mb-1">Posición</p><p className="font-bold text-base md:text-xl">{entry.leaguePosition || '-'}</p></div>
                       <div><p className="text-[7px] font-black text-muted-foreground uppercase mb-1">PG</p><p className="font-bold text-base md:text-xl text-green-400">{entry.wins || 0}</p></div>
@@ -305,7 +324,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 <CardContent className="p-8 md:p-10 space-y-6">
                   <div className="flex items-center gap-3 text-primary">
                     <BarChart3 className="w-5 h-5 md:w-6 md:h-6" />
-                    <h3 className="font-black text-[10px] md:text-xs uppercase tracking-widest">Impacto Total de Carrera</h3>
+                    <h3 className="font-black text-[10px] md:text-xs uppercase tracking-widest">Impacto Total {isClub ? 'del Club' : 'de Carrera'}</h3>
                   </div>
                   
                   {careerTotals ? (
@@ -314,10 +333,10 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                         <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Partidos Totales</p>
                         <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-white">{careerTotals.matches}</p>
                       </div>
-                      {isCoach ? (
+                      {isCoach || isClub ? (
                         <>
                           <div className="space-y-1">
-                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Ascensos</p>
+                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">{isClub ? 'Títulos/Hitos' : 'Ascensos'}</p>
                             <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-primary">{careerTotals.promotions}</p>
                           </div>
                           <div className="space-y-1">
@@ -378,14 +397,14 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                         "{profileData?.summary || (isViewerAdmin ? "[ADMIN: El sistema aún no ha generado el resumen para este perfil]" : "Perfil en fase de análisis avanzado. El sistema está evaluando las métricas de rendimiento.")}"
                       </p>
                       <div className="flex flex-wrap gap-2 md:gap-3 pt-2">
-                        <Badge variant="outline" className="bg-black/20 text-primary-foreground border-black/30 font-black text-[7px] md:text-[10px]">TENDENCIA POSITIVA</Badge>
-                        <Badge variant="outline" className="bg-black/20 text-primary-foreground border-black/30 font-black text-[7px] md:text-[10px]">ALTA VISIBILIDAD</Badge>
+                        <Badge variant="outline" className="bg-black/20 text-primary-foreground border-black/30 font-black text-[7px] md:text-[10px]">POTENCIAL DE RECLUTAMIENTO</Badge>
+                        <Badge variant="outline" className="bg-black/20 text-primary-foreground border-black/30 font-black text-[7px] md:text-[10px]">ENTIDAD SOLVENTE</Badge>
                       </div>
                     </>
                   ) : (
                     <div className="space-y-4">
                       <p className="text-muted-foreground text-sm font-medium leading-relaxed">
-                        El análisis de rendimiento mediante IA es una función exclusiva del plan **Elite Pro**. Mejora tu cuenta para desbloquear la síntesis táctica avanzada.
+                        El análisis de impacto institucional mediante IA es una función exclusiva del plan **Elite Pro**. Mejora la cuenta de la entidad para desbloquear la síntesis estratégica avanzada.
                       </p>
                       <Button asChild variant="outline" className="h-12 border-primary/40 text-primary hover:bg-primary/10 rounded-xl font-black uppercase text-[10px] tracking-widest w-full">
                         <Link href="/pricing">MEJORAR A PRO</Link>
