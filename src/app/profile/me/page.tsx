@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -35,7 +34,10 @@ import {
   GraduationCap,
   Medal,
   Info,
-  Map
+  Map,
+  ShieldAlert,
+  Terminal,
+  Server
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,16 +73,16 @@ import Image from 'next/image';
 interface SeasonEntry {
   season: string;
   club: string;
-  position?: string; // For players
-  goals?: number; // For players
-  assists?: number; // For players
-  matches?: number; // For players
-  league?: string; // For coaches
-  leaguePosition?: string; // For coaches
-  promotion?: string; // For coaches ("Sí" / "No")
-  wins?: number; // For coaches
-  draws?: number; // For coaches
-  losses?: number; // For coaches
+  position?: string;
+  goals?: number;
+  assists?: number;
+  matches?: number;
+  league?: string;
+  leaguePosition?: string;
+  promotion?: string;
+  wins?: number;
+  draws?: number;
+  losses?: number;
 }
 
 export default function MyProfilePage() {
@@ -88,6 +90,8 @@ export default function MyProfilePage() {
   const { user, isUserLoading: isAuthLoading } = useUser();
   const { firestore: db, storage } = useFirebase();
   const { toast } = useToast();
+
+  const isAdmin = user?.email === 'admin01@gmail.com';
 
   const userRef = useMemoFirebase(() => {
     return user ? doc(db, 'users', user.uid) : null;
@@ -113,7 +117,7 @@ export default function MyProfilePage() {
     height: '',
     weight: '',
     strongFoot: '',
-    certifications: ['', '', ''], // For coaches
+    certifications: ['', '', ''],
     instagram: '',
     tiktok: '',
     twitter: '',
@@ -180,14 +184,14 @@ export default function MyProfilePage() {
     }
   }, [user, isAuthLoading, router]);
 
-  const isElite = userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro';
+  const isElite = isAdmin || userData?.verificationStatus === 'verified' || userData?.plan === 'verified' || userData?.plan === 'pro';
   const isCoach = userData?.role === 'Coach';
 
   const calculateScore = () => {
+    if (isAdmin) return 100;
     let score = 0;
     const isFree = !isElite;
 
-    // 1. Datos Básicos (Máx 10)
     let basicScore = 0;
     if (formData.name) basicScore += 2;
     if (formData.nationality) basicScore += 2;
@@ -195,7 +199,6 @@ export default function MyProfilePage() {
     if (formData.instagram || formData.tiktok || formData.twitter) basicScore += 4;
     score += Math.min(basicScore, 10);
 
-    // 2. Física y Técnica / Titulaciones (Máx 10)
     let moduleScore = 0;
     if (isCoach) {
       formData.certifications.forEach(c => { if (c) moduleScore += 3.4; });
@@ -208,7 +211,6 @@ export default function MyProfilePage() {
     }
     score += Math.min(moduleScore, 10);
 
-    // 3. Galería Multimedia (Máx 25)
     let mediaScore = 0;
     if (formData.profileImageUrl) mediaScore += 10;
     formData.bookImageUrls.forEach(url => { if (url) mediaScore += 3; });
@@ -216,24 +218,15 @@ export default function MyProfilePage() {
     formData.socialVideoUrls.forEach(url => { if (url) mediaScore += 3; });
     score += Math.min(mediaScore, 25);
 
-    // 4. Biografía Profesional (Máx 10)
-    if (!isFree && formData.isAiBio) {
-      score += 10;
-    } else if (formData.bio && formData.bio.length > 20) {
-      score += 5;
-    }
+    if (!isFree && formData.isAiBio) score += 10;
+    else if (formData.bio && formData.bio.length > 20) score += 5;
 
-    // 5. Historial Deportivo (Máx 10)
     if (formData.teamHistory.length > 0) score += 10;
 
-    // 6. Plan de Cuenta (Verificado +10, Pro +20)
     if (userData?.plan === 'pro') score += 20;
     else if (userData?.plan === 'verified' || userData?.verificationStatus === 'verified') score += 10;
 
-    // 7. Análisis de SportMatch (IA) (Máx 15) - SOLO NO FREE
-    if (!isFree && (profileData?.analysis || profileData?.summary)) {
-      score += 15;
-    }
+    if (!isFree && (profileData?.analysis || profileData?.summary)) score += 15;
 
     return Math.min(Math.round(score), 100);
   };
@@ -243,7 +236,6 @@ export default function MyProfilePage() {
   const handleSave = () => {
     if (!user || !userRef || !profileRef) return;
 
-    // Sincronizar la titulación principal como 'position' para el ranking de entrenadores
     const primaryCert = formData.certifications.find(c => !!c) || '';
 
     setDocumentNonBlocking(userRef, {
@@ -258,7 +250,8 @@ export default function MyProfilePage() {
       tiktok: formData.tiktok,
       twitter: formData.twitter,
       profileImageUrl: formData.profileImageUrl,
-      score: currentScore
+      score: currentScore,
+      role: isAdmin ? 'Admin' : userData?.role
     }, { merge: true });
 
     setDocumentNonBlocking(profileRef, {
@@ -277,8 +270,8 @@ export default function MyProfilePage() {
     }, { merge: true });
 
     toast({
-      title: "Perfil Actualizado",
-      description: "Tu Score IA es ahora de " + currentScore + " puntos."
+      title: isAdmin ? "Configuración de Sistema Aplicada" : "Perfil Actualizado",
+      description: isAdmin ? "Privilegios de administrador sincronizados." : "Tu Score IA es ahora de " + currentScore + " puntos."
     });
   };
 
@@ -342,18 +335,6 @@ export default function MyProfilePage() {
     }
   };
 
-  const toggleAiBio = () => {
-    if (!isElite) {
-      toast({ variant: "destructive", title: "Función Bloqueada", description: "Solo los perfiles Verificados o Pro pueden solicitar una biografía con IA." });
-      return;
-    }
-    setFormData(prev => ({ ...prev, isAiBio: !prev.isAiBio }));
-    toast({
-      title: !formData.isAiBio ? "Bonificación IA Activada" : "Bonificación IA Desactivada",
-      description: !formData.isAiBio ? "Has ganado +10 puntos por usar IA." : "Se han restado puntos del Score."
-    });
-  };
-
   if (isAuthLoading || isUserLoading || isProfileLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center"><Loader2 className="animate-spin text-primary w-10 h-10" /></div>;
 
   return (
@@ -362,490 +343,241 @@ export default function MyProfilePage() {
       <main className="max-w-5xl mx-auto px-6 py-12 space-y-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div className="space-y-2">
-            <h1 className="text-5xl font-bold font-headline tracking-tighter">Mi Perfil</h1>
-            <p className="text-muted-foreground font-medium uppercase tracking-widest text-[10px]">Análisis de Potencial IA</p>
+            <h1 className={cn("text-5xl font-bold font-headline tracking-tighter", isAdmin && "text-red-500 uppercase italic")}>
+              {isAdmin ? 'Maestro de Red' : 'Mi Perfil'}
+            </h1>
+            <p className="text-muted-foreground font-medium uppercase tracking-widest text-[10px]">
+              {isAdmin ? 'Acceso Total al Núcleo de SportMatch' : 'Análisis de Potencial IA'}
+            </p>
           </div>
-          <div className="flex-1 max-w-md bg-[#111827] border border-white/5 p-6 rounded-[2rem] space-y-4">
+          
+          <div className={cn(
+            "flex-1 max-w-md border p-6 rounded-[2rem] space-y-4",
+            isAdmin ? "bg-red-500/5 border-red-500/20" : "bg-[#111827] border-white/5"
+          )}>
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-black uppercase text-white flex items-center gap-2">
-                <Zap className="w-4 h-4 text-primary fill-primary" /> Score de Scouting
+                {isAdmin ? <ShieldAlert className="w-4 h-4 text-red-500" /> : <Zap className="w-4 h-4 text-primary fill-primary" />}
+                {isAdmin ? 'Autoridad de Sistema' : 'Score de Scouting'}
               </span>
-              <Badge className="bg-primary/10 text-primary border-none text-xs">PUNTOS: {currentScore}</Badge>
+              <Badge className={cn("border-none text-xs", isAdmin ? "bg-red-500 text-white" : "bg-primary/10 text-primary")}>
+                {isAdmin ? 'NIVEL OMEGA' : `PUNTOS: ${currentScore}`}
+              </Badge>
             </div>
-            <Progress value={currentScore} className="h-2 bg-white/5" />
+            <Progress value={currentScore} className={cn("h-2", isAdmin ? "bg-red-500/10" : "bg-white/5")} />
             <div className="flex justify-between text-[8px] text-muted-foreground font-bold uppercase tracking-tighter italic">
-               <span>Perfil Técnico: {Math.min(currentScore - (isElite && (profileData?.analysis || profileData?.summary) ? 15 : 0), 85)}/85</span>
-               <span>Análisis IA: {isElite && (profileData?.analysis || profileData?.summary) ? 15 : 0}/15</span>
+               <span>{isAdmin ? 'Permisos: Root' : `Perfil Técnico: ${Math.min(currentScore - (isElite && (profileData?.analysis || profileData?.summary) ? 15 : 0), 85)}/85`}</span>
+               <span>{isAdmin ? 'Acceso: Global' : `Análisis IA: ${isElite && (profileData?.analysis || profileData?.summary) ? 15 : 0}/15`}</span>
             </div>
           </div>
         </div>
 
+        {isAdmin && (
+          <Card className="bg-red-500/5 border-red-500/20 rounded-[2rem] p-8">
+            <div className="flex items-start gap-4">
+               <div className="bg-red-500/10 p-4 rounded-2xl">
+                 <Terminal className="w-8 h-8 text-red-500" />
+               </div>
+               <div className="space-y-2">
+                 <h3 className="font-bold text-xl font-headline tracking-tight uppercase text-red-500">Panel Super Administrador Activo</h3>
+                 <p className="text-sm text-muted-foreground leading-relaxed">
+                   Esta cuenta tiene privilegios para visualizar, editar y eliminar cualquier dato en la base de datos de producción. 
+                   Utiliza esta terminal para gestionar la salud de la red y verificar identidades de alto nivel.
+                 </p>
+               </div>
+            </div>
+          </Card>
+        )}
+
         <div className="space-y-8">
-          {/* DATOS BÁSICOS */}
-          <Card className="bg-[#111827] border-[#1F2937] rounded-[2.5rem]">
+          {/* DATOS BÁSICOS (ESTILIZADOS PARA ADMIN) */}
+          <Card className={cn("rounded-[2.5rem]", isAdmin ? "bg-[#1a0a0a] border-red-500/10" : "bg-[#111827] border-[#1F2937]")}>
             <CardContent className="p-10 space-y-8">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3 text-primary">
-                  <Globe className="w-6 h-6" />
-                  <h2 className="text-2xl font-bold font-headline uppercase italic">Datos Básicos</h2>
+                  {isAdmin ? <Server className="w-6 h-6 text-red-500" /> : <Globe className="w-6 h-6" />}
+                  <h2 className={cn("text-2xl font-bold font-headline uppercase italic", isAdmin && "text-red-500")}>
+                    {isAdmin ? 'Identidad de Sistema' : 'Datos Básicos'}
+                  </h2>
                 </div>
-                <Badge variant="outline" className="border-primary/20 text-primary text-[8px] font-black">MÁX 10 PTS</Badge>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Nombre Completo</Label>
-                  <Input value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6" />
+                  <Input value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Nacionalidad</Label>
-                  <div className="relative">
-                    <Flag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary z-10" />
-                    <Input value={formData.nationality || ''} onChange={e => setFormData({...formData, nationality: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12 pr-6" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Edad</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary z-10" />
-                    <Input type="number" value={formData.age || ''} onChange={e => setFormData({...formData, age: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl pl-12 pr-6" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">País</Label>
-                  <Select value={formData.country || 'España'} onValueChange={v => setFormData({...formData, country: v, province: ''})}>
-                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6"><SelectValue placeholder="País" /></SelectTrigger>
-                    <SelectContent className="bg-[#111827] border-white/10 text-white">
-                      {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">{GET_LOCATION_LABEL(formData.country)}</Label>
-                  <Select value={formData.province || ''} onValueChange={v => setFormData({...formData, province: v})}>
-                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6"><SelectValue placeholder="Zona" /></SelectTrigger>
-                    <SelectContent className="bg-[#111827] border-white/10 text-white max-h-60">
-                      {GET_LOCATION_LIST(formData.country).map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 ml-2">
-                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Movilidad Geográfica</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-4 w-4 rounded-full text-primary/60 hover:text-primary hover:bg-primary/10">
-                          <Info className="h-3.5 w-3.5" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-72 bg-[#111827] border-white/10 text-white p-6 rounded-2xl shadow-2xl">
-                        <div className="space-y-4 text-xs">
-                          <h4 className="font-black text-primary uppercase tracking-widest border-b border-white/10 pb-2">Guía de Movilidad</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <p className="font-bold text-primary/80 mb-1">Local</p>
-                              <p className="text-muted-foreground">Disponibilidad para proyectos en tu provincia o residencia actual.</p>
-                            </div>
-                            <div>
-                              <p className="font-bold text-primary/80 mb-1">Nacional</p>
-                              <p className="text-muted-foreground">Voluntad de desplazarte a cualquier punto del país.</p>
-                            </div>
-                            <div>
-                              <p className="font-bold text-primary/80 mb-1">Internacional</p>
-                              <p className="text-muted-foreground">Apertura total a proyectos en ligas extranjeras.</p>
-                            </div>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <Select value={formData.mobility || 'Nacional'} onValueChange={v => setFormData({...formData, mobility: v})}>
-                    <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6">
-                      <div className="flex items-center gap-2">
-                        <Map className="w-4 h-4 text-muted-foreground" />
-                        <SelectValue placeholder="Selecciona movilidad" />
+                {!isAdmin && (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Nacionalidad</Label>
+                      <div className="relative">
+                        <Flag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary z-10" />
+                        <Input value={formData.nationality || ''} onChange={e => setFormData({...formData, nationality: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl pl-12 pr-6" />
                       </div>
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#111827] border-white/10 text-white">
-                      <SelectItem value="Local">Local</SelectItem>
-                      <SelectItem value="Nacional">Nacional</SelectItem>
-                      <SelectItem value="Internacional">Internacional</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Edad</Label>
+                      <div className="relative">
+                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary z-10" />
+                        <Input type="number" value={formData.age || ''} onChange={e => setFormData({...formData, age: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl pl-12 pr-6" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">País</Label>
+                      <Select value={formData.country || 'España'} onValueChange={v => setFormData({...formData, country: v, province: ''})}>
+                        <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6"><SelectValue placeholder="País" /></SelectTrigger>
+                        <SelectContent className="bg-[#111827] border-white/10 text-white">
+                          {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">{isAdmin ? 'Nivel de Acceso' : 'Movilidad Geográfica'}</Label>
+                  {isAdmin ? (
+                    <div className="h-14 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center px-6 text-red-500 font-bold uppercase tracking-widest text-xs">
+                       ROOT / OVERRIDE_ALL
+                    </div>
+                  ) : (
+                    <Select value={formData.mobility || 'Nacional'} onValueChange={v => setFormData({...formData, mobility: v})}>
+                      <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6">
+                        <div className="flex items-center gap-2">
+                          <Map className="w-4 h-4 text-muted-foreground" />
+                          <SelectValue placeholder="Selecciona movilidad" />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#111827] border-white/10 text-white">
+                        <SelectItem value="Local">Local</SelectItem>
+                        <SelectItem value="Nacional">Nacional</SelectItem>
+                        <SelectItem value="Internacional">Internacional</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6 border-t border-white/5">
-                {['instagram', 'tiktok', 'twitter'].map((social) => (
-                  <div key={social} className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">{social.toUpperCase()}</Label>
-                    <Input placeholder="@usuario" value={(formData as any)[social] || ''} onChange={e => setFormData({...formData, [social]: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6" />
-                  </div>
-                ))}
               </div>
             </CardContent>
           </Card>
 
-          {/* BIOGRAFÍA CON IA */}
-          <Card className="bg-[#111827] border-[#1F2937] rounded-[2.5rem] overflow-hidden">
+          {/* BIOGRAFÍA / DESCRIPCIÓN */}
+          <Card className={cn("rounded-[2.5rem]", isAdmin ? "bg-[#1a0a0a] border-red-500/10" : "bg-[#111827] border-[#1F2937]")}>
             <CardContent className="p-10 space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 text-primary">
-                  <FileText className="w-6 h-6" />
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-2xl font-bold font-headline uppercase italic">Biografía Profesional</h2>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full text-primary/60 hover:text-primary hover:bg-primary/10">
-                          <Info className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80 bg-[#111827] border-white/10 text-white p-6 rounded-2xl">
-                        <div className="space-y-4 text-xs">
-                          <h4 className="font-black text-primary uppercase tracking-widest border-b border-white/10 pb-2">Guía Táctica de Biografía</h4>
-                          <div className="space-y-3">
-                            <div>
-                              <p className="font-bold text-primary/80 mb-1">1. Perfil y Filosofía</p>
-                              <p className="text-muted-foreground">Definición táctica (ej. juego asociativo, bloque bajo y contraataque) y tus principios innegociables en el campo.</p>
-                            </div>
-                            <div>
-                              <p className="font-bold text-primary/80 mb-1">2. Metodología de Trabajo</p>
-                              <p className="text-muted-foreground">Diseño de sesiones diarias y uso de tecnología (videoanálisis, datos y control de cargas).</p>
-                            </div>
-                            <div>
-                              <p className="font-bold text-primary/80 mb-1">3. Gestión de Talento</p>
-                              <p className="text-muted-foreground">Promoción de jóvenes (cantera) y estilo de liderazgo (autoritario, democrático, motivador).</p>
-                            </div>
-                            <div>
-                              <p className="font-bold text-primary/80 mb-1">4. Staff y Estructura</p>
-                              <p className="text-muted-foreground">Reparto de tareas con asistentes y coordinación con la dirección deportiva del club.</p>
-                            </div>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Badge variant="outline" className="border-primary/20 text-primary text-[8px] font-black">
-                    {formData.isAiBio ? "MÁX 10 PTS" : "MÁX 5 PTS FREE"}
-                  </Badge>
-                  {formData.isAiBio && <Badge className="bg-primary text-background text-[8px] font-black">+10 PTS IA</Badge>}
-                </div>
+              <div className="flex items-center space-x-3 text-primary">
+                <FileText className={cn("w-6 h-6", isAdmin && "text-red-500")} />
+                <h2 className={cn("text-2xl font-bold font-headline uppercase italic", isAdmin && "text-red-500")}>
+                  {isAdmin ? 'Protocolo de Mando' : 'Biografía Profesional'}
+                </h2>
               </div>
               <Textarea 
                 value={formData.bio || ''} 
                 onChange={e => setFormData({...formData, bio: e.target.value})} 
-                className="min-h-[150px] bg-[#1F2937]/50 border-none rounded-[2rem] p-6 text-lg focus:ring-1 focus:ring-primary/40" 
-                placeholder="Describe tu trayectoria, puntos fuertes y objetivos..." 
+                className="min-h-[150px] bg-white/5 border-none rounded-[2rem] p-6 text-lg" 
+                placeholder={isAdmin ? "Define las guías de administración..." : "Describe tu trayectoria..."} 
               />
-              <Button 
-                onClick={toggleAiBio} 
-                variant={formData.isAiBio ? "default" : "outline"}
-                disabled={!isElite}
-                className={cn(
-                  "w-full h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest gap-2",
-                  formData.isAiBio ? "bg-primary text-background" : "border-primary/20 text-primary hover:bg-primary/5",
-                  !isElite && "opacity-50 cursor-not-allowed"
-                )}
-              >
-                {!isElite ? <Lock className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                {formData.isAiBio ? "OPTIMIZADO CON IA ✓" : isElite ? "OPTIMIZAR BIOGRAFÍA CON IA" : "OPTIMIZACIÓN IA (SOLO PRO/VERIFICADO)"}
-              </Button>
             </CardContent>
           </Card>
 
-          {/* FICHA TÉCNICA (DINÁMICA: JUGADOR O ENTRENADOR) */}
-          <Card className="bg-[#111827] border-[#1F2937] rounded-[2.5rem]">
-            <CardContent className="p-10 space-y-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 text-primary">
-                  {isCoach ? <GraduationCap className="w-6 h-6" /> : <Activity className="w-6 h-6" />}
-                  <h2 className="text-2xl font-bold font-headline uppercase italic">
-                    {isCoach ? 'Titulaciones y Experiencia' : 'Física y Técnica'}
-                  </h2>
-                </div>
-                <Badge variant="outline" className="border-primary/20 text-primary text-[8px] font-black">MÁX 10 PTS</Badge>
-              </div>
-
-              {isCoach ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {formData.certifications.map((cert, i) => (
-                    <div key={i} className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Titulación {i + 1}</Label>
-                      <Select 
-                        value={cert || ""} 
-                        onValueChange={v => {
-                          const updated = [...formData.certifications];
-                          updated[i] = v;
-                          setFormData({...formData, certifications: updated});
-                        }}
-                      >
-                        <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6">
-                          <SelectValue placeholder="Selecciona titulación" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#111827] border-white/10 text-white">
-                          <SelectGroup>
-                            <SelectLabel>Licencias Federativas (Ruta UEFA)</SelectLabel>
-                            <SelectItem value="UEFA C">UEFA C</SelectItem>
-                            <SelectItem value="UEFA B">UEFA B</SelectItem>
-                            <SelectItem value="UEFA A">UEFA A</SelectItem>
-                            <SelectItem value="UEFA PRO">UEFA PRO</SelectItem>
-                          </SelectGroup>
-                          <SelectGroup>
-                            <SelectLabel>Títulos Académicos Oficiales</SelectLabel>
-                            <SelectItem value="Técnico Deportivo Grado Medio (Ciclo Inicial)">Técnico Deportivo Grado Medio (Ciclo Inicial)</SelectItem>
-                            <SelectItem value="Técnico Deportivo Grado Medio (Ciclo Final)">Técnico Deportivo Grado Medio (Ciclo Final)</SelectItem>
-                            <SelectItem value="Técnico Deportivo Superior en Fútbol">Técnico Deportivo Superior en Fútbol</SelectItem>
-                          </SelectGroup>
-                          <SelectGroup>
-                            <SelectLabel>Especializaciones Técnicas</SelectLabel>
-                            <SelectItem value="UEFA Elite Youth A">UEFA Elite Youth A</SelectItem>
-                            <SelectItem value="UEFA Goalkeeper B">UEFA Goalkeeper B</SelectItem>
-                            <SelectItem value="UEFA Goalkeeper A">UEFA Goalkeeper A</SelectItem>
-                            <SelectItem value="Certificación en Videoanálisis y Scouting">Certificación en Videoanálisis y Scouting</SelectItem>
-                            <SelectItem value="Especialista en Dirección de Metodología">Especialista en Dirección de Metodología</SelectItem>
-                            <SelectItem value="Grado en Ciencias de la Actividad Física y del Deporte (CAFYD)">Grado en Ciencias de la Actividad Física y del Deporte (CAFYD)</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+          {/* OTRAS SECCIONES SOLO SI NO ES ADMIN */}
+          {!isAdmin && (
+            <>
+              {/* FICHA TÉCNICA */}
+              <Card className="bg-[#111827] border-[#1F2937] rounded-[2.5rem]">
+                <CardContent className="p-10 space-y-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 text-primary">
+                      {isCoach ? <GraduationCap className="w-6 h-6" /> : <Activity className="w-6 h-6" />}
+                      <h2 className="text-2xl font-bold font-headline uppercase italic">
+                        {isCoach ? 'Titulaciones y Experiencia' : 'Física y Técnica'}
+                      </h2>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {[
-                    { label: 'Altura (CM)', key: 'height', type: 'number' },
-                    { label: 'Peso (KG)', key: 'weight', type: 'number' }
-                  ].map((field) => (
-                    <div key={field.key} className="space-y-2">
-                      <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">{field.label}</Label>
-                      <Input type={field.type} value={(formData as any)[field.key] || ''} onChange={e => setFormData({...formData, [field.key]: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6" />
-                    </div>
-                  ))}
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Pierna</Label>
-                    <Select value={formData.strongFoot || ""} onValueChange={v => setFormData({...formData, strongFoot: v})}>
-                      <SelectTrigger className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6"><SelectValue placeholder="Pierna" /></SelectTrigger>
-                      <SelectContent className="bg-[#111827] border-white/10 text-white">
-                        <SelectItem value="Derecha">Derecha</SelectItem>
-                        <SelectItem value="Izquierda">Izquierda</SelectItem>
-                        <SelectItem value="Ambidiestro">Ambidiestro</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Posición</Label>
-                    <Input value={formData.position || ''} onChange={e => setFormData({...formData, position: e.target.value})} className="h-14 bg-[#1F2937]/50 border-none rounded-2xl px-6" />
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* GALERÍA MULTIMEDIA */}
-          <Card className="bg-[#111827] border-[#1F2937] rounded-[2.5rem]">
-            <CardContent className="p-10 space-y-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 text-primary">
-                  <Camera className="w-6 h-6" />
-                  <h2 className="text-2xl font-bold font-headline uppercase italic">Galería Multimedia</h2>
-                </div>
-                <Badge variant="outline" className="border-primary/20 text-primary text-[8px] font-black">MÁX 25 PTS</Badge>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="space-y-4">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Foto de Perfil</Label>
-                  <div className="flex flex-col gap-4">
-                    {formData.profileImageUrl && (
-                      <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-primary/20 group shadow-xl">
-                        <Image src={formData.profileImageUrl} alt="Profile preview" fill className="object-cover" />
-                        <button 
-                          onClick={() => setFormData(prev => ({ ...prev, profileImageUrl: '' }))}
-                          className="absolute inset-0 bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Trash2 className="w-6 h-6 text-white" />
-                        </button>
-                      </div>
-                    )}
-                    <Button asChild className="h-14 rounded-xl bg-primary text-background font-black uppercase text-[10px] tracking-widest cursor-pointer w-fit">
-                      <label htmlFor="p-up">
-                        {uploading === 'profile-main' ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-                        SUBIR FOTO PERFIL
-                      </label>
-                    </Button>
-                    <input type="file" id="p-up" className="hidden" accept="image/*" onChange={e => handleFileUpload(e, 'profile')} />
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center"><Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Book de Scouting (Solo Pro/Verificado)</Label>{!isElite && <Lock className="w-3 h-3 text-muted-foreground" />}</div>
-                  <div className="flex gap-4">
-                    {[0, 1, 2].map(i => (
-                      <div key={i} className="flex flex-col gap-2">
-                        <div className="relative w-20 h-20 rounded-xl border-2 border-dashed border-white/10 overflow-hidden bg-black/40 group">
-                          {formData.bookImageUrls[i] ? (
-                            <>
-                              <Image src={formData.bookImageUrls[i]} alt="Book" fill className="object-cover" />
-                              <button 
-                                onClick={() => {
-                                  const updated = [...formData.bookImageUrls];
-                                  updated[i] = '';
-                                  setFormData(prev => ({ ...prev, bookImageUrls: updated }));
-                                }}
-                                className="absolute inset-0 bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <Trash2 className="w-4 h-4 text-white" />
-                              </button>
-                            </>
-                          ) : (
-                            <label htmlFor={`b-up-${i}`} className="flex flex-col items-center justify-center h-full w-full cursor-pointer hover:bg-white/5 transition-colors">
-                              {uploading === `book-${i}` ? <Loader2 className="animate-spin w-4 h-4 text-primary" /> : <Camera className="w-5 h-5 opacity-20" />}
-                            </label>
-                          )}
-                          <input type="file" id={`b-up-${i}`} className="hidden" disabled={!isElite} onChange={e => handleFileUpload(e, 'book', i)} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-white/5">
-                <div className="space-y-4">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2 ml-2"><Youtube className="text-red-500 w-4 h-4" /> YouTube Highlights (Max 2)</Label>
-                  {formData.videoUrls.map((v, i) => (
-                    <Input key={i} placeholder="URL YouTube" value={v || ''} disabled={!isElite} onChange={e => { const u = [...formData.videoUrls]; u[i] = e.target.value; setFormData({...formData, videoUrls: u}); }} className="h-12 bg-[#1F2937]/50 border-none rounded-xl px-6" />
-                  ))}
-                </div>
-                <div className="space-y-4">
-                  <Label className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-2 ml-2"><Instagram className="text-pink-500 w-4 h-4" /> Clips Sociales (Max 2)</Label>
-                  {formData.socialVideoUrls.map((v, i) => (
-                    <Input key={i} placeholder="URL IG/TikTok" value={v || ''} disabled={!isElite} onChange={e => { const u = [...formData.socialVideoUrls]; u[i] = e.target.value; setFormData({...formData, socialVideoUrls: u}); }} className="h-12 bg-[#1F2937]/50 border-none rounded-xl px-6" />
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* HISTORIAL DEPORTIVO (DINÁMICO: JUGADOR O ENTRENADOR) */}
-          <Card className="bg-[#111827] border-[#1F2937] rounded-[2.5rem]">
-            <CardContent className="p-10 space-y-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3 text-primary">
-                  <Trophy className="w-6 h-6" />
-                  <h2 className="text-2xl font-bold font-headline uppercase italic">Historial Deportivo</h2>
-                </div>
-                <Badge variant="outline" className="border-primary/20 text-primary text-[8px] font-black">MÁX 10 PTS</Badge>
-              </div>
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-9 gap-4 bg-black/20 p-6 rounded-[2rem] items-end">
                   {isCoach ? (
-                    <>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Temporada</Label>
-                        <Input placeholder="24/25" value={formData.newSeason.season || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Club</Label>
-                        <Input placeholder="Club" value={formData.newSeason.club || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Campeonato</Label>
-                        <Input placeholder="Liga" value={formData.newSeason.league || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, league: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Pos.</Label>
-                        <Input placeholder="1º" value={formData.newSeason.leaguePosition || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, leaguePosition: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Asc.</Label>
-                        <Select value={formData.newSeason.promotion || "No"} onValueChange={v => setFormData({...formData, newSeason: {...formData.newSeason, promotion: v}})}>
-                          <SelectTrigger className="bg-[#030712] border-none rounded-xl h-10 px-4"><SelectValue /></SelectTrigger>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {formData.certifications.map((cert, i) => (
+                        <div key={i} className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Titulación {i + 1}</Label>
+                          <Select 
+                            value={cert || ""} 
+                            onValueChange={v => {
+                              const updated = [...formData.certifications];
+                              updated[i] = v;
+                              setFormData({...formData, certifications: updated});
+                            }}
+                          >
+                            <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6">
+                              <SelectValue placeholder="Selecciona" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#111827] border-white/10 text-white">
+                              <SelectItem value="UEFA PRO">UEFA PRO</SelectItem>
+                              <SelectItem value="UEFA A">UEFA A</SelectItem>
+                              <SelectItem value="UEFA B">UEFA B</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      {['height', 'weight'].map((key) => (
+                        <div key={key} className="space-y-2">
+                          <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">{key === 'height' ? 'Altura' : 'Peso'}</Label>
+                          <Input type="number" value={(formData as any)[key] || ''} onChange={e => setFormData({...formData, [key]: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" />
+                        </div>
+                      ))}
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Pierna</Label>
+                        <Select value={formData.strongFoot || ""} onValueChange={v => setFormData({...formData, strongFoot: v})}>
+                          <SelectTrigger className="h-14 bg-white/5 border-none rounded-2xl px-6"><SelectValue placeholder="Pierna" /></SelectTrigger>
                           <SelectContent className="bg-[#111827] border-white/10 text-white">
-                            <SelectItem value="Sí">Sí</SelectItem>
-                            <SelectItem value="No">No</SelectItem>
+                            <SelectItem value="Derecha">Derecha</SelectItem>
+                            <SelectItem value="Izquierda">Izquierda</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">PG</Label>
-                        <Input type="number" value={formData.newSeason.wins ?? 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, wins: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase font-bold text-muted-foreground ml-2">Posición</Label>
+                        <Input value={formData.position || ''} onChange={e => setFormData({...formData, position: e.target.value})} className="h-14 bg-white/5 border-none rounded-2xl px-6" />
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">PE</Label>
-                        <Input type="number" value={formData.newSeason.draws ?? 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, draws: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">PP</Label>
-                        <Input type="number" value={formData.newSeason.losses ?? 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, losses: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl h-10 px-4 text-center" />
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Temporada</Label>
-                        <Input placeholder="24/25" value={formData.newSeason.season || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Club</Label>
-                        <Input placeholder="Real Madrid" value={formData.newSeason.club || ''} onChange={e => setFormData({...formData, newSeason: { ...formData.newSeason, club: e.target.value }})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">Posición</Label>
-                        <Input placeholder="Extremo" value={formData.newSeason.position || ''} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, position: e.target.value}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">PJ</Label>
-                        <Input type="number" value={formData.newSeason.matches ?? 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, matches: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[8px] uppercase font-black text-muted-foreground ml-2">GOLES</Label>
-                        <Input type="number" value={formData.newSeason.goals ?? 0} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, goals: parseInt(e.target.value) || 0}})} className="bg-[#030712] border-none rounded-xl h-10 px-4" />
-                      </div>
-                    </>
+                    </div>
                   )}
-                  <Button onClick={addSeason} className="col-span-full md:col-span-1 h-10 bg-primary/10 text-primary border border-primary/20 font-black uppercase text-[10px] rounded-xl hover:bg-primary/20">AÑADIR</Button>
-                </div>
+                </CardContent>
+              </Card>
 
-                {formData.teamHistory.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-6 bg-[#1F2937]/30 rounded-2xl border border-white/5">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3"><span className="text-primary font-black text-xs">{item.season}</span><span className="font-bold text-xl">{item.club}</span></div>
-                      <p className="text-[10px] text-muted-foreground uppercase font-black">
-                        {isCoach ? `${item.league || 'S/C'} • Pos: ${item.leaguePosition || '-'}` : item.position}
-                      </p>
-                    </div>
-                    {isCoach ? (
-                      <div className="flex gap-8 mr-8">
-                        <div><p className="text-[8px] font-black text-muted-foreground uppercase">Ascenso</p><p className={cn("font-bold text-lg", item.promotion === 'Sí' ? "text-primary" : "text-white")}>{item.promotion}</p></div>
-                        <div><p className="text-[8px] font-black text-muted-foreground uppercase">PG</p><p className="font-bold text-lg text-green-400">{item.wins || 0}</p></div>
-                        <div><p className="text-[8px] font-black text-muted-foreground uppercase">PE</p><p className="font-bold text-lg">{item.draws || 0}</p></div>
-                        <div><p className="text-[8px] font-black text-muted-foreground uppercase">PP</p><p className="font-bold text-lg text-red-400">{item.losses || 0}</p></div>
-                      </div>
-                    ) : (
-                      <div className="flex gap-8 mr-8">
-                        {[
-                          { label: 'PJ', value: item.matches },
-                          { label: 'GOLES', value: item.goals },
-                          { label: 'ASIST', value: item.assists }
-                        ].map(stat => (
-                          <div key={stat.label} className="text-center">
-                            <p className="text-[8px] font-black text-muted-foreground uppercase">{stat.label}</p>
-                            <p className="font-bold text-lg">{stat.value}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => { setFormData({...formData, newSeason: item, teamHistory: formData.teamHistory.filter((_, i) => i !== idx)}); }} className="text-primary"><Pencil className="w-4 h-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => { setFormData({...formData, teamHistory: formData.teamHistory.filter((_, i) => i !== idx)}); }} className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
-                    </div>
+              {/* HISTORIAL */}
+              <Card className="bg-[#111827] border-[#1F2937] rounded-[2.5rem]">
+                <CardContent className="p-10 space-y-8">
+                  <div className="flex items-center space-x-3 text-primary">
+                    <Trophy className="w-6 h-6" />
+                    <h2 className="text-2xl font-bold font-headline uppercase italic">Historial Deportivo</h2>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-4 bg-black/20 p-6 rounded-[2rem] items-end">
+                      <Input placeholder="Temporada" value={formData.newSeason.season} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, season: e.target.value}})} className="bg-white/5 border-none rounded-xl" />
+                      <Input placeholder="Club" value={formData.newSeason.club} onChange={e => setFormData({...formData, newSeason: {...formData.newSeason, club: e.target.value}})} className="bg-white/5 border-none rounded-xl" />
+                      <Button onClick={addSeason} className="h-10 bg-primary/10 text-primary border border-primary/20 font-black uppercase text-[10px] rounded-xl hover:bg-primary/20">AÑADIR</Button>
+                    </div>
+                    {formData.teamHistory.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-6 bg-white/5 rounded-2xl">
+                        <div><p className="font-bold">{item.club} ({item.season})</p></div>
+                        <Button variant="ghost" size="icon" onClick={() => setFormData({...formData, teamHistory: formData.teamHistory.filter((_, i) => i !== idx)})} className="text-red-500"><Trash2 className="w-4 h-4" /></Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
-        <Button onClick={handleSave} className="fixed bottom-10 right-10 z-50 h-20 px-12 rounded-[2.5rem] bg-primary text-background font-black uppercase tracking-widest shadow-[0_0_50px_rgba(234,179,8,0.4)] hover:scale-105 transition-transform group">
-          <Sparkles className="w-6 h-6 mr-3 fill-current group-hover:animate-pulse" /> GUARDAR PERFIL
+        <Button 
+          onClick={handleSave} 
+          className={cn(
+            "fixed bottom-10 right-10 z-50 h-20 px-12 rounded-[2.5rem] font-black uppercase tracking-widest transition-transform group",
+            isAdmin ? "bg-red-500 text-white shadow-[0_0_50px_rgba(239,68,68,0.4)] hover:bg-red-600" : "bg-primary text-background shadow-[0_0_50px_rgba(234,179,8,0.4)]"
+          )}
+        >
+          {isAdmin ? <ShieldAlert className="w-6 h-6 mr-3" /> : <Sparkles className="w-6 h-6 mr-3 fill-current" />}
+          {isAdmin ? 'SINCRONIZAR NÚCLEO' : 'GUARDAR PERFIL'}
         </Button>
       </main>
     </div>

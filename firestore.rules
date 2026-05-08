@@ -4,6 +4,7 @@ service cloud.firestore {
 
     // --- HELPER FUNCTIONS ---
     function isSignedIn() { return request.auth != null; }
+    function isAdmin() { return isSignedIn() && request.auth.token.email == "admin01@gmail.com"; }
     function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
     function isMemberInMap(map) { return isSignedIn() && map != null && map[request.auth.uid] == true; }
 
@@ -15,27 +16,28 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow get, list: if isSignedIn();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isOwner(userId);
     }
 
     match /userProfiles/{userId} {
-      allow get, list: if isSignedIn();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isOwner(userId);
     }
 
     match /privateProfiles/{userId} {
-      allow get: if isOwner(userId) || (resource != null && isMemberInMap(resource.data.allowedReaders));
-      allow list: if isOwner(userId);
-      allow write: if isOwner(userId);
+      allow get: if isAdmin() || isOwner(userId) || (resource != null && isMemberInMap(resource.data.allowedReaders));
+      allow list: if isAdmin() || isOwner(userId);
+      allow write: if isAdmin() || isOwner(userId);
     }
 
     match /matches/{matchId} {
-      allow read, write: if isSignedIn() && (resource == null || isMemberInMap(resource.data.members));
+      allow read, write: if isAdmin() || (isSignedIn() && (resource == null || isMemberInMap(resource.data.members)));
+    }
+    
+    // Regla global para el admin en cualquier otro documento futuro
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
     }
   }
 }
