@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -68,6 +67,8 @@ const PLAYER_PLANS = [
       { text: "+20 PUNTOS SCORE IA", included: true, icon: Zap },
       { text: "Análisis IA SportMatch", included: true, icon: Award },
       { text: "Informe PDF para clubes", included: true, icon: FileText },
+      { text: "Acceso a ofertas de clubes premium", included: true, icon: Target },
+      { text: "Estadísticas de visitas al perfil", included: true, icon: TrendingUp },
     ],
     buttonText: "SUSCRIBIRSE A ELITE PRO",
     highlight: true,
@@ -335,4 +336,3 @@ export default function PricingPage() {
     </div>
   );
 }
-
