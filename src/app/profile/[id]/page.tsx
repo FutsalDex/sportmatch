@@ -21,7 +21,8 @@ import {
   Map,
   BarChart3,
   TrendingUp,
-  Target
+  Target,
+  ArrowUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,13 +60,14 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
         acc.draws += (Number(curr.draws) || 0);
         acc.losses += (Number(curr.losses) || 0);
         acc.matches += (Number(curr.wins) || 0) + (Number(curr.draws) || 0) + (Number(curr.losses) || 0);
+        if (curr.promotion === 'Sí') acc.promotions += 1;
       } else {
         acc.matches += (Number(curr.matches) || 0);
         acc.goals += (Number(curr.goals) || 0);
         acc.assists += (Number(curr.assists) || 0);
       }
       return acc;
-    }, isCoach ? { wins: 0, draws: 0, losses: 0, matches: 0 } : { matches: 0, goals: 0, assists: 0 });
+    }, isCoach ? { wins: 0, draws: 0, losses: 0, matches: 0, promotions: 0 } : { matches: 0, goals: 0, assists: 0 });
   }, [profileData?.teamHistory, isCoach]);
 
   if (isLoading) return <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Sincronizando Terminal...</div>;
@@ -243,6 +245,11 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                     <div className="flex items-center gap-2 md:gap-3">
                       <span className="text-primary font-black text-[10px] md:text-xs bg-primary/10 px-2 md:px-3 py-0.5 md:py-1 rounded-full">{entry.season}</span>
                       <h4 className="font-bold text-lg md:text-2xl font-headline tracking-tight truncate">{entry.club}</h4>
+                      {isCoach && entry.promotion === 'Sí' && (
+                        <Badge className="bg-primary text-background text-[7px] md:text-[8px] font-black gap-1 uppercase tracking-tighter">
+                          <ArrowUp className="w-2.5 h-2.5" /> Ascenso
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-[7px] md:text-[10px] text-muted-foreground font-black uppercase tracking-[0.1em] md:tracking-[0.2em] mt-1">
                       {isCoach ? (entry.league || 'Competición') : entry.position}
@@ -291,16 +298,18 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                       {isCoach ? (
                         <>
                           <div className="space-y-1">
+                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Ascensos</p>
+                            <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-primary">{careerTotals.promotions}</p>
+                          </div>
+                          <div className="space-y-1">
                             <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Victorias (PG)</p>
                             <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-green-400">{careerTotals.wins}</p>
                           </div>
                           <div className="space-y-1">
-                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Empates (PE)</p>
-                            <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-yellow-400">{careerTotals.draws}</p>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Derrotas (PP)</p>
-                            <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-red-400">{careerTotals.losses}</p>
+                            <p className="text-muted-foreground text-[8px] md:text-[9px] font-black uppercase tracking-widest">Ratio Ganados</p>
+                            <p className="text-2xl md:text-4xl font-black font-headline tracking-tighter text-white">
+                              {careerTotals.matches > 0 ? ((careerTotals.wins / careerTotals.matches) * 100).toFixed(0) : '0'}%
+                            </p>
                           </div>
                         </>
                       ) : (

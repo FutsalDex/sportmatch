@@ -109,7 +109,26 @@
         "userId": { "type": "string" },
         "bio": { "type": "string" },
         "isAiBio": { "type": "boolean" },
-        "teamHistory": { "type": "array", "items": { "type": "object" } },
+        "teamHistory": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "season": { "type": "string" },
+              "club": { "type": "string" },
+              "league": { "type": "string" },
+              "leaguePosition": { "type": "string" },
+              "promotion": { "type": "string" },
+              "wins": { "type": "number" },
+              "draws": { "type": "number" },
+              "losses": { "type": "number" },
+              "goals": { "type": "number" },
+              "assists": { "type": "number" },
+              "matches": { "type": "number" },
+              "position": { "type": "string" }
+            }
+          } 
+        },
         "videoUrls": { "type": "array", "items": { "type": "string" } },
         "socialVideoUrls": { "type": "array", "items": { "type": "string" } },
         "height": { "type": "number" },
@@ -117,7 +136,8 @@
         "strongFoot": { "type": "string" },
         "bookImageUrls": { "type": "array", "items": { "type": "string" } },
         "summary": { "type": "string" },
-        "analysis": { "type": "string" }
+        "analysis": { "type": "string" },
+        "certifications": { "type": "array", "items": { "type": "string" } }
       },
       "required": ["id", "userId", "bio"]
     }
