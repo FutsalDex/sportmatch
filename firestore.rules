@@ -15,22 +15,37 @@ service cloud.firestore {
 
     // --- USERS ---
     match /users/{userId} {
-      allow get, list: if isSignedIn();
+      allow get:    if isSignedIn();
+      allow list:   if isSignedIn();
       allow write:  if isAdmin() || isOwner(userId);
     }
 
     // --- USER PROFILES ---
     match /userProfiles/{userId} {
-      allow get, list: if isSignedIn();
+      allow get:    if isSignedIn();
+      allow list:   if isSignedIn();
       allow write:  if isAdmin() || isOwner(userId);
     }
 
-    // --- OFFERS ---
+    // --- OFFERS (MERCADO DE FICHAJES PÚBLICO) ---
     match /offers/{offerId} {
-      allow read: if isSignedIn();
+      allow read:   if true;  // ✅ Público para fomentar el scouting
       allow create: if isSignedIn();
-      allow update, delete: if isAdmin()
-        || (isSignedIn() && resource != null && isOwner(resource.data.clubId));
+      allow update: if isAdmin() || (isSignedIn() && resource.data.clubId == request.auth.uid);
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.clubId == request.auth.uid);
+    }
+
+    // --- SUBSCRIPTIONS (SaaS Model) ---
+    match /subscriptions/{userId} {
+      allow get:  if isSignedIn() && (isAdmin() || request.auth.uid == userId);
+      allow list: if isAdmin();
+      allow create, update: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // --- AI SCORES ---
+    match /aiScores/{playerId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
     // --- PRIVATE PROFILES ---
@@ -49,7 +64,8 @@ service cloud.firestore {
 
     // --- RANKINGS (públicos) ---
     match /rankings/{role}/provinces/{provinceId}/entries/{userId} {
-      allow get, list: if true;
+      allow get:  if true;
+      allow list: if true;
     }
 
     // --- STATS (públicos, solo get) ---
