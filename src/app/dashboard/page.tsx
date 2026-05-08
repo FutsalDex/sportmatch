@@ -29,13 +29,15 @@ import {
   Briefcase,
   Send,
   Plus,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
-import { doc, collection, query, where, orderBy } from 'firebase/firestore';
+import { doc, collection, query, where } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
 
 export default function DashboardPage() {
   const { user, isUserLoading } = useUser();
@@ -51,10 +53,21 @@ export default function DashboardPage() {
   // Consulta de Ofertas Propias (Solo para Clubes)
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user || !userData || userData.role !== 'Club') return null;
-    return query(collection(db, 'offers'), where('clubId', '==', user.uid), orderBy('createdAt', 'desc'));
+    // Eliminamos orderBy para evitar errores de índices ausentes y ordenamos en memoria
+    return query(collection(db, 'offers'), where('clubId', '==', user.uid));
   }, [db, user?.uid, userData?.role, isUserLoading]);
   
-  const { data: myOffers } = useCollection(myOffersQuery);
+  const { data: rawMyOffers, isLoading: isOffersLoading } = useCollection(myOffersQuery);
+
+  // Ordenación manual por fecha de creación descendente
+  const myOffers = useMemo(() => {
+    if (!rawMyOffers) return [];
+    return [...rawMyOffers].sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      return dateB - dateA;
+    });
+  }, [rawMyOffers]);
 
   // Consulta global para el Admin
   const allUsersQuery = useMemoFirebase(() => {
@@ -66,8 +79,6 @@ export default function DashboardPage() {
   if (isUserLoading || isUserDataLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-primary font-bold animate-pulse uppercase tracking-[0.3em] text-xs">Cargando Terminal...</div>;
 
   const isClub = userData?.role === 'Club';
-  const planLabel = isAdmin ? 'Super Administrador' : (userData?.plan === 'pro' ? 'Elite Pro' : userData?.plan === 'top' ? 'Elite Top' : (userData?.plan === 'verified' ? 'Elite Verificado' : 'Elite Free'));
-
   const offersCount = myOffers?.length || 0;
   const isFreeClub = isClub && (!userData?.plan || userData?.plan === 'free');
   const isOfferLimitReached = isFreeClub && offersCount >= 3;
@@ -161,26 +172,62 @@ export default function DashboardPage() {
               <h2 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center">
                 <Briefcase className="w-4 h-4 mr-2" /> Mis Vacantes Publicadas
               </h2>
-              <Link href="/offers" className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">Ver todas</Link>
+              <Link href="/offers" className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">Ver todas en el mercado</Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-               {myOffers && myOffers.length > 0 ? (
-                 myOffers.slice(0, 3).map((offer) => (
-                   <Card key={offer.id} className="bg-[#111827] border-white/5 rounded-3xl p-6">
-                      <p className="font-bold text-lg mb-1">{offer.position}</p>
-                      <Badge className="bg-primary/20 text-primary border-none text-[8px] font-black uppercase">{offer.role}</Badge>
-                      <div className="mt-6 flex justify-between items-center">
-                         <span className="text-[8px] text-muted-foreground font-black uppercase">Estado: {offer.status}</span>
-                         <Button variant="ghost" className="h-8 px-4 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-white/5">Editar</Button>
-                      </div>
-                   </Card>
-                 ))
-               ) : (
-                 <div className="col-span-full py-12 text-center border border-dashed border-white/5 rounded-[2rem]">
-                    <p className="text-[10px] font-black uppercase text-muted-foreground">No has publicado ninguna oferta institucional aún.</p>
-                 </div>
-               )}
-            </div>
+            
+            {isOffersLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sincronizando vacantes...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {myOffers.length > 0 ? (
+                  myOffers.slice(0, 6).map((offer) => (
+                    <Card key={offer.id} className="bg-[#111827] border-white/5 rounded-3xl p-6 group hover:border-primary/30 transition-all">
+                        <div className="flex justify-between items-start mb-4">
+                           <div>
+                              <p className="font-bold text-lg leading-tight mb-1">{offer.position}</p>
+                              <Badge className="bg-primary/10 text-primary border-none text-[7px] font-black uppercase px-2">{offer.role}</Badge>
+                           </div>
+                           <Badge variant="outline" className={cn(
+                             "text-[7px] font-black uppercase border-white/10",
+                             offer.status === 'active' ? "text-green-500" : "text-muted-foreground"
+                           )}>
+                             {offer.status}
+                           </Badge>
+                        </div>
+                        
+                        <div className="space-y-2 mb-6">
+                           <div className="flex items-center gap-2 text-[9px] text-muted-foreground font-bold">
+                              <Target className="w-3 h-3 text-primary" /> {offer.teamRole || 'Sin determinar'}
+                           </div>
+                           <div className="flex items-center gap-2 text-[9px] text-muted-foreground font-bold">
+                              <Send className="w-3 h-3 text-primary" /> {offer.onboardingDate || 'Inmediata'}
+                           </div>
+                        </div>
+
+                        <div className="flex gap-2">
+                           <Button asChild size="sm" variant="ghost" className="flex-1 rounded-xl bg-white/5 text-[8px] font-black uppercase tracking-widest hover:bg-primary hover:text-background">
+                              <Link href={`/offers/edit/${offer.id}`}>EDITAR</Link>
+                           </Button>
+                           <Button asChild size="sm" variant="ghost" className="rounded-xl bg-white/5 px-3">
+                              <Link href={`/offers/${offer.id}`}><ArrowUpRight className="w-4 h-4" /></Link>
+                           </Button>
+                        </div>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-[3rem]">
+                      <Briefcase className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
+                      <p className="text-[10px] font-black uppercase text-muted-foreground">No has publicado ninguna oferta institucional aún.</p>
+                      <Button asChild variant="link" className="mt-2 text-primary font-black uppercase text-[10px] tracking-widest">
+                         <Link href="/offers/new">Publicar mi primera vacante</Link>
+                      </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </section>
         )}
       </main>
