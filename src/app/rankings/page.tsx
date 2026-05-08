@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -10,7 +11,8 @@ import {
   Search,
   Trophy,
   Globe,
-  Loader2
+  Loader2,
+  Map
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -77,7 +79,7 @@ export default function RankingsPage() {
         const matchesDiscipline = user.discipline === discipline;
         const matchesRole = roleFilter === 'all' || user.role === roleFilter;
         const userCountry = user.country || 'España';
-        const matchesCountry = userCountry === countryFilter;
+        const matchesCountry = countryFilter === 'all' || userCountry === countryFilter;
         const matchesZone = zoneFilter === 'all' || user.province === zoneFilter;
         return matchesDiscipline && matchesRole && matchesCountry && matchesZone;
       })
@@ -140,6 +142,7 @@ export default function RankingsPage() {
                   </div>
                 </SelectTrigger>
                 <SelectContent className="bg-[#111827] border-white/10 text-white">
+                  <SelectItem value="all">TODOS LOS PAÍSES</SelectItem>
                   {COUNTRIES.map(country => (
                     <SelectItem key={country} value={country}>{country.toUpperCase()}</SelectItem>
                   ))}
@@ -209,7 +212,7 @@ export default function RankingsPage() {
                           )}
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1 items-center">
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 flex-1 items-center">
                           <div className="min-w-0">
                             <h3 className="text-sm font-bold font-headline tracking-tight text-white group-hover:text-primary transition-colors truncate">
                               {userItem.name}
@@ -238,6 +241,13 @@ export default function RankingsPage() {
                               Zona
                             </span>
                             <span className="text-[10px] font-bold text-white truncate">{userItem.province || '--'}</span>
+                          </div>
+
+                          <div className="hidden md:flex flex-col justify-center">
+                            <span className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mb-1 flex items-center gap-1">
+                              <Map className="w-2 h-2" /> Movilidad
+                            </span>
+                            <span className="text-[10px] font-bold text-primary truncate">{userItem.mobility || 'Local'}</span>
                           </div>
                         </div>
                       </div>
