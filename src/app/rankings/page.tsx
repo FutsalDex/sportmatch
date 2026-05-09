@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -12,7 +11,8 @@ import {
   Trophy,
   Globe,
   Loader2,
-  Map
+  Map,
+  Target
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,7 +22,9 @@ import {
   SelectContent, 
   SelectItem, 
   SelectTrigger, 
-  SelectValue 
+  SelectValue,
+  SelectGroup,
+  SelectLabel
 } from '@/components/ui/select';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
@@ -31,7 +33,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useDiscipline } from '@/context/discipline-context';
-import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL } from '@/lib/constants';
+import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL, POSICIONES_FUTBOL, POSICIONES_FUTSAL, getPositionLabel } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
 
 export default function RankingsPage() {
@@ -46,8 +48,8 @@ export default function RankingsPage() {
   const [roleFilter, setRoleFilter] = useState<'Player' | 'Coach' | 'all'>('Player');
   const [countryFilter, setCountryFilter] = useState<string>('España');
   const [zoneFilter, setZoneFilter] = useState<string>('all');
+  const [positionFilter, setPositionFilter] = useState<string>('all');
   
-  // Redirección si no hay usuario
   useEffect(() => {
     if (!isAuthLoading && !user) {
       router.push('/login');
@@ -59,7 +61,6 @@ export default function RankingsPage() {
     if (saved) setFavorites(JSON.parse(saved));
   }, []);
 
-  // Referencia memorizada a la colección de usuarios (solo si hay usuario)
   const usersRef = useMemoFirebase(() => {
     if (!user) return null;
     return collection(db, 'users');
@@ -88,16 +89,17 @@ export default function RankingsPage() {
     if (!realUsers) return [];
     
     return realUsers
-      .filter(user => {
-        const matchesDiscipline = user.discipline === discipline;
-        const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-        const userCountry = user.country || 'España';
+      .filter(u => {
+        const matchesDiscipline = u.discipline === discipline;
+        const matchesRole = roleFilter === 'all' || u.role === roleFilter;
+        const userCountry = u.country || 'España';
         const matchesCountry = countryFilter === 'all' || userCountry === countryFilter;
-        const matchesZone = zoneFilter === 'all' || user.province === zoneFilter;
-        return matchesDiscipline && matchesRole && matchesCountry && matchesZone;
+        const matchesZone = zoneFilter === 'all' || u.province === zoneFilter;
+        const matchesPosition = positionFilter === 'all' || u.position === positionFilter;
+        return matchesDiscipline && matchesRole && matchesCountry && matchesZone && matchesPosition;
       })
       .sort((a, b) => (b.score || 0) - (a.score || 0));
-  }, [realUsers, discipline, roleFilter, countryFilter, zoneFilter]);
+  }, [realUsers, discipline, roleFilter, countryFilter, zoneFilter, positionFilter]);
 
   const locationLabel = GET_LOCATION_LABEL(countryFilter);
   const locationList = GET_LOCATION_LIST(countryFilter);
@@ -148,6 +150,30 @@ export default function RankingsPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              {(roleFilter === 'all' || roleFilter === 'Player') && (
+                <Select value={positionFilter} onValueChange={setPositionFilter}>
+                  <SelectTrigger className="h-12 w-48 rounded-2xl bg-[#030712] border-white/10 text-[10px] font-bold uppercase tracking-widest text-white">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-3 h-3 text-primary" />
+                      <SelectValue placeholder="POSICIÓN" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#111827] border-white/10 text-white">
+                    <SelectItem value="all">TODAS LAS POSICIONES</SelectItem>
+                    {discipline === 'Football' ? (
+                      Object.entries(POSICIONES_FUTBOL).map(([grupo, posis]) => (
+                        <SelectGroup key={grupo}>
+                          <SelectLabel className="text-primary font-black uppercase text-[10px]">{grupo}</SelectLabel>
+                          {posis.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                        </SelectGroup>
+                      ))
+                    ) : (
+                      POSICIONES_FUTSAL.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
+
               <Select value={countryFilter} onValueChange={(v) => { setCountryFilter(v); setZoneFilter('all'); }}>
                 <SelectTrigger className="h-12 w-40 rounded-2xl bg-[#030712] border-white/10 text-[10px] font-bold uppercase tracking-widest text-white">
                   <div className="flex items-center gap-2">
@@ -191,7 +217,7 @@ export default function RankingsPage() {
         ) : filteredAndSortedUsers.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-white/5 rounded-[3rem]">
             <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-20" />
-            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No hay perfiles activos en esta zona.</p>
+            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No hay perfiles activos con estos parámetros.</p>
           </div>
         ) : (
           filteredAndSortedUsers.map((userItem, idx) => {
@@ -239,7 +265,7 @@ export default function RankingsPage() {
                             <span className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mb-1 flex items-center gap-1">
                               {isCoach ? 'Titulación' : 'Posición'}
                             </span>
-                            <span className="text-[10px] font-bold text-white truncate">{userItem.position || '--'}</span>
+                            <span className="text-[10px] font-bold text-white truncate">{getPositionLabel(userItem.position, userItem.discipline)}</span>
                           </div>
 
                           <div className="hidden md:flex flex-col justify-center">

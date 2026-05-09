@@ -1,4 +1,3 @@
-
 "use client";
 
 import { use, useState, useMemo } from 'react';
@@ -48,6 +47,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { TopNav } from '@/components/navigation/top-nav';
+import { getPositionLabel } from '@/lib/constants';
 
 export default function ProfileDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -247,7 +247,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                 <>
                   <StatCard icon={Building2} label="Estadio" value={profileData?.stadium || 'Pendiente'} />
                   <StatCard icon={Calendar} label="Fundación" value={profileData?.foundationYear || '----'} />
-                  <StatCard icon={Target} label="Categoría" value={userData.position || 'Amateur'} />
+                  <StatCard icon={Target} label="Competición" value={userData.position || 'Amateur'} />
                   <StatCard icon={MapPin} label="Instalaciones" value={profileData?.facilities || 'Sede Social'} />
                 </>
               ) : isCoach ? (
@@ -264,9 +264,9 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
               ) : (
                 <>
                   <StatCard icon={Globe2} label="Nacionalidad" value={userData.nationality || '----'} />
+                  <StatCard icon={Target} label="Puesto" value={getPositionLabel(userData.position, userData.discipline)} />
                   <StatCard icon={Ruler} label="Altura" value={`${profileData?.height || '--'} cm`} />
                   <StatCard icon={WeightIcon} label="Peso" value={`${profileData?.weight || '--'} kg`} />
-                  <StatCard icon={Footprints} label="Pierna" value={profileData?.strongFoot || '--'} />
                 </>
               )}
             </div>
@@ -324,7 +324,7 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
                       <h4 className="font-bold text-lg md:text-2xl font-headline tracking-tight">{isClub ? entry.league : entry.club}</h4>
                     </div>
                     <p className="text-[7px] md:text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1">
-                      {isClub ? entry.leaguePosition : (isCoach ? entry.league : entry.position)}
+                      {isClub ? entry.leaguePosition : (isCoach ? entry.league : getPositionLabel(entry.position, userData.discipline))}
                     </p>
                   </div>
                 </div>

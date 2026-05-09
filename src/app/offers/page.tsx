@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { useState, useMemo, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { getPositionLabel } from '@/lib/constants';
 
 export default function OffersPage() {
   const router = useRouter();
@@ -109,7 +110,9 @@ export default function OffersPage() {
                       </Avatar>
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-3">
-                          <h3 className="text-2xl font-bold font-headline tracking-tight">{offer.position}</h3>
+                          <h3 className="text-2xl font-bold font-headline tracking-tight">
+                            {offer.role === 'Player' ? getPositionLabel(offer.position, offer.discipline || 'Football') : offer.position}
+                          </h3>
                           <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase">{offer.category || 'Senior'}</Badge>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">

@@ -70,6 +70,19 @@ export const POSICIONES_FUTSAL = [
   { value: "PIV", label: "PIV: Pívot" }
 ];
 
+export const getPositionLabel = (value: string, discipline: string | null) => {
+  if (!value) return '--';
+  if (discipline === 'Futsal') {
+    return POSICIONES_FUTSAL.find(p => p.value === value)?.label || value;
+  }
+  // Fútbol: Buscar en todos los grupos
+  for (const group of Object.values(POSICIONES_FUTBOL)) {
+    const found = group.find(p => p.value === value);
+    if (found) return found.label;
+  }
+  return value;
+};
+
 export const COMPETICIONES_FUTBOL_ES = [
   "Primera Federación (1ª RFEF)",
   "Segunda Federación (2ª RFEF)",

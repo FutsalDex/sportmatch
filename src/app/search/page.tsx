@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Filter, SlidersHorizontal, MapPin, ShieldCheck, Star, Globe, Loader2 } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, MapPin, ShieldCheck, Star, Globe, Loader2, Target } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,14 +12,16 @@ import {
   SelectContent, 
   SelectItem, 
   SelectTrigger, 
-  SelectValue 
+  SelectValue,
+  SelectGroup,
+  SelectLabel
 } from '@/components/ui/select';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { TopNav } from '@/components/navigation/top-nav';
 import Link from 'next/link';
 import { useDiscipline } from '@/context/discipline-context';
-import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL } from '@/lib/constants';
+import { COUNTRIES, GET_LOCATION_LIST, GET_LOCATION_LABEL, POSICIONES_FUTBOL, POSICIONES_FUTSAL, getPositionLabel } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
 
 export default function SearchPage() {
@@ -32,8 +33,8 @@ export default function SearchPage() {
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [countryFilter, setCountryFilter] = useState<string>('España');
   const [zoneFilter, setZoneFilter] = useState<string>('all');
+  const [positionFilter, setPositionFilter] = useState<string>('all');
 
-  // Redirección si no hay usuario
   useEffect(() => {
     if (!isAuthLoading && !user) {
       router.push('/login');
@@ -57,9 +58,10 @@ export default function SearchPage() {
       const userCountry = user.country || 'España';
       const matchesCountry = countryFilter === 'all' || userCountry === countryFilter;
       const matchesZone = zoneFilter === 'all' || user.province === zoneFilter;
-      return matchesDiscipline && matchesQuery && matchesRole && matchesCountry && matchesZone;
+      const matchesPosition = positionFilter === 'all' || user.position === positionFilter;
+      return matchesDiscipline && matchesQuery && matchesRole && matchesCountry && matchesZone && matchesPosition;
     }).sort((a, b) => (b.score || 0) - (a.score || 0));
-  }, [realUsers, discipline, searchQuery, roleFilter, countryFilter, zoneFilter]);
+  }, [realUsers, discipline, searchQuery, roleFilter, countryFilter, zoneFilter, positionFilter]);
 
   const locationLabel = GET_LOCATION_LABEL(countryFilter);
   const locationList = GET_LOCATION_LIST(countryFilter);
@@ -99,6 +101,30 @@ export default function SearchPage() {
               </SelectContent>
             </Select>
 
+            {(roleFilter === 'all' || roleFilter === 'Player') && (
+              <Select value={positionFilter} onValueChange={setPositionFilter}>
+                <SelectTrigger className="h-10 w-48 rounded-full bg-black border border-white/20 text-white font-bold px-6">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-primary" />
+                    <SelectValue placeholder="POSICIÓN" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="bg-[#111827] border-white/10 text-white">
+                  <SelectItem value="all">TODAS LAS POSICIONES</SelectItem>
+                  {discipline === 'Football' ? (
+                    Object.entries(POSICIONES_FUTBOL).map(([grupo, posis]) => (
+                      <SelectGroup key={grupo}>
+                        <SelectLabel className="text-primary font-black uppercase text-[10px]">{grupo}</SelectLabel>
+                        {posis.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                      </SelectGroup>
+                    ))
+                  ) : (
+                    POSICIONES_FUTSAL.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+
             <Select value={countryFilter} onValueChange={(v) => { setCountryFilter(v); setZoneFilter('all'); }}>
               <SelectTrigger className="h-10 w-40 rounded-full bg-black border border-white/20 text-white font-bold px-6">
                 <div className="flex items-center gap-2">
@@ -128,10 +154,6 @@ export default function SearchPage() {
                 ))}
               </SelectContent>
             </Select>
-            
-            <Button variant="outline" className="h-10 rounded-full bg-black border-white/20 text-white font-bold px-6 gap-2">
-              <Filter className="w-4 h-4" /> Más Filtros
-            </Button>
           </div>
         </div>
       </div>
@@ -178,7 +200,7 @@ export default function SearchPage() {
                       <div className="flex-1 min-w-0 space-y-1">
                         <h3 className="text-xl font-bold font-headline group-hover:text-primary transition-colors">{user.name}</h3>
                         <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
-                          {user.role} • {user.position || '--'}
+                          {user.role} • {getPositionLabel(user.position, user.discipline)}
                         </p>
                         
                         <div className="flex items-center gap-4 text-xs pt-1">
