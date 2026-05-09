@@ -1,23 +1,21 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
-import { useFirebase } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
+import { TopNav } from '@/components/navigation/top-nav';
 import { 
   ArrowLeft, 
   Building2, 
   Calendar, 
   DollarSign, 
   Home, 
-  Car, 
-  Shield, 
   Clock, 
   AlertCircle,
   Target,
@@ -25,9 +23,7 @@ import {
   Users,
   Globe2,
   FileCheck,
-  UserCheck,
-  Trophy,
-  Activity
+  UserCheck
 } from 'lucide-react';
 
 interface OfferData {
@@ -86,7 +82,7 @@ const InfoCard = ({ title, items, icon: Icon }: { title: string; items: Array<{ 
 export default function OfferDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { firestore, user, isUserLoading } = useFirebase();
+  const db = useFirestore();
   const [offer, setOffer] = useState<OfferData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,19 +90,18 @@ export default function OfferDetailPage() {
   const offerId = params?.id as string;
 
   const loadOffer = useCallback(async () => {
-    if (!firestore || !offerId) return;
+    if (!db || !offerId) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const offerRef = doc(firestore, 'offers', offerId);
+      const offerRef = doc(db, 'offers', offerId);
       const offerSnap = await getDoc(offerRef);
 
       if (offerSnap.exists()) {
         const data = offerSnap.data();
         
-        // Manejo seguro de fechas de Firestore (Timestamp vs String/Date)
         let creationDate = new Date();
         if (data.createdAt?.toDate) creationDate = data.createdAt.toDate();
         else if (data.createdAt) creationDate = new Date(data.createdAt);
@@ -147,15 +142,15 @@ export default function OfferDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [firestore, offerId]);
+  }, [db, offerId]);
 
   useEffect(() => {
-    if (firestore && offerId) {
+    if (db && offerId) {
       loadOffer();
     }
-  }, [firestore, offerId, loadOffer]);
+  }, [db, offerId, loadOffer]);
 
-  if (isLoading || isUserLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">
         Sincronizando Dossier de Vacante...
@@ -177,6 +172,7 @@ export default function OfferDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
+      <TopNav />
       <div className="max-w-5xl mx-auto px-6 py-12 space-y-10">
         <header className="space-y-6">
           <Button variant="ghost" onClick={() => router.back()} className="hover:bg-white/5 text-primary font-black uppercase text-[10px] tracking-widest px-0">
@@ -312,14 +308,10 @@ export default function OfferDetailPage() {
               <Button 
                 className="w-full h-16 rounded-[2rem] bg-primary text-background font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:scale-[1.02] transition-transform"
                 onClick={() => {
-                  if (!user) {
-                    router.push('/login');
-                  } else {
-                    alert('Función de postulación técnica en desarrollo');
-                  }
+                  alert('Función de postulación técnica en desarrollo');
                 }}
               >
-                {user ? 'POSTULARME AHORA' : 'IDENTIFICARSE PARA POSTULAR'}
+                POSTULARME AHORA
               </Button>
 
               <p className="text-[9px] text-center text-muted-foreground font-medium px-4">
