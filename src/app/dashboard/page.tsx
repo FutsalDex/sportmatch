@@ -22,7 +22,9 @@ import {
   ClipboardCheck,
   ArrowUpRight,
   Send,
-  Clock
+  Clock,
+  CheckCircle2,
+  Timer
 } from 'lucide-react';
 import { doc, collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -52,8 +54,25 @@ export default function DashboardPage() {
     return query(collection(db, 'applications'), orderBy('createdAt', 'desc'), limit(5));
   }, [db, isAdmin]);
 
+  const allOffersQuery = useMemoFirebase(() => {
+    if (!db || isUserLoading || !isAdmin) return null;
+    return collection(db, 'offers');
+  }, [db, isAdmin, isUserLoading]);
+
   const { data: pendingUsers } = useCollection(pendingVerificationsQuery);
   const { data: recentApplications } = useCollection(allApplicationsQuery);
+  const { data: allOffersAdmin } = useCollection(allOffersQuery);
+
+  const adminOfferStats = useMemo(() => {
+    if (!allOffersAdmin) return { total: 0, active: 0, accepted: 0, pending: 0 };
+    return allOffersAdmin.reduce((acc, offer) => {
+      acc.total++;
+      if (offer.status === 'active') acc.active++;
+      if (offer.status === 'accepted') acc.accepted++;
+      if (offer.status === 'pending' || offer.status === 'withdrawn') acc.pending++;
+      return acc;
+    }, { total: 0, active: 0, accepted: 0, pending: 0 });
+  }, [allOffersAdmin]);
 
   // --- CONSULTAS CLUB ---
   const myOffersQuery = useMemoFirebase(() => {
@@ -62,6 +81,17 @@ export default function DashboardPage() {
   }, [db, user?.uid, userData?.role, isUserLoading]);
   
   const { data: rawMyOffers, isLoading: isOffersLoading } = useCollection(myOffersQuery);
+
+  const myOfferStats = useMemo(() => {
+    if (!rawMyOffers) return { total: 0, active: 0, accepted: 0, pending: 0 };
+    return rawMyOffers.reduce((acc, offer) => {
+      acc.total++;
+      if (offer.status === 'active') acc.active++;
+      if (offer.status === 'accepted') acc.accepted++;
+      if (offer.status === 'pending' || offer.status === 'withdrawn') acc.pending++;
+      return acc;
+    }, { total: 0, active: 0, accepted: 0, pending: 0 });
+  }, [rawMyOffers]);
 
   const myOffers = useMemo(() => {
     if (!rawMyOffers) return [];
@@ -72,7 +102,7 @@ export default function DashboardPage() {
     });
   }, [rawMyOffers]);
 
-  // Consulta global para el Admin (Métricas)
+  // Consulta global para el Admin (Métricas Usuarios)
   const allUsersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !isAdmin) return null;
     return collection(db, 'users');
@@ -125,19 +155,41 @@ export default function DashboardPage() {
 
         {isAdmin ? (
           <div className="space-y-8">
-            {/* MÉTRICAS ADMIN */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="card-elite rounded-[2.5rem] border-red-500/20 bg-red-500/5 p-8 space-y-4">
-                <Users className="w-6 h-6 text-red-500" />
-                <p className="text-4xl font-black font-headline">{allUsers?.length || 0}</p>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Total Usuarios</p>
-              </Card>
-              
-              <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
-                 <AdminStatMini label="Elite Top" count={allUsers?.filter(u => u.plan === 'top').length || 0} color="text-yellow-500" />
-                 <AdminStatMini label="Elite Pro" count={allUsers?.filter(u => u.plan === 'pro').length || 0} color="text-primary" />
-                 <AdminStatMini label="Verificados" count={allUsers?.filter(u => u.verificationStatus === 'verified').length || 0} color="text-blue-500" />
-                 <AdminStatMini label="Elite Free" count={allUsers?.filter(u => !u.plan || u.plan === 'free').length || 0} color="text-muted-foreground" />
+            {/* MÉTRICAS ADMIN - USUARIOS */}
+            <div className="space-y-4">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-2">Censo de Red</h2>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card className="card-elite rounded-[2.5rem] border-red-500/20 bg-red-500/5 p-8 space-y-4">
+                  <Users className="w-6 h-6 text-red-500" />
+                  <p className="text-4xl font-black font-headline">{allUsers?.length || 0}</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Total Usuarios</p>
+                </Card>
+                
+                <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+                   <AdminStatMini label="Elite Top" count={allUsers?.filter(u => u.plan === 'top').length || 0} color="text-yellow-500" icon={Star} />
+                   <AdminStatMini label="Elite Pro" count={allUsers?.filter(u => u.plan === 'pro').length || 0} color="text-primary" icon={Zap} />
+                   <AdminStatMini label="Verificados" count={allUsers?.filter(u => u.verificationStatus === 'verified').length || 0} color="text-blue-500" icon={UserCheck} />
+                   <AdminStatMini label="Elite Free" count={allUsers?.filter(u => !u.plan || u.plan === 'free').length || 0} color="text-muted-foreground" icon={Users} />
+                </div>
+              </div>
+            </div>
+
+            {/* MÉTRICAS ADMIN - MERCADO */}
+            <div className="space-y-4">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground ml-2">Terminal de Mercado</h2>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card className="card-elite rounded-[2.5rem] border-primary/20 bg-primary/5 p-8 space-y-4">
+                  <Briefcase className="w-6 h-6 text-primary" />
+                  <p className="text-4xl font-black font-headline">{adminOfferStats.total}</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">Vacantes Globales</p>
+                </Card>
+                
+                <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+                   <AdminStatMini label="Activas" count={adminOfferStats.active} color="text-green-500" icon={Activity} />
+                   <AdminStatMini label="Cubiertas" count={adminOfferStats.accepted} color="text-blue-400" icon={CheckCircle2} />
+                   <AdminStatMini label="En Pausa" count={adminOfferStats.pending} color="text-yellow-500" icon={Timer} />
+                   <AdminStatMini label="Postulaciones" count={recentApplications?.length || 0} color="text-purple-500" icon={Send} />
+                </div>
               </div>
             </div>
 
@@ -253,8 +305,27 @@ export default function DashboardPage() {
                     </Badge>
                   )}
                 </div>
-                <p className="text-4xl font-black font-headline">{offersCount}</p>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Mis Ofertas Activas</p>
+                <div className="flex gap-8 items-end">
+                   <div>
+                      <p className="text-4xl font-black font-headline">{myOfferStats.total}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase">Mis Ofertas</p>
+                   </div>
+                   <div className="h-10 w-px bg-white/10 mb-1" />
+                   <div className="flex gap-4">
+                      <div className="text-center">
+                         <p className="text-lg font-black text-green-500">{myOfferStats.active}</p>
+                         <p className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Activas</p>
+                      </div>
+                      <div className="text-center">
+                         <p className="text-lg font-black text-blue-400">{myOfferStats.accepted}</p>
+                         <p className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Cubiertas</p>
+                      </div>
+                      <div className="text-center">
+                         <p className="text-lg font-black text-yellow-500">{myOfferStats.pending}</p>
+                         <p className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Pausa</p>
+                      </div>
+                   </div>
+                </div>
               </Card>
             )}
           </div>
@@ -286,7 +357,8 @@ export default function DashboardPage() {
                            </div>
                            <Badge variant="outline" className={cn(
                              "text-[7px] font-black uppercase border-white/10",
-                             offer.status === 'active' ? "text-green-500" : "text-muted-foreground"
+                             offer.status === 'active' ? "text-green-500" : 
+                             offer.status === 'accepted' ? "text-blue-400" : "text-muted-foreground"
                            )}>
                              {offer.status}
                            </Badge>
@@ -329,11 +401,14 @@ export default function DashboardPage() {
   );
 }
 
-function AdminStatMini({ label, count, color }: { label: string, count: number, color: string }) {
+function AdminStatMini({ label, count, color, icon: Icon }: { label: string, count: number, color: string, icon?: any }) {
   return (
-    <Card className="card-elite rounded-2xl bg-white/[0.02] border-white/5 p-4 flex flex-col justify-center">
-      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
-      <p className={cn("text-xl font-black font-headline", color)}>{count}</p>
+    <Card className="card-elite rounded-2xl bg-white/[0.02] border-white/5 p-4 flex flex-col justify-center relative overflow-hidden group">
+      <div className="relative z-10">
+        <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
+        <p className={cn("text-xl font-black font-headline", color)}>{count}</p>
+      </div>
+      {Icon && <Icon className={cn("absolute -right-2 -bottom-2 w-12 h-12 opacity-[0.03] transition-transform group-hover:scale-110", color)} />}
     </Card>
   );
 }
