@@ -1,13 +1,15 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
-import { useFirebase } from '@/firebase/provider';
+import { useFirebase } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 import { 
   ArrowLeft, 
   Building2, 
@@ -104,6 +106,11 @@ export default function OfferDetailPage() {
       if (offerSnap.exists()) {
         const data = offerSnap.data();
         
+        // Manejo seguro de fechas de Firestore (Timestamp vs String/Date)
+        let creationDate = new Date();
+        if (data.createdAt?.toDate) creationDate = data.createdAt.toDate();
+        else if (data.createdAt) creationDate = new Date(data.createdAt);
+
         setOffer({
           id: offerSnap.id,
           title: data.position || 'Sin título',
@@ -127,7 +134,7 @@ export default function OfferDetailPage() {
           category: data.category,
           onboardingDate: data.onboardingDate,
           duration: data.duration,
-          createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+          createdAt: creationDate,
           status: data.status || 'active',
           role: data.role || 'Player'
         });
@@ -178,9 +185,9 @@ export default function OfferDetailPage() {
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-[1.5rem] bg-[#111827] border-2 border-white/5 flex items-center justify-center overflow-hidden">
+              <div className="relative w-20 h-20 rounded-[1.5rem] bg-[#111827] border-2 border-white/5 flex items-center justify-center overflow-hidden">
                 {offer.clubLogo ? (
-                  <img src={offer.clubLogo} alt={offer.clubName} className="w-full h-full object-cover" />
+                  <Image src={offer.clubLogo} alt={offer.clubName || 'Club'} fill className="object-cover" />
                 ) : (
                   <Building2 className="w-8 h-8 text-muted-foreground" />
                 )}

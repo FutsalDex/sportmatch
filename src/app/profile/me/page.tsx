@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { 
   Globe, 
   FileText, 
@@ -74,7 +74,7 @@ interface SeasonEntry {
   losses?: number;
 }
 
-export default function MyProfilePage() {
+function ProfileEditorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
@@ -819,5 +819,13 @@ export default function MyProfilePage() {
         </Button>
       </main>
     </div>
+  );
+}
+
+export default function MyProfilePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#030712] flex items-center justify-center text-primary font-black animate-pulse uppercase tracking-[0.3em] text-xs">Cargando Terminal...</div>}>
+      <ProfileEditorContent />
+    </Suspense>
   );
 }
