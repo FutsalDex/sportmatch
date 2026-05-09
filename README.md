@@ -20,25 +20,13 @@ Transformar el scouting tradicional en una experiencia de datos y multimedia, el
 
 ### 2. Terminal de Reclutamiento (Mercado de Fichajes)
 - **Tablero de Ofertas Público**: Un hub centralizado donde los clubes publican vacantes activas.
-- **Ingeniería Contractual**: Las ofertas incluyen parámetros avanzados:
-  - **Módulo Económico**: Salarios y bonus por objetivos (goles, ascensos).
-  - **Módulo Logístico**: Alojamiento, transporte y seguro médico.
-  - **Filtros Técnicos**: Requisitos de pasaporte, edad y nivel de idiomas.
+- **Ingeniería Contractual**: Las ofertas incluyen parámetros avanzados de Competición, Categoría, Salarios y Logística.
 
 ### 3. Sistema de Suscripción (SaaS Model)
-- **Para Jugadores/Entrenadores**:
-  - **Free**: Perfil básico.
-  - **Verificado**: Identidad oficial validada.
-  - **Pro/Top**: Acceso a análisis de IA avanzado y mayor visibilidad.
-- **Para Clubes**:
-  - **Elite Free**: Presencia institucional y hasta 3 ofertas activas.
-  - **Elite Top**: Publicación ilimitada de vacantes y herramientas de scouting pro.
+- **Planes Pro y Top**: Acceso a análisis de IA avanzado, informes PDF y mayor visibilidad para el scouting profesional.
 
-### 4. Administración y Control
-- **Panel Maestro**: Supervisión total de identidades, logs de auditoría en tiempo real y gestión de la red SportMatch.
-
-## 🧠 Instrucciones para el Desarrollo (Prompt Maestro)
-"SportMatch AI debe priorizar siempre una interfaz visualmente impactante, con tipografías potentes (Space Grotesk) y contrastes en dorado (Primary) sobre fondos negros profundos. Cada funcionalidad debe sentirse como una herramienta de inteligencia deportiva profesional, no como una red social convencional. La precisión de los datos técnicos (posiciones, estadísticas, términos contractuales) es crítica para la utilidad de la plataforma."
+## 🧠 Repositorio Oficial
+https://github.com/FutsalDex/sportmatch
 
 ---
 *SportMatch – Digitalizing the beautiful game.*
