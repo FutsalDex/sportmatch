@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
@@ -24,7 +23,8 @@ import {
   Send,
   Clock,
   CheckCircle2,
-  Timer
+  Timer,
+  Zap
 } from 'lucide-react';
 import { doc, collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
