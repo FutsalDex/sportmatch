@@ -1,39 +1,30 @@
+
 "use client";
 
 import { useUser, useFirestore, useDoc, useMemoFirebase, useCollection } from '@/firebase';
 import { TopNav } from '@/components/navigation/top-nav';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  Zap, 
-  TrendingUp, 
   Users, 
   Eye, 
   Star, 
   ChevronRight, 
-  Crown,
-  LayoutDashboard,
-  ArrowUpRight,
-  ShieldAlert,
-  Database,
-  Search,
-  Activity,
-  CreditCard,
-  FileText,
+  ShieldAlert, 
+  Activity, 
+  CreditCard, 
+  Briefcase, 
+  Plus, 
+  Loader2, 
+  Target,
   UserCheck,
-  Download,
-  ShieldCheck,
-  Trophy,
-  Briefcase,
+  ClipboardCheck,
+  ArrowUpRight,
   Send,
-  Plus,
-  AlertCircle,
-  Loader2,
-  Target
+  Clock
 } from 'lucide-react';
-import { doc, collection, query, where } from 'firebase/firestore';
-import { Progress } from '@/components/ui/progress';
+import { doc, collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -50,16 +41,28 @@ export default function DashboardPage() {
 
   const { data: userData, isLoading: isUserDataLoading } = useDoc(userDocRef);
 
-  // Consulta de Ofertas Propias (Solo para Clubes)
+  // --- CONSULTAS ADMIN ---
+  const pendingVerificationsQuery = useMemoFirebase(() => {
+    if (!isAdmin) return null;
+    return query(collection(db, 'users'), where('verificationStatus', '==', 'pending'), limit(5));
+  }, [db, isAdmin]);
+
+  const allApplicationsQuery = useMemoFirebase(() => {
+    if (!isAdmin) return null;
+    return query(collection(db, 'applications'), orderBy('createdAt', 'desc'), limit(5));
+  }, [db, isAdmin]);
+
+  const { data: pendingUsers } = useCollection(pendingVerificationsQuery);
+  const { data: recentApplications } = useCollection(allApplicationsQuery);
+
+  // --- CONSULTAS CLUB ---
   const myOffersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !user || !userData || userData.role !== 'Club') return null;
-    // Eliminamos orderBy para evitar errores de índices ausentes y ordenamos en memoria
     return query(collection(db, 'offers'), where('clubId', '==', user.uid));
   }, [db, user?.uid, userData?.role, isUserLoading]);
   
   const { data: rawMyOffers, isLoading: isOffersLoading } = useCollection(myOffersQuery);
 
-  // Ordenación manual por fecha de creación descendente
   const myOffers = useMemo(() => {
     if (!rawMyOffers) return [];
     return [...rawMyOffers].sort((a, b) => {
@@ -69,7 +72,7 @@ export default function DashboardPage() {
     });
   }, [rawMyOffers]);
 
-  // Consulta global para el Admin
+  // Consulta global para el Admin (Métricas)
   const allUsersQuery = useMemoFirebase(() => {
     if (!db || isUserLoading || !isAdmin) return null;
     return collection(db, 'users');
@@ -84,7 +87,7 @@ export default function DashboardPage() {
   const isOfferLimitReached = isFreeClub && offersCount >= 3;
 
   return (
-    <div className="min-h-screen bg-[#030712] text-white">
+    <div className="min-h-screen bg-[#030712] text-white pb-20">
       <TopNav />
       
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10 space-y-6 md:space-y-10">
@@ -100,7 +103,7 @@ export default function DashboardPage() {
               Hola, {userData?.name?.split(' ')[0] || 'Usuario'}
             </h1>
             <p className="text-[10px] md:text-base text-muted-foreground font-medium">
-              {isAdmin ? 'Supervisión total de la red.' : (isClub ? 'Gestión de reclutamiento institucional.' : 'Gestiona tu carrera deportiva.')}
+              {isAdmin ? 'Supervisión total de la red operativa.' : (isClub ? 'Gestión de reclutamiento institucional.' : 'Gestiona tu carrera deportiva.')}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
@@ -108,7 +111,7 @@ export default function DashboardPage() {
               <>
                 {isOfferLimitReached ? (
                   <Button asChild variant="outline" className="h-12 px-6 rounded-2xl border-red-500/30 bg-red-500/5 text-red-500 font-black uppercase text-[10px] tracking-widest">
-                    <Link href="/pricing"><AlertCircle className="w-4 h-4 mr-2" /> LÍMITE DE OFERTAS ALCANZADO</Link>
+                    <Link href="/pricing">LÍMITE DE OFERTAS ALCANZADO</Link>
                   </Button>
                 ) : (
                   <Button asChild className="h-12 px-6 rounded-2xl bg-primary text-background font-black uppercase text-[10px] tracking-widest shadow-xl">
@@ -121,18 +124,109 @@ export default function DashboardPage() {
         </header>
 
         {isAdmin ? (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="card-elite rounded-[2.5rem] border-red-500/20 bg-red-500/5 p-8 space-y-4">
-              <Users className="w-6 h-6 text-red-500" />
-              <p className="text-4xl font-black font-headline">{allUsers?.length || 0}</p>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase">Total Usuarios</p>
-            </Card>
-            
-            <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
-               <AdminStatMini label="Elite Top" count={allUsers?.filter(u => u.plan === 'top').length || 0} color="text-yellow-500" />
-               <AdminStatMini label="Elite Pro" count={allUsers?.filter(u => u.plan === 'pro').length || 0} color="text-primary" />
-               <AdminStatMini label="Verificados" count={allUsers?.filter(u => u.verificationStatus === 'verified').length || 0} color="text-blue-500" />
-               <AdminStatMini label="Elite Free" count={allUsers?.filter(u => !u.plan || u.plan === 'free').length || 0} color="text-muted-foreground" />
+          <div className="space-y-8">
+            {/* MÉTRICAS ADMIN */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="card-elite rounded-[2.5rem] border-red-500/20 bg-red-500/5 p-8 space-y-4">
+                <Users className="w-6 h-6 text-red-500" />
+                <p className="text-4xl font-black font-headline">{allUsers?.length || 0}</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase">Total Usuarios</p>
+              </Card>
+              
+              <div className="md:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+                 <AdminStatMini label="Elite Top" count={allUsers?.filter(u => u.plan === 'top').length || 0} color="text-yellow-500" />
+                 <AdminStatMini label="Elite Pro" count={allUsers?.filter(u => u.plan === 'pro').length || 0} color="text-primary" />
+                 <AdminStatMini label="Verificados" count={allUsers?.filter(u => u.verificationStatus === 'verified').length || 0} color="text-blue-500" />
+                 <AdminStatMini label="Elite Free" count={allUsers?.filter(u => !u.plan || u.plan === 'free').length || 0} color="text-muted-foreground" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* VERIFICACIONES PENDIENTES */}
+              <Card className="card-elite rounded-[2.5rem] border-white/5 bg-[#111827]/40">
+                <CardHeader className="flex flex-row items-center justify-between p-8 border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    <UserCheck className="w-5 h-5 text-blue-500" />
+                    <CardTitle className="text-sm font-black uppercase tracking-widest italic">Verificaciones Pendientes</CardTitle>
+                  </div>
+                  <Button variant="ghost" asChild className="text-[9px] font-black uppercase text-muted-foreground hover:text-white">
+                    <Link href="/admin/users">Ver todos</Link>
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {pendingUsers && pendingUsers.length > 0 ? (
+                    <div className="divide-y divide-white/5">
+                      {pendingUsers.map((u) => (
+                        <div key={u.id} className="p-6 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
+                          <div className="flex items-center gap-4">
+                            <Avatar className="w-10 h-10 rounded-xl border border-white/10">
+                              <AvatarImage src={u.profileImageUrl} />
+                              <AvatarFallback className="bg-white/5">{u.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-bold text-xs">{u.name}</p>
+                              <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-tight">{u.role} • {u.email}</p>
+                            </div>
+                          </div>
+                          <Button size="sm" asChild variant="outline" className="rounded-xl h-8 border-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white">
+                            <Link href={`/profile/me?edit=${u.id}`}>REVISAR</Link>
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-12 text-center text-muted-foreground">
+                      <ClipboardCheck className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                      <p className="text-[10px] font-black uppercase tracking-widest">Sin solicitudes pendientes</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* POSTULACIONES RECIENTES */}
+              <Card className="card-elite rounded-[2.5rem] border-white/5 bg-[#111827]/40">
+                <CardHeader className="flex flex-row items-center justify-between p-8 border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    <Send className="w-5 h-5 text-primary" />
+                    <CardTitle className="text-sm font-black uppercase tracking-widest italic">Actividad de Mercado</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {recentApplications && recentApplications.length > 0 ? (
+                    <div className="divide-y divide-white/5">
+                      {recentApplications.map((app) => (
+                        <div key={app.id} className="p-6 space-y-3 group hover:bg-white/[0.02] transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold text-white">{app.userName}</span>
+                              <Badge className="bg-primary/10 text-primary border-none text-[7px] font-black uppercase">{app.userRole}</Badge>
+                            </div>
+                            <span className="text-[8px] text-muted-foreground font-black uppercase flex items-center gap-1">
+                              <Clock className="w-2.5 h-2.5" /> {new Date(app.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[9px] text-muted-foreground italic">
+                            <Target className="w-3 h-3 text-primary" /> Aplicó a: <b className="text-white not-italic">{app.offerTitle}</b> de {app.clubName}
+                          </div>
+                          <div className="flex gap-2">
+                             <Button asChild size="sm" variant="ghost" className="h-7 text-[8px] font-black uppercase tracking-widest bg-white/5 rounded-lg hover:bg-primary hover:text-background">
+                               <Link href={`/profile/${app.userId}`}>VER PERFIL</Link>
+                             </Button>
+                             <Button asChild size="sm" variant="ghost" className="h-7 text-[8px] font-black uppercase tracking-widest bg-white/5 rounded-lg">
+                               <Link href={`/offers/${app.offerId}`}>VER VACANTE</Link>
+                             </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-12 text-center text-muted-foreground">
+                      <Activity className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                      <p className="text-[10px] font-black uppercase tracking-widest">Sin postulaciones recientes</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         ) : (

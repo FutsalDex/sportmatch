@@ -1,15 +1,17 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useUser, setDocumentNonBlocking } from '@/firebase';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { TopNav } from '@/components/navigation/top-nav';
+import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft, 
   Building2, 
@@ -83,8 +85,11 @@ export default function OfferDetailPage() {
   const params = useParams();
   const router = useRouter();
   const db = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
   const [offer, setOffer] = useState<OfferData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isApplying, setIsApplying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const offerId = params?.id as string;
@@ -149,6 +154,50 @@ export default function OfferDetailPage() {
       loadOffer();
     }
   }, [db, offerId, loadOffer]);
+
+  const handleApply = async () => {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    if (!offer) return;
+
+    setIsApplying(true);
+    try {
+      const appId = `app_${user.uid}_${offer.id}`;
+      const appRef = doc(db, 'applications', appId);
+      
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      const userData = userSnap.exists() ? userSnap.data() : null;
+
+      setDocumentNonBlocking(appRef, {
+        id: appId,
+        offerId: offer.id,
+        offerTitle: offer.title,
+        clubId: offer.clubId,
+        clubName: offer.clubName || 'Club Institucional',
+        userId: user.uid,
+        userName: userData?.name || user.email,
+        userRole: userData?.role || 'Player',
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      }, { merge: true });
+
+      toast({
+        title: "Postulación Enviada",
+        description: "Tu dossier deportivo ya está en manos del club."
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo procesar la solicitud en este momento."
+      });
+    } finally {
+      setIsApplying(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -307,11 +356,10 @@ export default function OfferDetailPage() {
             <div className="space-y-4 pt-4">
               <Button 
                 className="w-full h-16 rounded-[2rem] bg-primary text-background font-black uppercase text-xs tracking-[0.2em] shadow-2xl hover:scale-[1.02] transition-transform"
-                onClick={() => {
-                  alert('Función de postulación técnica en desarrollo');
-                }}
+                onClick={handleApply}
+                disabled={isApplying}
               >
-                POSTULARME AHORA
+                {isApplying ? 'PROCESANDO...' : 'POSTULARME AHORA'}
               </Button>
 
               <p className="text-[9px] text-center text-muted-foreground font-medium px-4">
